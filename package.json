@@ -1,0 +1,18 @@
+{
+    "version": "4.1.2",
+    "name": "suggestions-jquery",
+    "description": "Suggestions-jquery plugin",
+    "homepage": "https://github.com/hflabs/suggestions-jquery",
+    "author": {
+	"name": "HFLabs",
+	"url": "www.hflabs.ru"
+    },
+    "repository": {
+	"type": "git",
+	"url": "https://github.com/hflabs/suggestions-jquery.git"
+    },
+    "dependencies": {
+	"grunt": ">= 0.4",
+	"grunt-contrib-uglify": ">= 0.2"
+    }
+}
