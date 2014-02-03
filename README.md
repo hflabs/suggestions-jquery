@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hflabs/suggestions-jquery.png?branch=master)](https://travis-ci.org/hflabs/suggestions-jquery)
+
 suggestions-jquery
 ==================
 
