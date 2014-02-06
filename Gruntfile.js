@@ -47,8 +47,7 @@ module.exports = function(grunt){
                 src: 'src/*.js',
                 options: {
                     specs: 'test/specs/*.js',
-                   // helpers: 'test/helpers/*.js',
-                   // host : 'http://127.0.0.1:8000/',
+                    helpers: 'test/helpers/*.js',
                     vendor: 'test/vendor/*.js',
                     outfile: 'test/runner.html',
                     keepRunner: true

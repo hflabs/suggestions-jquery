@@ -29,13 +29,13 @@ Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuer
         * `delimiter`: String or RegExp, that splits input value and takes last part to as query for suggestions.
           Useful when for example you need to fill list of  coma separated values.
         * `zIndex`: 'z-index' for suggestions container. Default: `9999`.
-        * `type`: Ajax request type to get suggestions. Default: `POST`.
         * `noCache`: Boolean value indicating whether to cache suggestion results. Default `false`.
         * `onSearchStart`: `function (query) {}` called before ajax request. `this` is bound to input element.
         * `onSearchComplete`: `function (query, suggestions) {}` called after ajax response is processed. `this` is bound to input element. `suggestions` is an array containing the results.
         * `onSearchError`: `function (query, jqXHR, textStatus, errorThrown) {}` called if ajax request fails. `this` is bound to input element.
         * `onInvalidateSelection`: `function () {}` called when input is altered after selection has been made. `this` is bound to input element.
         * `triggerSelectOnValidInput`: Boolean value indicating if `select` should be triggered if it matches suggestion. Default `true`.
+        * `triggerSelectOnSpace`: Boolean value indication that pressing space bar will triger `onSelect` handler.
         * `preventBadQueries`: Boolean value indicating if it shoud prevent future ajax requests for queries with the same root if no results were returned. E.g. if `Jam` returns no suggestions, it will not fire for any future query that starts with `Jam`. Default `true`. 
         * `beforeRender`: `function (container) {}` called before displaying the suggestions. You may manipulate suggestions DOM before it is displayed.
         * `tabDisabled`: Default `false`. Set to true to leave the cursor in the input field after the user tabs to select a suggestion.
@@ -43,9 +43,6 @@ Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuer
         * `transformResult`: `function(response, originalQuery) {}` called after the result of the query is ready. Converts the result into response.suggestions format.
         * `autoSelectFirst`: if set to `true`, first item will be selected when showing suggestions. Default value `false`.
         * `appendTo`: container where suggestions will be appended. Default value `body`. Can be jQuery object, selector or html element. Make sure to set `position: absolute` or `position: relative` for that element.
-        * `dataType`: type of data returned from server. Either 'json' (default) or 'jsonp'.
-        * `contentType`: `Content-type:` header value. Default `application/json'.
-        * `selectOnSpace`: Boolean value indication that pressing space bar will triger `onSelect` handler.
 
 Suggestions instance has following methods:
 

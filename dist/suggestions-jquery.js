@@ -25,17 +25,15 @@
             formatResult: Suggestions.formatResult,
             delimiter: null,
             zIndex: 9999,
-            type: "POST",
             noCache: !1,
             onSearchStart: noop,
             onSearchComplete: noop,
             onSearchError: noop,
             containerClass: "autocomplete-suggestions",
             tabDisabled: !1,
-            dataType: "json",
-            contentType: "application/json",
             currentRequest: null,
             triggerSelectOnValidInput: !0,
+            triggerSelectOnSpace: !1,
             preventBadQueries: !0,
             lookupFilter: function(suggestion, originalQuery, queryLowerCase) {
                 return -1 !== suggestion.value.toLowerCase().indexOf(queryLowerCase);
@@ -43,8 +41,7 @@
             paramName: "query",
             transformResult: function(response) {
                 return "string" == typeof response ? $.parseJSON(response) : response;
-            },
-            selectOnSpace: !1
+            }
         };
         that.element = el, that.el = $(el), that.suggestions = [], that.badQueries = [], 
         that.selectedIndex = -1, that.currentValue = that.element.value, that.intervalId = 0, 
@@ -76,7 +73,7 @@
         UP: 38,
         RIGHT: 39,
         DOWN: 40
-    };
+    }, eventNS = ".suggestions", dataAttrKey = "suggestions";
     Suggestions.utils = utils, $.Suggestions = Suggestions, Suggestions.formatResult = function(suggestion, currentValue) {
         var pattern = "(" + utils.escapeRegExChars(currentValue) + ")";
         return suggestion.value.replace(new RegExp(pattern, "gi"), "<strong>$1</strong>");
@@ -87,25 +84,25 @@
             that.element.setAttribute("autocomplete", "off"), that.killerFn = function(e) {
                 0 === $(e.target).closest("." + that.options.containerClass).length && (that.killSuggestions(), 
                 that.disableKillerFn());
-            }, that.suggestionsContainer = Autocomplete.utils.createNode(options.containerClass), 
+            }, that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass), 
             container = $(that.suggestionsContainer), container.appendTo(options.appendTo), 
-            "auto" !== options.width && container.width(options.width), container.on("mouseover.autocomplete", suggestionSelector, function() {
+            "auto" !== options.width && container.width(options.width), container.on("mouseover" + eventNS, suggestionSelector, function() {
                 that.activate($(this).data("index"));
-            }), container.on("mouseout.autocomplete", function() {
+            }), container.on("mouseout" + eventNS, function() {
                 that.selectedIndex = -1, container.children("." + selected).removeClass(selected);
-            }), container.on("click.autocomplete", suggestionSelector, function() {
+            }), container.on("click" + eventNS, suggestionSelector, function() {
                 that.select($(this).data("index"));
             }), that.fixPosition(), that.fixPositionCapture = function() {
                 that.visible && that.fixPosition();
-            }, $(window).on("resize.autocomplete", that.fixPositionCapture), that.el.on("keydown.autocomplete", function(e) {
+            }, $(window).on("resize" + eventNS, that.fixPositionCapture), that.el.on("keydown" + eventNS, function(e) {
                 that.onKeyPress(e);
-            }), that.el.on("keyup.autocomplete", function(e) {
+            }), that.el.on("keyup" + eventNS, function(e) {
                 that.onKeyUp(e);
-            }), that.el.on("blur.autocomplete", function() {
+            }), that.el.on("blur" + eventNS, function() {
                 that.onBlur();
-            }), that.el.on("focus.autocomplete", function() {
+            }), that.el.on("focus" + eventNS, function() {
                 that.onFocus();
-            }), that.el.on("change.autocomplete", function(e) {
+            }), that.el.on("change" + eventNS, function(e) {
                 that.onKeyUp(e);
             });
         },
@@ -148,11 +145,11 @@
         },
         enableKillerFn: function() {
             var that = this;
-            $(document).on("click.autocomplete", that.killerFn);
+            $(document).on("click" + eventNS, that.killerFn);
         },
         disableKillerFn: function() {
             var that = this;
-            $(document).off("click.autocomplete", that.killerFn);
+            $(document).off("click" + eventNS, that.killerFn);
         },
         killSuggestions: function() {
             var that = this;
@@ -193,7 +190,7 @@
                     break;
 
                   case keys.SPACE:
-                    return void (that.options.selectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
+                    return void (that.options.triggerSelectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
 
                   case keys.UP:
                     that.moveUp();
@@ -258,10 +255,10 @@
                 if (options.onSearchStart.call(that.element, options.params) === !1) return;
                 that.currentRequest && that.currentRequest.abort(), that.currentRequest = $.ajax({
                     url: serviceUrl,
-                    data: params,
-                    type: options.type,
-                    dataType: options.dataType,
-                    contentType: options.contentType
+                    data: JSON.stringify(params),
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json"
                 }).done(function(data) {
                     var result;
                     that.currentRequest = null, result = options.transformResult(data), that.processResponse(result, q, cacheKey), 
@@ -271,7 +268,9 @@
                 });
             }
         },
-        isBadQuery: function() {
+        isBadQuery: function(q) {
+            if (!this.options.preventBadQueries) return !1;
+            for (var badQueries = this.badQueries, i = badQueries.length; i--; ) if (0 === q.indexOf(badQueries[i])) return !0;
             return !1;
         },
         hide: function() {
@@ -359,15 +358,14 @@
         },
         dispose: function() {
             var that = this;
-            that.el.off(".autocomplete").removeData("autocomplete"), that.disableKillerFn(), 
-            $(window).off("resize.autocomplete", that.fixPositionCapture), $(that.suggestionsContainer).remove();
+            that.el.off(eventNS).removeData(dataAttrKey), that.disableKillerFn(), $(window).off("resize" + eventNS, that.fixPositionCapture), 
+            $(that.suggestionsContainer).remove();
         }
     }, $.fn.suggestions = function(options, args) {
-        var dataKey = "suggestions";
-        return 0 === arguments.length ? this.first().data(dataKey) : this.each(function() {
-            var inputElement = $(this), instance = inputElement.data(dataKey);
+        return 0 === arguments.length ? this.first().data(dataAttrKey) : this.each(function() {
+            var inputElement = $(this), instance = inputElement.data(dataAttrKey);
             "string" == typeof options ? instance && "function" == typeof instance[options] && instance[options](args) : (instance && instance.dispose && instance.dispose(), 
-            instance = new Suggestions(this, options), inputElement.data(dataKey, instance));
+            instance = new Suggestions(this, options), inputElement.data(dataAttrKey, instance));
         });
     };
 });
