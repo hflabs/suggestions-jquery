@@ -57,29 +57,26 @@
         that.setOptions(options);
     }
     var utils = function() {
-            return {
-                escapeRegExChars: function(value) {
-                    return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-                },
-                createNode: function(containerClass) {
-                    var div = document.createElement("div");
-                    return div.className = containerClass, div.style.position = "absolute", div.style.display = "none", 
-                    div;
-                }
-            };
-        }(), keys = {
-            ESC: 27,
-            TAB: 9,
-            RETURN: 13,
-            SPACE: 32,
-            LEFT: 37,
-            UP: 38,
-            RIGHT: 39,
-            DOWN: 40
-        },
-        eventNS = '.suggestions',
-        dataAttrKey = "suggestions";
-        
+        return {
+            escapeRegExChars: function(value) {
+                return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+            },
+            createNode: function(containerClass) {
+                var div = document.createElement("div");
+                return div.className = containerClass, div.style.position = "absolute", div.style.display = "none", 
+                div;
+            }
+        };
+    }(), keys = {
+        ESC: 27,
+        TAB: 9,
+        RETURN: 13,
+        SPACE: 32,
+        LEFT: 37,
+        UP: 38,
+        RIGHT: 39,
+        DOWN: 40
+    };
     Suggestions.utils = utils, $.Suggestions = Suggestions, Suggestions.formatResult = function(suggestion, currentValue) {
         var pattern = "(" + utils.escapeRegExChars(currentValue) + ")";
         return suggestion.value.replace(new RegExp(pattern, "gi"), "<strong>$1</strong>");
@@ -87,28 +84,28 @@
         killerFn: null,
         initialize: function() {
             var container, that = this, suggestionSelector = "." + that.classes.suggestion, selected = that.classes.selected, options = that.options;
-            that.element.setAttribute("suggestions", "off"), that.killerFn = function(e) {
+            that.element.setAttribute("autocomplete", "off"), that.killerFn = function(e) {
                 0 === $(e.target).closest("." + that.options.containerClass).length && (that.killSuggestions(), 
                 that.disableKillerFn());
-            }, that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass), 
+            }, that.suggestionsContainer = Autocomplete.utils.createNode(options.containerClass), 
             container = $(that.suggestionsContainer), container.appendTo(options.appendTo), 
-            "auto" !== options.width && container.width(options.width), container.on("mouseover" + eventNS, suggestionSelector, function() {
+            "auto" !== options.width && container.width(options.width), container.on("mouseover.autocomplete", suggestionSelector, function() {
                 that.activate($(this).data("index"));
-            }), container.on("mouseout" + eventNS, function() {
+            }), container.on("mouseout.autocomplete", function() {
                 that.selectedIndex = -1, container.children("." + selected).removeClass(selected);
-            }), container.on("click" + eventNS, suggestionSelector, function() {
+            }), container.on("click.autocomplete", suggestionSelector, function() {
                 that.select($(this).data("index"));
             }), that.fixPosition(), that.fixPositionCapture = function() {
                 that.visible && that.fixPosition();
-            }, $(window).on("resize" + eventNS, that.fixPositionCapture), that.el.on("keydown" + eventNS, function(e) {
+            }, $(window).on("resize.autocomplete", that.fixPositionCapture), that.el.on("keydown.autocomplete", function(e) {
                 that.onKeyPress(e);
-            }), that.el.on("keyup" + eventNS, function(e) {
+            }), that.el.on("keyup.autocomplete", function(e) {
                 that.onKeyUp(e);
-            }), that.el.on("blur" + eventNS, function() {
+            }), that.el.on("blur.autocomplete", function() {
                 that.onBlur();
-            }), that.el.on("focus" + eventNS, function() {
+            }), that.el.on("focus.autocomplete", function() {
                 that.onFocus();
-            }), that.el.on("change" + eventNS, function(e) {
+            }), that.el.on("change.autocomplete", function(e) {
                 that.onKeyUp(e);
             });
         },
@@ -151,11 +148,11 @@
         },
         enableKillerFn: function() {
             var that = this;
-            $(document).on("click" + eventNS, that.killerFn);
+            $(document).on("click.autocomplete", that.killerFn);
         },
         disableKillerFn: function() {
             var that = this;
-            $(document).off("click" + eventNS, that.killerFn);
+            $(document).off("click.autocomplete", that.killerFn);
         },
         killSuggestions: function() {
             var that = this;
@@ -196,7 +193,7 @@
                     break;
 
                   case keys.SPACE:
-                    return void (options.selectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
+                    return void (that.options.selectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
 
                   case keys.UP:
                     that.moveUp();
@@ -261,7 +258,7 @@
                 if (options.onSearchStart.call(that.element, options.params) === !1) return;
                 that.currentRequest && that.currentRequest.abort(), that.currentRequest = $.ajax({
                     url: serviceUrl,
-                    data: JSON.stringify(params),
+                    data: params,
                     type: options.type,
                     dataType: options.dataType,
                     contentType: options.contentType
@@ -362,14 +359,15 @@
         },
         dispose: function() {
             var that = this;
-            that.el.off(eventNS).removeData(dataAttrKey), that.disableKillerFn(), 
-            $(window).off("resize" + eventNS, that.fixPositionCapture), $(that.suggestionsContainer).remove();
+            that.el.off(".autocomplete").removeData("autocomplete"), that.disableKillerFn(), 
+            $(window).off("resize.autocomplete", that.fixPositionCapture), $(that.suggestionsContainer).remove();
         }
     }, $.fn.suggestions = function(options, args) {
-        return 0 === arguments.length ? this.first().data(dataAttrKey) : this.each(function() {
-            var inputElement = $(this), instance = inputElement.data(dataAttrKey);
+        var dataKey = "suggestions";
+        return 0 === arguments.length ? this.first().data(dataKey) : this.each(function() {
+            var inputElement = $(this), instance = inputElement.data(dataKey);
             "string" == typeof options ? instance && "function" == typeof instance[options] && instance[options](args) : (instance && instance.dispose && instance.dispose(), 
-            instance = new Suggestions(this, options), inputElement.data(dataAttrKey, instance));
+            instance = new Suggestions(this, options), inputElement.data(dataKey, instance));
         });
     };
 });

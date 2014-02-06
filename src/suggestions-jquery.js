@@ -351,7 +351,7 @@
                     }
                     break;
                 case keys.SPACE:
-                    if (options.selectOnSpace) {
+                    if (that.options.selectOnSpace) {
                         if (that.selectedIndex !== -1) {
                             that.onSelect(that.selectedIndex);
                         }
