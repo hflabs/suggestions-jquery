@@ -1,8 +1,8 @@
 /**
- * Suggestions-jquery plugin, version 4.1.2
+ * Suggestions-jquery plugin, version 4.2.0
  *
  * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
- * Depends on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
+ * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
  * For details, see https://github.com/hflabs/suggestions-jquery
  */
 !function(factory) {
@@ -50,8 +50,8 @@
         that.classes = {
             selected: "autocomplete-selected",
             suggestion: "autocomplete-suggestion"
-        }, that.hint = null, that.hintValue = "", that.selection = null, that.initialize(), 
-        that.setOptions(options);
+        }, that.hint = null, that.hintValue = "", that.selection = null, that.$viewport = $(window), 
+        that.initialize(), that.setOptions(options);
     }
     var utils = function() {
         return {
@@ -94,7 +94,8 @@
                 that.select($(this).data("index"));
             }), that.fixPosition(), that.fixPositionCapture = function() {
                 that.visible && that.fixPosition();
-            }, $(window).on("resize" + eventNS, that.fixPositionCapture), that.el.on("keydown" + eventNS, function(e) {
+            }, that.$viewport.on("resize" + eventNS + " scroll" + eventNS, that.fixPositionCapture), 
+            that.el.on("keydown" + eventNS, function(e) {
                 that.onKeyPress(e);
             }), that.el.on("keyup" + eventNS, function(e) {
                 that.onKeyUp(e);
@@ -136,12 +137,18 @@
             this.disabled = !1;
         },
         fixPosition: function() {
-            var offset, styles, that = this;
-            "body" === that.options.appendTo && (offset = that.el.offset(), styles = {
-                top: offset.top + that.el.outerHeight() + "px",
-                left: offset.left + "px"
-            }, "auto" === that.options.width && (styles.width = that.el.outerWidth() - 2 + "px"), 
-            $(that.suggestionsContainer).css(styles));
+            var bounds, styles, $container, that = this, containerHBorders = 0;
+            if ("body" === that.options.appendTo) {
+                bounds = that.el.offset(), bounds.bottom = bounds.top + that.el.outerHeight();
+                var spaceUnderInput = that.$viewport.height() + that.$viewport.scrollTop() - bounds.bottom;
+                $container = $(that.suggestionsContainer), "content-box" === $container.css("box-sizing") && (containerHBorders = parseFloat($container.css("border-top-width")) + parseFloat($container.css("border-bottom-width"))), 
+                styles = {
+                    top: bounds.bottom + "px",
+                    left: bounds.left + "px",
+                    maxHeight: spaceUnderInput - containerHBorders + "px"
+                }, "auto" === that.options.width && (styles.width = that.el.outerWidth() - 2 + "px"), 
+                $container.css(styles);
+            }
         },
         enableKillerFn: function() {
             var that = this;
@@ -358,7 +365,7 @@
         },
         dispose: function() {
             var that = this;
-            that.el.off(eventNS).removeData(dataAttrKey), that.disableKillerFn(), $(window).off("resize" + eventNS, that.fixPositionCapture), 
+            that.el.off(eventNS).removeData(dataAttrKey), that.disableKillerFn(), that.$viewport.off("resize" + eventNS).off("scroll" + eventNS), 
             $(that.suggestionsContainer).remove();
         }
     }, $.fn.suggestions = function(options, args) {

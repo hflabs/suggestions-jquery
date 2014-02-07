@@ -1,15 +1,3 @@
-/**
-*  Ajax Autocomplete for jQuery, version 1.2.9
-*  (c) 2013 Tomas Kirda
-*
-*  Ajax Autocomplete for jQuery is freely distributable under the terms of an MIT-style license.
-*  For details, see the web site: https://github.com/devbridge/jQuery-Autocomplete
-*
-*/
-
-/*jslint  browser: true, white: true, plusplus: true */
-/*global define, window, document, jQuery */
-
 // Expose plugin as an AMD module if AMD loader is present:
 (function (factory) {
     'use strict';
@@ -110,6 +98,7 @@
         that.hint = null;
         that.hintValue = '';
         that.selection = null;
+        that.$viewport = $(window);
 
         // Initialize and set options:
         that.initialize();
@@ -182,7 +171,7 @@
                 }
             };
 
-            $(window).on('resize' + eventNS, that.fixPositionCapture);
+            that.$viewport.on('resize' + eventNS + ' scroll' + eventNS, that.fixPositionCapture);
 
             that.el.on('keydown' + eventNS, function (e) { that.onKeyPress(e); });
             that.el.on('keyup' + eventNS, function (e) { that.onKeyUp(e); });
@@ -248,26 +237,39 @@
 
         fixPosition: function () {
             var that = this,
-                offset,
-                styles;
+                bounds,
+                styles,
+                $container,
+                containerHBorders = 0;
 
             // Don't adjsut position if custom container has been specified:
             if (that.options.appendTo !== 'body') {
                 return;
             }
 
-            offset = that.el.offset();
+            bounds = that.el.offset();
+            bounds.bottom = bounds.top + that.el.outerHeight();
+            var spaceUnderInput = that.$viewport.height() + that.$viewport.scrollTop() 
+                    - bounds.bottom;
 
+            $container = $(that.suggestionsContainer);
+            if ($container.css('box-sizing') === 'content-box') {
+                containerHBorders = parseFloat($container.css('border-top-width')) 
+                    + parseFloat($container.css('border-bottom-width'));
+            }
+            
             styles = {
-                top: (offset.top + that.el.outerHeight()) + 'px',
-                left: offset.left + 'px'
-            };
-
+                top: bounds.bottom + 'px',
+                left: bounds.left + 'px',
+                maxHeight: (spaceUnderInput - containerHBorders) + 'px'
+            }
+            
             if (that.options.width === 'auto') {
-                styles.width = (that.el.outerWidth() - 2) + 'px';
+                styles.width = (that.el.outerWidth() -2) + 'px';
             }
 
-            $(that.suggestionsContainer).css(styles);
+            $container.css(styles);
+            
         },
 
         enableKillerFn: function () {
@@ -805,7 +807,8 @@
             var that = this;
             that.el.off(eventNS).removeData(dataAttrKey);
             that.disableKillerFn();
-            $(window).off('resize' + eventNS, that.fixPositionCapture);
+            that.$viewport.off('resize' + eventNS)
+                    .off('scroll' + eventNS);
             $(that.suggestionsContainer).remove();
         }
     };
