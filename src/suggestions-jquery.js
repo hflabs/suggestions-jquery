@@ -500,7 +500,7 @@
                 }
                 that.currentRequest = $.ajax({
                     url: serviceUrl,
-                    data: params,
+                    data: JSON.stringify(params),
                     type: options.type,
                     dataType: options.dataType,
                     contentType: options.contentType

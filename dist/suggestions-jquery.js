@@ -258,7 +258,7 @@
                 if (options.onSearchStart.call(that.element, options.params) === !1) return;
                 that.currentRequest && that.currentRequest.abort(), that.currentRequest = $.ajax({
                     url: serviceUrl,
-                    data: params,
+                    data: JSON.stringify(params),
                     type: options.type,
                     dataType: options.dataType,
                     contentType: options.contentType
