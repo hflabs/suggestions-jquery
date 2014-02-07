@@ -11,7 +11,7 @@ module.exports = function(grunt){
                     ' <%= pkg.description %>, version <%= pkg.version %>',
                     '',
                     ' <%= pkg.description %> is freely distributable under the terms of MIT-style license',
-                    ' Depends on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
+                    ' Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
                     ' For details, see <%= pkg.homepage %>',
                     '/\n'].join('\n *')
             },

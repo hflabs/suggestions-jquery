@@ -2,7 +2,7 @@
  * Suggestions-jquery plugin, version 4.1.2
  *
  * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
- * Depends on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
+ * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
  * For details, see https://github.com/hflabs/suggestions-jquery
  */
 !function(factory) {
@@ -87,7 +87,7 @@
             that.element.setAttribute("autocomplete", "off"), that.killerFn = function(e) {
                 0 === $(e.target).closest("." + that.options.containerClass).length && (that.killSuggestions(), 
                 that.disableKillerFn());
-            }, that.suggestionsContainer = Autocomplete.utils.createNode(options.containerClass), 
+            }, that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass), 
             container = $(that.suggestionsContainer), container.appendTo(options.appendTo), 
             "auto" !== options.width && container.width(options.width), container.on("mouseover.autocomplete", suggestionSelector, function() {
                 that.activate($(this).data("index"));
@@ -359,7 +359,7 @@
         },
         dispose: function() {
             var that = this;
-            that.el.off(".autocomplete").removeData("autocomplete"), that.disableKillerFn(), 
+            that.el.off(".autocomplete").removeData("suggestions"), that.disableKillerFn(), 
             $(window).off("resize.autocomplete", that.fixPositionCapture), $(that.suggestionsContainer).remove();
         }
     }, $.fn.suggestions = function(options, args) {

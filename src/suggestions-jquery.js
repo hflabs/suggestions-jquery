@@ -1,15 +1,3 @@
-/**
-*  Ajax Autocomplete for jQuery, version 1.2.9
-*  (c) 2013 Tomas Kirda
-*
-*  Ajax Autocomplete for jQuery is freely distributable under the terms of an MIT-style license.
-*  For details, see the web site: https://github.com/devbridge/jQuery-Autocomplete
-*
-*/
-
-/*jslint  browser: true, white: true, plusplus: true */
-/*global define, window, document, jQuery */
-
 // Expose plugin as an AMD module if AMD loader is present:
 (function (factory) {
     'use strict';
@@ -147,7 +135,7 @@
                 }
             };
 
-            that.suggestionsContainer = Autocomplete.utils.createNode(options.containerClass);
+            that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass);
 
             container = $(that.suggestionsContainer);
 
@@ -790,7 +778,7 @@
 
         dispose: function () {
             var that = this;
-            that.el.off('.autocomplete').removeData('autocomplete');
+            that.el.off('.autocomplete').removeData('suggestions');
             that.disableKillerFn();
             $(window).off('resize.autocomplete', that.fixPositionCapture);
             $(that.suggestionsContainer).remove();
