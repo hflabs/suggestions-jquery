@@ -35,7 +35,7 @@
             dataType: "json",
             contentType: "application/json",
             currentRequest: null,
-            triggerSelectOnValidInput: !0,
+            triggerSelectOnValidInput: !1,
             preventBadQueries: !0,
             lookupFilter: function(suggestion, originalQuery, queryLowerCase) {
                 return -1 !== suggestion.value.toLowerCase().indexOf(queryLowerCase);
@@ -79,7 +79,7 @@
     };
     Suggestions.utils = utils, $.Suggestions = Suggestions, Suggestions.formatResult = function(suggestion, currentValue) {
         var pattern = "(" + utils.escapeRegExChars(currentValue) + ")";
-        return suggestion.value.replace(new RegExp(pattern, "gi"), "<strong>$1</strong>");
+        return suggestion.value.replace(new RegExp("^" + pattern + "|s" + pattern, "gi"), "<strong>$1</strong>");
     }, Suggestions.prototype = {
         killerFn: null,
         initialize: function() {
@@ -193,7 +193,8 @@
                     break;
 
                   case keys.SPACE:
-                    return void (that.options.selectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
+                    return void (that.options.selectOnSpace && (index = that.selectedIndex, -1 === index && (value = that.getQuery(that.el.val()), 
+                    index = that.findSuggestionIndex(value)), -1 !== index && that.onSelect(index)));
 
                   case keys.UP:
                     that.moveUp();
@@ -225,9 +226,10 @@
         },
         onValueChange: function() {
             var index, that = this, options = that.options, value = that.el.val(), query = that.getQuery(value);
-            return that.selection && (that.selection = null, (options.onInvalidateSelection || $.noop).call(that.element)), 
+            that.selection && (that.selection = null, (options.onInvalidateSelection || $.noop).call(that.element)), 
             clearInterval(that.onChangeInterval), that.currentValue = value, that.selectedIndex = -1, 
-            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(query), -1 !== index) ? void that.select(index) : void (query.length < options.minChars ? that.hide() : that.getSuggestions(query));
+            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(query), -1 !== index && that.onSelect(index)), 
+            query.length < options.minChars ? that.hide() : that.getSuggestions(query);
         },
         findSuggestionIndex: function(query) {
             var that = this, index = -1, queryLowerCase = query.toLowerCase();
@@ -282,13 +284,13 @@
         suggest: function() {
             if (0 === this.suggestions.length) return void this.hide();
             var index, width, that = this, options = that.options, formatResult = options.formatResult, value = that.getQuery(that.currentValue), className = that.classes.suggestion, classSelected = that.classes.selected, container = $(that.suggestionsContainer), beforeRender = options.beforeRender, html = "";
-            return options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), 
-            -1 !== index) ? void that.select(index) : ($.each(that.suggestions, function(i, suggestion) {
+            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), -1 !== index && that.onSelect(index)), 
+            $.each(that.suggestions, function(i, suggestion) {
                 html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + "</div>";
             }), "auto" === options.width && (width = that.el.outerWidth() - 2, container.width(width > 0 ? width : 300)), 
             container.html(html), options.autoSelectFirst && (that.selectedIndex = 0, container.children().first().addClass(classSelected)), 
             $.isFunction(beforeRender) && beforeRender.call(that.element, container), container.show(), 
-            that.visible = !0, void that.findBestHint());
+            that.visible = !0, that.findBestHint();
         },
         findBestHint: function() {
             var that = this, value = that.el.val().toLowerCase(), bestMatch = null;

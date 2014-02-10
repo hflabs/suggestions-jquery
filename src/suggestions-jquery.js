@@ -65,7 +65,7 @@
                 dataType: 'json',
                 contentType: 'application/json',
                 currentRequest: null,
-                triggerSelectOnValidInput: true,
+                triggerSelectOnValidInput: false,
                 preventBadQueries: true,
                 lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
                     return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
@@ -111,7 +111,7 @@
     Suggestions.formatResult = function (suggestion, currentValue) {
         var pattern = '(' + utils.escapeRegExChars(currentValue) + ')';
 
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
+        return suggestion.value.replace(new RegExp('^' + pattern + '|\s' + pattern, 'gi'), '<strong>$1<\/strong>');
     };
 
     Suggestions.prototype = {
@@ -340,8 +340,13 @@
                     break;
                 case keys.SPACE:
                     if (that.options.selectOnSpace) {
-                        if (that.selectedIndex !== -1) {
-                            that.onSelect(that.selectedIndex);
+                        index = that.selectedIndex;
+                        if (index === -1) {
+                            value = that.getQuery(that.el.val());
+                            index = that.findSuggestionIndex(value);
+                        }
+                        if (index !== -1) {
+                            that.onSelect(index);
                         }
                     }
                     return;
@@ -408,8 +413,7 @@
             if (options.triggerSelectOnValidInput) {
                 index = that.findSuggestionIndex(query);
                 if (index !== -1) {
-                    that.select(index);
-                    return;
+                    that.onSelect(index);
                 }
             }
 
@@ -549,8 +553,7 @@
             if (options.triggerSelectOnValidInput) {
                 index = that.findSuggestionIndex(value);
                 if (index !== -1) {
-                    that.select(index);
-                    return;
+                    that.onSelect(index);
                 }
             }
 
