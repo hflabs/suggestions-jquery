@@ -32,8 +32,12 @@
             containerClass: "autocomplete-suggestions",
             tabDisabled: !1,
             currentRequest: null,
+<<<<<<< HEAD
             triggerSelectOnValidInput: !0,
             triggerSelectOnSpace: !1,
+=======
+            triggerSelectOnValidInput: !1,
+>>>>>>> remotes/origin/4.1
             preventBadQueries: !0,
             lookupFilter: function(suggestion, originalQuery, queryLowerCase) {
                 return -1 !== suggestion.value.toLowerCase().indexOf(queryLowerCase);
@@ -76,7 +80,7 @@
     }, eventNS = ".suggestions", dataAttrKey = "suggestions";
     Suggestions.utils = utils, $.Suggestions = Suggestions, Suggestions.formatResult = function(suggestion, currentValue) {
         var pattern = "(" + utils.escapeRegExChars(currentValue) + ")";
-        return suggestion.value.replace(new RegExp(pattern, "gi"), "<strong>$1</strong>");
+        return suggestion.value.replace(new RegExp("^" + pattern + "|s" + pattern, "gi"), "<strong>$1</strong>");
     }, Suggestions.prototype = {
         killerFn: null,
         initialize: function() {
@@ -173,7 +177,7 @@
             range.moveStart("character", -valLength), valLength === range.text.length) : !0;
         },
         onKeyPress: function(e) {
-            var that = this;
+            var index, value, that = this;
             if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) return void that.suggest();
             if (!that.disabled && that.visible) {
                 switch (e.which) {
@@ -197,7 +201,12 @@
                     break;
 
                   case keys.SPACE:
+<<<<<<< HEAD
                     return void (that.options.triggerSelectOnSpace && -1 !== that.selectedIndex && that.onSelect(that.selectedIndex));
+=======
+                    return void (that.options.selectOnSpace && (index = that.selectedIndex, -1 === index && (value = that.getQuery(that.el.val()), 
+                    index = that.findSuggestionIndex(value)), -1 !== index && that.select(index, !0)));
+>>>>>>> remotes/origin/4.1
 
                   case keys.UP:
                     that.moveUp();
@@ -263,9 +272,15 @@
                 that.currentRequest && that.currentRequest.abort(), that.currentRequest = $.ajax({
                     url: serviceUrl,
                     data: JSON.stringify(params),
+<<<<<<< HEAD
                     type: "POST",
                     dataType: "json",
                     contentType: "application/json"
+=======
+                    type: options.type,
+                    dataType: options.dataType,
+                    contentType: options.contentType
+>>>>>>> remotes/origin/4.1
                 }).done(function(data) {
                     var result;
                     that.currentRequest = null, result = options.transformResult(data), that.processResponse(result, q, cacheKey), 
@@ -289,7 +304,8 @@
             if (0 === this.suggestions.length) return void this.hide();
             var index, width, that = this, options = that.options, formatResult = options.formatResult, value = that.getQuery(that.currentValue), className = that.classes.suggestion, classSelected = that.classes.selected, container = $(that.suggestionsContainer), beforeRender = options.beforeRender, html = "";
             return options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), 
-            -1 !== index) ? void that.select(index) : ($.each(that.suggestions, function(i, suggestion) {
+            -1 !== index) ? void that.select(index) : (options.selectOnSpace && /\s$/.test(value) && (index = that.findSuggestionIndex(value.replace(/\s$/, "")), 
+            -1 !== index && that.onSelect(index)), $.each(that.suggestions, function(i, suggestion) {
                 html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + "</div>";
             }), "auto" === options.width && (width = that.el.outerWidth() - 2, container.width(width > 0 ? width : 300)), 
             container.html(html), options.autoSelectFirst && (that.selectedIndex = 0, container.children().first().addClass(classSelected)), 
@@ -334,9 +350,11 @@
             var that = this, i = $.inArray(that.hint, that.suggestions);
             that.select(i);
         },
-        select: function(i) {
-            var that = this;
-            that.hide(), that.onSelect(i);
+        select: function(index, noHide) {
+            var that = this, suggestion = that.suggestions[index];
+            that.currentValue = that.getValue(suggestion.value), that.el.val(that.currentValue), 
+            that.signalHint(null), that.selection = suggestion, noHide || that.hide(), that.onSelect(index), 
+            that.suggestions = [];
         },
         moveUp: function() {
             var that = this;
@@ -355,8 +373,7 @@
         },
         onSelect: function(index) {
             var that = this, onSelectCallback = that.options.onSelect, suggestion = that.suggestions[index];
-            that.currentValue = that.getValue(suggestion.value), that.el.val(that.currentValue), 
-            that.signalHint(null), that.suggestions = [], that.selection = suggestion, $.isFunction(onSelectCallback) && onSelectCallback.call(that.element, suggestion);
+            $.isFunction(onSelectCallback) && onSelectCallback.call(that.element, suggestion);
         },
         getValue: function(value) {
             var currentValue, parts, that = this, delimiter = that.options.delimiter;
@@ -365,8 +382,13 @@
         },
         dispose: function() {
             var that = this;
+<<<<<<< HEAD
             that.el.off(eventNS).removeData(dataAttrKey), that.disableKillerFn(), that.$viewport.off("resize" + eventNS).off("scroll" + eventNS), 
             $(that.suggestionsContainer).remove();
+=======
+            that.el.off(".autocomplete").removeData("suggestions"), that.disableKillerFn(), 
+            $(window).off("resize.autocomplete", that.fixPositionCapture), $(that.suggestionsContainer).remove();
+>>>>>>> remotes/origin/4.1
         }
     }, $.fn.suggestions = function(options, args) {
         return 0 === arguments.length ? this.first().data(dataAttrKey) : this.each(function() {

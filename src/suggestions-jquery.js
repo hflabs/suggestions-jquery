@@ -58,14 +58,17 @@
                 formatResult: Suggestions.formatResult,
                 delimiter: null,
                 zIndex: 9999,
+                type: 'POST',
                 noCache: false,
                 onSearchStart: noop,
                 onSearchComplete: noop,
                 onSearchError: noop,
                 containerClass: 'autocomplete-suggestions',
                 tabDisabled: false,
+                dataType: 'json',
+                contentType: 'application/json',
                 currentRequest: null,
-                triggerSelectOnValidInput: true,
+                triggerSelectOnValidInput: false,
                 triggerSelectOnSpace: false,
                 preventBadQueries: true,
                 lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
@@ -112,7 +115,7 @@
     Suggestions.formatResult = function (suggestion, currentValue) {
         var pattern = '(' + utils.escapeRegExChars(currentValue) + ')';
 
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>');
+        return suggestion.value.replace(new RegExp('^' + pattern + '|\s' + pattern, 'gi'), '<strong>$1<\/strong>');
     };
 
     Suggestions.prototype = {
@@ -313,7 +316,8 @@
         },
 
         onKeyPress: function (e) {
-            var that = this;
+            var that = this,
+                index, value;
 
             // If suggestions are hidden and user presses arrow down, display suggestions:
             if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
@@ -354,8 +358,13 @@
                     break;
                 case keys.SPACE:
                     if (that.options.triggerSelectOnSpace) {
-                        if (that.selectedIndex !== -1) {
-                            that.onSelect(that.selectedIndex);
+                        index = that.selectedIndex;
+                        if (index === -1) {
+                            value = that.getQuery(that.el.val());
+                            index = that.findSuggestionIndex(value);
+                        }
+                        if (index !== -1) {
+                            that.select(index, true);
                         }
                     }
                     return;
@@ -515,9 +524,9 @@
                 that.currentRequest = $.ajax({
                     url: serviceUrl,
                     data: JSON.stringify(params),
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json'
+                    type: options.type,
+                    dataType: options.dataType,
+                    contentType: options.contentType
                 }).done(function (data) {
                     var result;
                     that.currentRequest = null;
@@ -580,6 +589,15 @@
                     return;
                 }
             }
+            
+            if (options.triggerSelectOnSpace && /\s$/.test(value)) {
+                index = that.findSuggestionIndex(value.replace(/\s$/, ''));
+                if (index !== -1) {
+                    that.onSelect(index);
+                }
+            }
+            
+            
 
             // Build suggestions inner HTML:
             $.each(that.suggestions, function (i, suggestion) {
@@ -707,10 +725,19 @@
             that.select(i);
         },
 
-        select: function (i) {
-            var that = this;
-            that.hide();
-            that.onSelect(i);
+        select: function (index, noHide) {
+            var that = this,
+                suggestion = that.suggestions[index];
+
+            that.currentValue = that.getValue(suggestion.value);
+            that.el.val(that.currentValue);
+            that.signalHint(null);
+            that.selection = suggestion;
+            if (!noHide) {
+                that.hide();
+            }
+            that.onSelect(index);
+            that.suggestions = [];
         },
 
         moveUp: function () {
@@ -771,12 +798,6 @@
             var that = this,
                 onSelectCallback = that.options.onSelect,
                 suggestion = that.suggestions[index];
-
-            that.currentValue = that.getValue(suggestion.value);
-            that.el.val(that.currentValue);
-            that.signalHint(null);
-            that.suggestions = [];
-            that.selection = suggestion;
 
             if ($.isFunction(onSelectCallback)) {
                 onSelectCallback.call(that.element, suggestion);
