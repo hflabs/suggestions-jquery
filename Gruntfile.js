@@ -42,6 +42,18 @@ module.exports = function(grunt){
             }
         },
         
+        concat: {
+            options: {
+                banner: '<%= uglify.options.banner %>'
+            },
+            js: {
+                expand: true,
+                cwd: 'src/',
+                src: '*.js',
+                dest: 'dist/'
+            }
+        },
+        
         jasmine: {
             js: {
                 src: 'src/*.js',
@@ -58,8 +70,9 @@ module.exports = function(grunt){
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
+    grunt.loadNpmTasks('grunt-contrib-concat');
 
     grunt.registerTask('test', ['jasmine']);
-    grunt.registerTask('build', ['test', 'uglify']);
+    grunt.registerTask('build', ['test', 'concat', 'uglify:jsmin']);
     grunt.registerTask('default', ['build']);
 };
