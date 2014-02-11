@@ -35,7 +35,7 @@ Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuer
         * `onSearchComplete`: `function (query, suggestions) {}` called after ajax response is processed. `this` is bound to input element. `suggestions` is an array containing the results.
         * `onSearchError`: `function (query, jqXHR, textStatus, errorThrown) {}` called if ajax request fails. `this` is bound to input element.
         * `onInvalidateSelection`: `function () {}` called when input is altered after selection has been made. `this` is bound to input element.
-        * `triggerSelectOnValidInput`: Boolean value indicating if `select` should be triggered if it matches suggestion. Default `true`.
+        * `triggerSelectOnValidInput`: Boolean value indicating if `select` should be triggered if it matches suggestion. Default `false`.
         * `preventBadQueries`: Boolean value indicating if it shoud prevent future ajax requests for queries with the same root if no results were returned. E.g. if `Jam` returns no suggestions, it will not fire for any future query that starts with `Jam`. Default `true`. 
         * `beforeRender`: `function (container) {}` called before displaying the suggestions. You may manipulate suggestions DOM before it is displayed.
         * `tabDisabled`: Default `false`. Set to true to leave the cursor in the input field after the user tabs to select a suggestion.

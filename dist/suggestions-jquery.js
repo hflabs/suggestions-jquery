@@ -169,7 +169,7 @@
             range.moveStart("character", -valLength), valLength === range.text.length) : !0;
         },
         onKeyPress: function(e) {
-            var that = this;
+            var index, value, that = this;
             if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) return void that.suggest();
             if (!that.disabled && that.visible) {
                 switch (e.which) {
@@ -194,7 +194,7 @@
 
                   case keys.SPACE:
                     return void (that.options.selectOnSpace && (index = that.selectedIndex, -1 === index && (value = that.getQuery(that.el.val()), 
-                    index = that.findSuggestionIndex(value)), -1 !== index && that.onSelect(index)));
+                    index = that.findSuggestionIndex(value)), -1 !== index && that.select(index, !0)));
 
                   case keys.UP:
                     that.moveUp();
@@ -226,10 +226,9 @@
         },
         onValueChange: function() {
             var index, that = this, options = that.options, value = that.el.val(), query = that.getQuery(value);
-            that.selection && (that.selection = null, (options.onInvalidateSelection || $.noop).call(that.element)), 
+            return that.selection && (that.selection = null, (options.onInvalidateSelection || $.noop).call(that.element)), 
             clearInterval(that.onChangeInterval), that.currentValue = value, that.selectedIndex = -1, 
-            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(query), -1 !== index && that.onSelect(index)), 
-            query.length < options.minChars ? that.hide() : that.getSuggestions(query);
+            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(query), -1 !== index) ? void that.select(index) : void (query.length < options.minChars ? that.hide() : that.getSuggestions(query));
         },
         findSuggestionIndex: function(query) {
             var that = this, index = -1, queryLowerCase = query.toLowerCase();
@@ -284,13 +283,14 @@
         suggest: function() {
             if (0 === this.suggestions.length) return void this.hide();
             var index, width, that = this, options = that.options, formatResult = options.formatResult, value = that.getQuery(that.currentValue), className = that.classes.suggestion, classSelected = that.classes.selected, container = $(that.suggestionsContainer), beforeRender = options.beforeRender, html = "";
-            options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), -1 !== index && that.onSelect(index)), 
-            $.each(that.suggestions, function(i, suggestion) {
+            return options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), 
+            -1 !== index) ? void that.select(index) : (options.selectOnSpace && /\s$/.test(value) && (index = that.findSuggestionIndex(value.replace(/\s$/, "")), 
+            -1 !== index && that.onSelect(index)), $.each(that.suggestions, function(i, suggestion) {
                 html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + "</div>";
             }), "auto" === options.width && (width = that.el.outerWidth() - 2, container.width(width > 0 ? width : 300)), 
             container.html(html), options.autoSelectFirst && (that.selectedIndex = 0, container.children().first().addClass(classSelected)), 
             $.isFunction(beforeRender) && beforeRender.call(that.element, container), container.show(), 
-            that.visible = !0, that.findBestHint();
+            that.visible = !0, void that.findBestHint());
         },
         findBestHint: function() {
             var that = this, value = that.el.val().toLowerCase(), bestMatch = null;
@@ -330,9 +330,11 @@
             var that = this, i = $.inArray(that.hint, that.suggestions);
             that.select(i);
         },
-        select: function(i) {
-            var that = this;
-            that.hide(), that.onSelect(i);
+        select: function(index, noHide) {
+            var that = this, suggestion = that.suggestions[index];
+            that.currentValue = that.getValue(suggestion.value), that.el.val(that.currentValue), 
+            that.signalHint(null), that.selection = suggestion, noHide || that.hide(), that.onSelect(index), 
+            that.suggestions = [];
         },
         moveUp: function() {
             var that = this;
@@ -351,8 +353,7 @@
         },
         onSelect: function(index) {
             var that = this, onSelectCallback = that.options.onSelect, suggestion = that.suggestions[index];
-            that.currentValue = that.getValue(suggestion.value), that.el.val(that.currentValue), 
-            that.signalHint(null), that.suggestions = [], that.selection = suggestion, $.isFunction(onSelectCallback) && onSelectCallback.call(that.element, suggestion);
+            $.isFunction(onSelectCallback) && onSelectCallback.call(that.element, suggestion);
         },
         getValue: function(value) {
             var currentValue, parts, that = this, delimiter = that.options.delimiter;
