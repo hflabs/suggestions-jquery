@@ -372,6 +372,8 @@
             var that = this,
                 index, value;
 
+            that.triggeredSelectOnSpace = false;
+                
             // If suggestions are hidden and user presses arrow down, display suggestions:
             if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
                 that.suggest();
@@ -417,6 +419,7 @@
                             index = that.findSuggestionIndex(value);
                         }
                         if (index !== -1) {
+                            that.triggeredSelectOnSpace = true;
                             that.select(index, true);
                         }
                     }
@@ -642,7 +645,7 @@
                 }
             }
             
-            if (options.triggerSelectOnSpace && /\s$/.test(value)) {
+            if (options.triggerSelectOnSpace && !that.triggeredSelectOnSpace && /\s$/.test(value)) {
                 index = that.findSuggestionIndex(value.replace(/\s$/, ''));
                 if (index !== -1) {
                     that.onSelect(index);
