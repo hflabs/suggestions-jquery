@@ -118,9 +118,8 @@
     $.Suggestions = Suggestions;
 
     Suggestions.formatResult = function (suggestion, currentValue) {
-        var pattern = '(' + utils.escapeRegExChars(currentValue) + ')';
-
-        return suggestion.value.replace(new RegExp('^' + pattern + '|\s' + pattern, 'gi'), '<strong>$1<\/strong>');
+        var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+        return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
     };
 
     Suggestions.prototype = {

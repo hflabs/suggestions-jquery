@@ -14,7 +14,7 @@ describe('Suggestions-jquery', function () {
     });
     
     afterEach(function () {
-        $('.autocomplete-suggestions').hide();
+        $('.autocomplete-suggestions').remove();
         this.server.restore();
     });
 
@@ -241,5 +241,20 @@ describe('Suggestions-jquery', function () {
         
         expect(this.server.requests.length).toEqual(2);
     });
+
+    it('Should highlight search phrase', function () {
+        this.instance.setOptions({
+            lookup: ['Japaneese lives in Japan and love non-japaneese']
+        });
+
+        this.input.value = 'japa';
+        this.instance.onValueChange();
+        
+        var $item = $('.autocomplete-suggestion');
+            
+        expect($item.length).toEqual(1);
+        expect($item.html()).toContain('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
+    });
+
 
 });
