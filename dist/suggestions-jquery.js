@@ -46,7 +46,8 @@
         },
         
         eventNS = '.suggestions',
-        dataAttrKey = 'suggestions';
+        dataAttrKey = 'suggestions',
+        tokensValid = {};
 
     function Suggestions(el, options) {
         var noop = function () { },
@@ -65,15 +66,12 @@
                 formatResult: Suggestions.formatResult,
                 delimiter: null,
                 zIndex: 9999,
-                type: 'POST',
                 noCache: false,
                 onSearchStart: noop,
                 onSearchComplete: noop,
                 onSearchError: noop,
                 containerClass: 'autocomplete-suggestions',
                 tabDisabled: false,
-                dataType: 'json',
-                contentType: 'application/json',
                 currentRequest: null,
                 triggerSelectOnValidInput: false,
                 triggerSelectOnSpace: false,
@@ -220,6 +218,61 @@
                 'width': options.width + 'px',
                 'z-index': options.zIndex
             });
+            
+            that.checkToken();
+        },
+
+        getAjaxParams: function () {
+            var that = this,
+                params,
+                token = $.trim(that.options.token);
+            
+            params = {
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+            };
+            if (token) {
+                params.headers = {
+                    'Authorization': 'Token ' + token
+                }
+            }
+            return params;
+        },
+
+        checkToken: function () {
+            var that = this,
+                token = $.trim(that.options.token),
+                tokenValid = tokensValid[token],
+                onTokenReady = function(){
+                    that.checkToken();
+                },
+                serviceUrl;
+            
+            if (token) {
+                if (tokenValid && $.isFunction(tokenValid.promise)) {
+                    switch (tokenValid.state()) {
+                        case 'resolved':
+                            that.enable();
+                            break;
+                        case 'rejected':
+                            that.disable();
+                            break;
+                        default:
+                            tokenValid.then(onTokenReady);
+                    }
+                } else {
+                    serviceUrl = that.options.serviceUrl;
+                    if ($.isFunction(serviceUrl)) {
+                        serviceUrl = serviceUrl.call(that.element);
+                    }
+                    tokensValid[token] = $.ajax(
+                        $.extend(that.getAjaxParams(), {
+                            url: serviceUrl
+                        })
+                    ).then(onTokenReady);
+                }
+            }
         },
 
         clearCache: function () {
@@ -528,13 +581,12 @@
                 if (that.currentRequest) {
                     that.currentRequest.abort();
                 }
-                that.currentRequest = $.ajax({
-                    url: serviceUrl,
-                    data: JSON.stringify(params),
-                    type: options.type,
-                    dataType: options.dataType,
-                    contentType: options.contentType
-                }).done(function (data) {
+                that.currentRequest = $.ajax(
+                    $.extend(that.getAjaxParams(), {
+                        url: serviceUrl,
+                        data: JSON.stringify(params)
+                    })
+                ).done(function (data) {
                     var result;
                     that.currentRequest = null;
                     result = options.transformResult(data);

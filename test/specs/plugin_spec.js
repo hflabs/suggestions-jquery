@@ -121,7 +121,7 @@ describe('Suggestions-jquery', function () {
         this.instance.setOptions({
             ignoreParams: true,
             serviceUrl: function (query) {
-                return '/dynamic-url/' + encodeURIComponent(query).replace(/%20/g, "+");
+                return '/dynamic-url/' + (query && encodeURIComponent(query).replace(/%20/g, "+") || '');
             }
         });
 

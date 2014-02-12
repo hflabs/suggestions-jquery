@@ -43,6 +43,7 @@ Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuer
         * `transformResult`: `function(response, originalQuery) {}` called after the result of the query is ready. Converts the result into response.suggestions format.
         * `autoSelectFirst`: if set to `true`, first item will be selected when showing suggestions. Default value `false`.
         * `appendTo`: container where suggestions will be appended. Default value `body`. Can be jQuery object, selector or html element. Make sure to set `position: absolute` or `position: relative` for that element.
+        * `token`: string token to authorize client.
 
 Suggestions instance has following methods:
 
