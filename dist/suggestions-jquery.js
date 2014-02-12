@@ -170,7 +170,7 @@
         },
         onKeyPress: function(e) {
             var index, value, that = this;
-            if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) return void that.suggest();
+            if (that.selectedOnKeypress = !1, !that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) return void that.suggest();
             if (!that.disabled && that.visible) {
                 switch (e.which) {
                   case keys.ESC:
@@ -194,7 +194,8 @@
 
                   case keys.SPACE:
                     return void (that.options.selectOnSpace && (index = that.selectedIndex, -1 === index && (value = that.getQuery(that.el.val()), 
-                    index = that.findSuggestionIndex(value)), -1 !== index && that.select(index, !0)));
+                    index = that.findSuggestionIndex(value)), -1 !== index && (that.selectedOnKeypress = !0, 
+                    that.select(index, !0))));
 
                   case keys.UP:
                     that.moveUp();
@@ -284,7 +285,7 @@
             if (0 === this.suggestions.length) return void this.hide();
             var index, width, that = this, options = that.options, formatResult = options.formatResult, value = that.getQuery(that.currentValue), className = that.classes.suggestion, classSelected = that.classes.selected, container = $(that.suggestionsContainer), beforeRender = options.beforeRender, html = "";
             return options.triggerSelectOnValidInput && (index = that.findSuggestionIndex(value), 
-            -1 !== index) ? void that.select(index) : (options.selectOnSpace && /\s$/.test(value) && (index = that.findSuggestionIndex(value.replace(/\s$/, "")), 
+            -1 !== index) ? void that.select(index) : (options.selectOnSpace && !that.selectedOnKeypress && /\s$/.test(value) && (index = that.findSuggestionIndex(value.replace(/\s$/, "")), 
             -1 !== index && that.onSelect(index)), $.each(that.suggestions, function(i, suggestion) {
                 html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + "</div>";
             }), "auto" === options.width && (width = that.el.outerWidth() - 2, container.width(width > 0 ? width : 300)), 
