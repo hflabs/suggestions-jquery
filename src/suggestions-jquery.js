@@ -399,16 +399,25 @@
                         that.selectHint();
                         return;
                     }
-                    // Fall through to RETURN
-                case keys.RETURN:
                     if (that.selectedIndex === -1) {
                         that.hide();
                         return;
                     }
                     that.select(that.selectedIndex);
-                    if (e.which === keys.TAB && that.options.tabDisabled === false) {
+                    if (that.options.tabDisabled === false) {
                         return;
                     }
+                    break;
+                case keys.RETURN:
+                    if (that.selectedIndex === -1) {
+                        if (that.suggestions && that.suggestions.length > 0) {
+                            that.selectedIndex = 0;
+                        } else {
+                            that.hide();
+                            return;
+                        }
+                    }
+                    that.select(that.selectedIndex);
                     break;
                 case keys.SPACE:
                     if (that.options.triggerSelectOnSpace) {
