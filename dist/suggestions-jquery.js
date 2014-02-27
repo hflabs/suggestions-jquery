@@ -1,5 +1,5 @@
 /**
- * Suggestions-jquery plugin, version 4.2.0
+ * Suggestions-jquery plugin, version 4.2.1
  *
  * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
  * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -74,7 +74,7 @@
                 tabDisabled: false,
                 currentRequest: null,
                 triggerSelectOnValidInput: false,
-                triggerSelectOnSpace: false,
+                triggerSelectOnSpace: true,
                 preventBadQueries: true,
                 lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
                     return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;

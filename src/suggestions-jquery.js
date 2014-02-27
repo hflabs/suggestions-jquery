@@ -67,7 +67,7 @@
                 tabDisabled: false,
                 currentRequest: null,
                 triggerSelectOnValidInput: false,
-                triggerSelectOnSpace: false,
+                triggerSelectOnSpace: true,
                 preventBadQueries: true,
                 lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
                     return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
