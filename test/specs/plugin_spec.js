@@ -61,31 +61,6 @@ describe('Suggestions-jquery', function () {
         expect(this.instance.options.lookup[1].value).toBe('B');
     });
 
-    it('Should not autoselect first item by default', function () {
-        this.instance.setOptions({
-            lookup: ['Jamaica', 'Jamaica', 'Jamaica']
-        });
-        this.instance.selectedIndex = -1;
-
-        this.input.value = 'Jam';
-        this.instance.onValueChange();
-
-        expect(this.instance.selectedIndex).toBe(-1);
-    });
-
-    it('Should autoselect first item if autoSelectFirst set to true', function () {
-        this.instance.setOptions({
-            lookup: ['Jamaica', 'Jamaica', 'Jamaica'],
-            autoSelectFirst: true
-        });
-        this.instance.selectedIndex = -1;
-
-        this.input.value = 'Jam';
-        this.instance.onValueChange();
-
-        expect(this.instance.selectedIndex).toBe(0);
-    });
-
     it('Should use custom query parameter name', function () {
         var paramName = 'custom',
             paramValue = null;
@@ -161,63 +136,6 @@ describe('Suggestions-jquery', function () {
         expect(elementCount).toBe(1);
     });
 
-    it('Should trigger select when input value matches suggestion', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
-            options = {
-                lookup: [suggestion],
-                triggerSelectOnValidInput: true,
-                onSelect: function(){}
-            };
-        spyOn(options, 'onSelect');
-
-        this.instance.setOptions(options);
-
-        this.input.value = 'Jamaica';
-        this.instance.onValueChange();
-
-        expect(options.onSelect).toHaveBeenCalledWith(suggestion);
-    });
-    
-    it('Should trigger select when space bar pressed and triggerSelectOnSpace set to true', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
-            options = {
-                lookup: [suggestion],
-                triggerSelectOnSpace: true,
-                onSelect: function(){}
-            };
-        spyOn(options, 'onSelect');
-
-        this.instance.setOptions(options);
-
-        this.input.value = 'Jam';
-        this.instance.onValueChange();
-        
-        this.instance.selectedIndex = 0;
-        
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 32; // code of space
-        $(this.input).trigger(event);
-        
-        expect(options.onSelect).toHaveBeenCalledWith(suggestion);
-    });
-
-    it('Should NOT trigger select when input value matches suggestion', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
-            options = {
-                lookup: [suggestion],
-                triggerSelectOnValidInput: false,
-                onSelect: function(){}
-            };
-        spyOn(options, 'onSelect');
-
-        this.instance.setOptions(options);
-
-        this.input.value = 'Jamaica';
-        this.instance.onValueChange();
-
-        expect(options.onSelect).not.toHaveBeenCalled();
-    });
-
     it('Should prevent Ajax requests if previous query with matching root failed.', function () {
 
         this.input.value = 'Jam';
@@ -255,6 +173,5 @@ describe('Suggestions-jquery', function () {
         expect($item.length).toEqual(1);
         expect($item.html()).toContain('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
     });
-
 
 });
