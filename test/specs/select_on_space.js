@@ -52,10 +52,7 @@ describe('Select on Space', function () {
 
         this.input.value = 'Jamaica';
         this.instance.onValueChange();
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 32; // code of space
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 32); // code of space
 
         expect(options.onSelect).toHaveBeenCalledWith(suggestion);
     });
@@ -75,10 +72,7 @@ describe('Select on Space', function () {
         this.instance.onValueChange();
 
         this.instance.selectedIndex = 0;
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 32; // code of space
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 32); // code of space
 
         expect(options.onSelect).not.toHaveBeenCalled();
     });

@@ -60,10 +60,7 @@ describe('Select on Enter', function () {
         this.instance.onValueChange();
 
         this.instance.selectedIndex = 2;
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);
     });
@@ -81,10 +78,7 @@ describe('Select on Enter', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect).not.toHaveBeenCalled();
     });
@@ -102,10 +96,7 @@ describe('Select on Enter', function () {
 
         this.input.value = 'Alg';
         this.instance.onValueChange();
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect).not.toHaveBeenCalled();
     });
