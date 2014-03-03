@@ -415,6 +415,7 @@
                         return;
                     }
                     break;
+
                 case keys.RETURN:
                     index = that.selectedIndex;
                     if (index === -1) {
@@ -812,18 +813,27 @@
             that.suggestions = [];
         },
 
+        unselect: function() {
+            var that = this;
+
+            $(that.suggestionsContainer).children().removeClass(that.classes.selected);
+            that.selectedIndex = -1;
+            that.el.val(that.currentValue);
+            that.findBestHint();
+        },
+        
         moveUp: function () {
             var that = this;
 
             if (that.selectedIndex === -1) {
+                if (that.suggestions.length) {
+                    that.adjustScroll(that.suggestions.length - 1);
+                }
                 return;
             }
 
             if (that.selectedIndex === 0) {
-                $(that.suggestionsContainer).children().first().removeClass(that.classes.selected);
-                that.selectedIndex = -1;
-                that.el.val(that.currentValue);
-                that.findBestHint();
+                that.unselect();
                 return;
             }
 
@@ -834,6 +844,7 @@
             var that = this;
 
             if (that.selectedIndex === (that.suggestions.length - 1)) {
+                that.unselect();
                 return;
             }
 
