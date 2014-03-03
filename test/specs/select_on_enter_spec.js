@@ -17,7 +17,7 @@ describe('Select on Enter', function () {
         this.server.restore();
     });
 
-    it('Should trigger suggestion when it equals to query', function () {
+    it('Should trigger on full match', function () {
         var suggestions = [
                 { value: 'Afghanistan', data: 'Af' },
                 { value: 'Albania', data: 'Al' },
@@ -42,7 +42,7 @@ describe('Select on Enter', function () {
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
     
-    it('Should trigger suggestion when it is selected', function () {
+    it('Should trigger when suggestion is selected manually', function () {
         var suggestions = [
             { value: 'Afghanistan', data: 'Af' },
             { value: 'Albania', data: 'Al' },
@@ -66,6 +66,27 @@ describe('Select on Enter', function () {
         $(this.input).trigger(event);
 
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);
+    });
+
+    it('Should NOT trigger on partial match', function () {
+        var suggestion = { value: 'Jamaica', data: 'J' },
+            options = {
+                lookup: [suggestion],
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        var event = $.Event('keydown');
+        event.keyCode = event.which = 13; // code of Enter
+        $(this.input).trigger(event);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
     });
 
     it('Should NOT trigger when nothing matched', function () {
