@@ -1,5 +1,5 @@
 /**
- * Suggestions-jquery plugin, version 4.2.1
+ * Suggestions-jquery plugin, version 4.2.2
  *
  * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
  * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -416,15 +416,17 @@
                     }
                     break;
                 case keys.RETURN:
-                    if (that.selectedIndex === -1) {
-                        if (that.suggestions && that.suggestions.length > 0) {
-                            that.selectedIndex = 0;
-                        } else {
-                            that.hide();
-                            return;
-                        }
+                    index = that.selectedIndex;
+                    if (index === -1) {
+                        value = that.getQuery(that.el.val());
+                        index = that.findSuggestionIndex(value);
                     }
-                    that.select(that.selectedIndex);
+                    if (index !== -1) {
+                        that.select(index);
+                    } else {
+                        that.hide();
+                        return;
+                    }
                     break;
                 case keys.SPACE:
                     if (that.options.triggerSelectOnSpace) {

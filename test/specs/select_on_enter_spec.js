@@ -17,10 +17,14 @@ describe('Select on Enter', function () {
         this.server.restore();
     });
 
-    it('Should trigger first suggestion when it is not selected', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
+    it('Should trigger suggestion when it equals to query', function () {
+        var suggestions = [
+                { value: 'Afghanistan', data: 'Af' },
+                { value: 'Albania', data: 'Al' },
+                { value: 'Andorra', data: 'An' }
+            ],
             options = {
-                lookup: [suggestion],
+                lookup: suggestions,
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
@@ -28,39 +32,17 @@ describe('Select on Enter', function () {
         this.instance.setOptions(options);
         this.instance.selectedIndex = -1;
 
-        this.input.value = 'Jam';
+        this.input.value = 'Albania';
         this.instance.onValueChange();
 
         var event = $.Event('keydown');
         event.keyCode = event.which = 13; // code of Enter
         $(this.input).trigger(event);
 
-        expect(options.onSelect).toHaveBeenCalledWith(suggestion);
+        expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
-
-    it('Should trigger first suggestion when it is selected', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
-            options = {
-                lookup: [suggestion],
-                onSelect: function(){}
-            };
-        spyOn(options, 'onSelect');
-
-        this.instance.setOptions(options);
-
-        this.input.value = 'Jam';
-        this.instance.onValueChange();
-
-        this.instance.selectedIndex = 0;
-
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
-
-        expect(options.onSelect).toHaveBeenCalledWith(suggestion);
-    });
-
-    it('Should trigger other (not first) suggestion when it is selected', function () {
+    
+    it('Should trigger suggestion when it is selected', function () {
         var suggestions = [
             { value: 'Afghanistan', data: 'Af' },
             { value: 'Albania', data: 'Al' },
