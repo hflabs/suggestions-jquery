@@ -107,6 +107,8 @@
         that.hintValue = '';
         that.selection = null;
         that.$viewport = $(window);
+        that.triggeredSelectOnSpace = false;
+        that.skipOnFocus = false;
 
         // Initialize and set options:
         that.initialize();
@@ -168,6 +170,8 @@
             // Listen for click event on suggestions list:
             container.on('click' + eventNS, suggestionSelector, function () {
                 that.select($(this).data('index'));
+                that.skipOnFocus = true;
+                that.el.focus();
             });
 
             that.fixPosition();
@@ -189,10 +193,13 @@
 
         onFocus: function () {
             var that = this;
-            that.fixPosition();
-            if (that.options.minChars <= that.el.val().length) {
-                that.onValueChange();
+            if (!that.skipOnFocus) {
+                that.fixPosition();
+                if (that.options.minChars <= that.el.val().length) {
+                    that.onValueChange();
+                }
             }
+            that.skipOnFocus = false;
         },
 
         onBlur: function () {
