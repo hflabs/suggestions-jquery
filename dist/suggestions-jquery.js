@@ -182,7 +182,7 @@
                 }
             };
 
-            that.$viewport.on('resize' + eventNS + ' scroll' + eventNS, that.fixPositionCapture);
+            that.$viewport.on('resize' + eventNS, that.fixPositionCapture);
 
             that.el.on('keydown' + eventNS, function (e) { that.onKeyPress(e); });
             that.el.on('keyup' + eventNS, function (e) { that.onKeyUp(e); });
@@ -329,8 +329,7 @@
             
             styles = {
                 top: bounds.bottom + 'px',
-                left: bounds.left + 'px',
-                maxHeight: (spaceUnderInput - containerHBorders) + 'px'
+                left: bounds.left + 'px'
             }
             
             if (that.options.width === 'auto') {
@@ -918,8 +917,7 @@
             var that = this;
             that.el.off(eventNS).removeData(dataAttrKey);
             that.disableKillerFn();
-            that.$viewport.off('resize' + eventNS)
-                    .off('scroll' + eventNS);
+            that.$viewport.off('resize' + eventNS);
             $(that.suggestionsContainer).remove();
         }
     };
