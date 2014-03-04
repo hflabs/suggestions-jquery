@@ -119,8 +119,6 @@
 
     Suggestions.prototype = {
 
-        killerFn: null,
-
         initialize: function () {
             var that = this,
                 suggestionSelector = '.' + that.classes.suggestion,
@@ -130,13 +128,6 @@
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
-
-            that.killerFn = function (e) {
-                if ($(e.target).closest('.' + that.options.containerClass).length === 0) {
-                    that.killSuggestions();
-                    that.disableKillerFn();
-                }
-            };
 
             that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass);
 
@@ -148,6 +139,37 @@
             if (options.width !== 'auto') {
                 container.width(options.width);
             }
+
+            // This whole handler is needed to prevent blur event on textbox
+            // when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
+            // See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
+            container.on('mousedown' + eventNS, suggestionSelector, function (event) {
+                // prevent moving focus out of the text field
+				event.preventDefault();
+
+				// IE doesn't prevent moving focus even with event.preventDefault()
+				// so we set a flag to know when we should ignore the blur event
+				that.cancelBlur = true;
+				that._delay(function() {
+					delete that.cancelBlur;
+				});
+
+				// clicking on the scrollbar causes focus to shift to the body
+				// but we can't detect a mouseup or a click immediately afterward
+				// so we have to track the next mousedown and close the menu if
+				// the user clicks somewhere outside of the autocomplete
+				if ( !$(event.target).closest(".ui-menu-item").length ) {
+					that._delay(function() {
+						$(document).one( "mousedown", function( event ) {
+							if (event.target !== that.element &&
+									event.target !== that.suggestionsContainer &&
+									!$.contains(that.suggestionsContainer, event.target)) {
+								that.hide();
+							}
+						});
+					});
+				}
+            });
 
             // Listen for mouse over event on suggestions list:
             container.on('mouseover' + eventNS, suggestionSelector, function () {
@@ -196,7 +218,14 @@
         },
 
         onBlur: function () {
-            this.enableKillerFn();
+            var that = this;
+            // suggestion was clicked, blur should be ignored
+            // see container mousedown handler
+            if (that.cancelBlur) {
+                delete that.cancelBlur;
+                return;
+            }
+            that.hide();
         },
 
         setOptions: function (suppliedOptions) {
@@ -229,7 +258,7 @@
             params = {
                 type: 'POST',
                 dataType: 'json',
-                contentType: 'application/json',
+                contentType: 'application/json'
             };
             if (token) {
                 params.headers = {
@@ -301,8 +330,7 @@
             var that = this,
                 bounds,
                 styles,
-                $container,
-                containerHBorders = 0;
+                $container;
 
             // Don't adjsut position if custom container has been specified:
             if (that.options.appendTo !== 'body') {
@@ -311,15 +339,9 @@
 
             bounds = that.el.offset();
             bounds.bottom = bounds.top + that.el.outerHeight();
-            var spaceUnderInput = that.$viewport.height() + that.$viewport.scrollTop() 
-                    - bounds.bottom;
 
             $container = $(that.suggestionsContainer);
-            if ($container.css('box-sizing') === 'content-box') {
-                containerHBorders = parseFloat($container.css('border-top-width')) 
-                    + parseFloat($container.css('border-bottom-width'));
-            }
-            
+
             styles = {
                 top: bounds.bottom + 'px',
                 left: bounds.left + 'px'
@@ -331,29 +353,6 @@
 
             $container.css(styles);
             
-        },
-
-        enableKillerFn: function () {
-            var that = this;
-            $(document).on('click' + eventNS, that.killerFn);
-        },
-
-        disableKillerFn: function () {
-            var that = this;
-            $(document).off('click' + eventNS, that.killerFn);
-        },
-
-        killSuggestions: function () {
-            var that = this;
-            that.stopKillSuggestions();
-            that.intervalId = window.setInterval(function () {
-                that.hide();
-                that.stopKillSuggestions();
-            }, 50);
-        },
-
-        stopKillSuggestions: function () {
-            window.clearInterval(this.intervalId);
         },
 
         isCursorAtEnd: function () {
@@ -909,9 +908,17 @@
         dispose: function () {
             var that = this;
             that.el.off(eventNS).removeData(dataAttrKey);
-            that.disableKillerFn();
             that.$viewport.off('resize' + eventNS);
             $(that.suggestionsContainer).remove();
+        },
+
+        _delay: function (handler, delay) {
+            function handlerProxy() {
+                return ( typeof handler === "string" ? instance[ handler ] : handler )
+                    .apply( instance, arguments );
+            }
+            var instance = this;
+            return setTimeout( handlerProxy, delay || 0 );
         }
     };
 
