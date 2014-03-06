@@ -1,5 +1,5 @@
 /**
- * Suggestions-jquery plugin, version 4.2.2
+ * Suggestions-jquery plugin, version 4.2.3
  *
  * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
  * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -232,6 +232,7 @@
                 delete that.cancelBlur;
                 return;
             }
+            that.selectCurrentValue();
             that.hide();
         },
 
@@ -422,28 +423,17 @@
                     break;
 
                 case keys.RETURN:
-                    index = that.selectedIndex;
+                    index = that.selectCurrentValue();
                     if (index === -1) {
-                        value = that.getQuery(that.el.val());
-                        index = that.findSuggestionIndex(value);
-                    }
-                    if (index !== -1) {
-                        that.select(index);
-                    } else {
                         that.hide();
                         return;
                     }
                     break;
                 case keys.SPACE:
                     if (that.options.triggerSelectOnSpace) {
-                        index = that.selectedIndex;
-                        if (index === -1) {
-                            value = that.getQuery(that.el.val());
-                            index = that.findSuggestionIndex(value);
-                        }
+                        index = that.selectCurrentValue();
                         if (index !== -1) {
                             that.triggeredSelectOnSpace = true;
-                            that.select(index, true);
                         }
                     }
                     return;
@@ -801,6 +791,19 @@
                 i = $.inArray(that.hint, that.suggestions);
 
             that.select(i);
+        },
+
+        selectCurrentValue: function() {
+            var that = this,
+                index = that.selectedIndex;
+            if (index === -1) {
+                var value = that.getQuery(that.el.val());
+                index = that.findSuggestionIndex(value);
+            }
+            if (index !== -1) {
+                that.select(index);
+            }
+            return index;
         },
 
         select: function (index, noHide) {
