@@ -15,18 +15,6 @@ module.exports = function(grunt){
                     ' For details, see <%= pkg.homepage %>',
                     '/\n'].join('\n *')
             },
-            js:{
-                options: {
-                    mangle: false,
-                    beautify: true
-                },
-                files: [{
-                    expand: true,
-                    cwd: 'src/',
-                    src: '*.js',
-                    dest: 'dist/'
-                }]
-            },
             jsmin: {
                 options: {
                     mangle: true,
@@ -36,7 +24,7 @@ module.exports = function(grunt){
                     expand: true,
                     cwd: 'src/',
                     src: '*.js',
-                    dest: 'dist/',
+                    dest: 'dist/js/',
                     ext: '.min.js'
                 }]
             }
@@ -50,7 +38,7 @@ module.exports = function(grunt){
                 expand: true,
                 cwd: 'src/',
                 src: '*.js',
-                dest: 'dist/'
+                dest: 'dist/js/'
             }
         },
         
@@ -65,14 +53,25 @@ module.exports = function(grunt){
                     keepRunner: true
                 }
             }
+        },
+
+        less: {
+            js: {
+                expand: true,
+                cwd: 'less/',
+                src: '*.less',
+                dest: 'dist/css/',
+                ext: '.css'
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-less');
 
     grunt.registerTask('test', ['jasmine']);
-    grunt.registerTask('build', ['test', 'concat', 'uglify:jsmin']);
+    grunt.registerTask('build', ['test', 'less', 'concat', 'uglify:jsmin']);
     grunt.registerTask('default', ['build']);
 };

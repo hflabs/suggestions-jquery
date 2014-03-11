@@ -13,7 +13,7 @@ describe('Select on Space', function () {
     });
 
     afterEach(function () {
-        $('.autocomplete-suggestions').remove();
+        $('.suggestions-suggestions').remove();
         this.server.restore();
     });
 

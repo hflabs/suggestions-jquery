@@ -42,8 +42,8 @@ Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuer
         * `paramName`: Default `query`. The name of the request parameter that contains the query.
         * `transformResult`: `function(response, originalQuery) {}` called after the result of the query is ready. Converts the result into response.suggestions format.
         * `autoSelectFirst`: if set to `true`, first item will be selected when showing suggestions. Default value `false`.
-        * `appendTo`: container where suggestions will be appended. Default value `body`. Can be jQuery object, selector or html element. Make sure to set `position: absolute` or `position: relative` for that element.
         * `token`: string token to authorize client.
+        * `usePreloader`: Boolean value indicating if animated preloader will be visible at the right side while waiting for server requests. Default value `true`.
 
 Suggestions instance has following methods:
 
@@ -58,23 +58,23 @@ Suggestions instance has following methods:
 There are two ways that you can invoke Suggestions method. One is calling suggestions on jQuery object and passing method name as string literal. 
 If method has arguments, arguments are passed as consecutive parameters:
 
-    $('#autocomplete').suggestions('disable');
-    $('#autocomplete').suggestions('setOptions', options);
+    $('#suggestions').suggestions('disable');
+    $('#suggestions').suggestions('setOptions', options);
 
 Or you can get Suggestions instance by calling suggestions on jQuery object without any parameters and then invoke desired method.
 
-    $('#autocomplete').suggestions().disable();
-    $('#autocomplete').suggestions().setOptions(options);
+    $('#suggestions').suggestions().disable();
+    $('#suggestions').suggestions().setOptions(options);
 
 ##Usage
 
 Html:
 
-    <input type="text" name="fio" id="autocomplete"/>
+    <input type="text" name="fio" id="suggestions"/>
 
 Ajax lookup:
 
-    $('#autocomplete').suggestions({
+    $('#suggestions').suggestions({
         serviceUrl: '/api/fio',
         onSelect: function (suggestion) {
             alert('You selected: ' + suggestion.value + ', ' + suggestion.data);
@@ -89,7 +89,7 @@ Local lookup (no ajax):
        { value: 'Zimbabwe', data: 'ZZ' }
     ];
 
-    $('#autocomplete').suggestions({
+    $('#suggestions').suggestions({
         lookup: countries,
         onSelect: function (suggestion) {
             alert('You selected: ' + suggestion.value + ', ' + suggestion.data);
@@ -100,18 +100,23 @@ Local lookup (no ajax):
 
 Generated HTML markup for suggestions is displayed bellow. You may style it any way you'd like.
 
-    <div class="autocomplete-suggestions">
-        <div class="autocomplete-suggestion autocomplete-selected">...</div>
-        <div class="autocomplete-suggestion">...</div>
-        <div class="autocomplete-suggestion">...</div>
+    <div class="suggestions-wrapper">
+        <input type="text" name="fio" id="suggestions"/>
+        <i class="suggestions-preloader"></i>
+        <div class="suggestions-suggestions">
+            <div class="suggestions-suggestion suggestions-selected">...</div>
+            <div class="suggestions-suggestion">...</div>
+            <div class="suggestions-suggestion">...</div>
+        </div>
     </div>
 
 Style sample:
 
-    .autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
-    .autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
-    .autocomplete-selected { background: #F0F0F0; }
-    .autocomplete-suggestions strong { font-weight: normal; color: #3399FF; }
+    .suggestions-wrapper { border: 1px solid grey; padding: 5px; }
+    .suggestions-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+    .suggestions-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+    .suggestions-selected { background: #F0F0F0; }
+    .suggestions-suggestions strong { font-weight: normal; color: #3399FF; }
 
 ##Response Format
 

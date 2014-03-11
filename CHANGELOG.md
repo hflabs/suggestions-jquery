@@ -1,11 +1,19 @@
 Changelog
 =========
+### 4.2.3 Mar 11, 2014
+
+* added wrapper element to input
+* added animated preloader at the right side of the widget
+* added `usePreloader` option
+* removed `appendTo` option. Suggestions list always appended to the wrapper
+* css classes replaced with ones beginning with 'suggestions-'
+* default .less and .css styles added
 
 ### 4.2.2 Mar 03, 2014
 
-* Changed behavour for pressing ENTER with no suggestions selected. Instead of the first one, select a suggestion matching a query.
-* Navigating with UP and DOWN arrow keys is looped
-* After clicking a suggestion, input stays focused
+* changed behavour for pressing ENTER with no suggestions selected. Instead of the first one, select a suggestion matching a query.
+* navigating with UP and DOWN arrow keys is looped
+* after clicking a suggestion, input stays focused
  
 ### 4.2.1 Feb 18, 2014
 

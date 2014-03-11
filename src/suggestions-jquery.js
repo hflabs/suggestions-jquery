@@ -60,7 +60,6 @@
             that = this,
             defaults = {
                 autoSelectFirst: false,
-                appendTo: 'body',
                 serviceUrl: null,
                 lookup: null,
                 onSelect: null,
@@ -76,7 +75,7 @@
                 onSearchStart: noop,
                 onSearchComplete: noop,
                 onSearchError: noop,
-                containerClass: 'autocomplete-suggestions',
+                containerClass: 'suggestions-suggestions',
                 tabDisabled: false,
                 currentRequest: null,
                 triggerSelectOnValidInput: false,
@@ -88,7 +87,8 @@
                 paramName: 'query',
                 transformResult: function (response) {
                     return typeof response === 'string' ? $.parseJSON(response) : response;
-                }
+                },
+                usePreloader: true
             };
 
         // Shared variables:
@@ -104,10 +104,12 @@
         that.onChange = null;
         that.isLocal = false;
         that.suggestionsContainer = null;
+        that.$wrapped = null;
+        that.$preloader = null;
         that.options = $.extend({}, defaults, options);
         that.classes = {
-            selected: 'autocomplete-selected',
-            suggestion: 'autocomplete-suggestion'
+            selected: 'suggestions-selected',
+            suggestion: 'suggestions-suggestion'
         };
         that.hint = null;
         that.hintValue = '';
@@ -142,11 +144,24 @@
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
 
+            that.$wrapper = $('<div class="suggestions-wrapper"/>');
+            that.el.before(that.$wrapper);
+            that.$wrapper.append(that.el);
+            
+            that.$preloader = $('<i class="suggestions-preloader"/>');
+            that.$wrapper.append(that.$preloader);
+            
+            that.killerFn = function (e) {
+                if ($(e.target).closest('.' + that.options.containerClass).length === 0) {
+                    that.killSuggestions();
+                    that.disableKillerFn();
+                }
+            };
+
             that.suggestionsContainer = Suggestions.utils.createNode(options.containerClass);
 
             container = $(that.suggestionsContainer);
-
-            container.appendTo(options.appendTo);
+            that.$wrapper.append(container);
 
             // Only set width if it was provided:
             if (options.width !== 'auto') {
@@ -255,11 +270,14 @@
             }
 
             // Adjust height, width and z-index:
-            $(that.suggestionsContainer).css({
+            var styles = {
                 'max-height': options.maxHeight + 'px',
-                'width': options.width + 'px',
                 'z-index': options.zIndex
-            });
+            };
+            if (options.width !== 'auto') {
+                styles['width'] = options.width + 'px';
+            }
+            $(that.suggestionsContainer).css(styles);
             
             that.checkToken();
         },
@@ -346,23 +364,23 @@
                 styles,
                 $container;
 
-            // Don't adjsut position if custom container has been specified:
-            if (that.options.appendTo !== 'body') {
-                return;
-            }
-
             bounds = that.el.offset();
             bounds.bottom = bounds.top + that.el.outerHeight();
 
             $container = $(that.suggestionsContainer);
 
             styles = {
-                top: bounds.bottom + 'px',
-                left: bounds.left + 'px'
+                top: that.$wrapper.innerHeight() + parseFloat($container.css('border-bottom-width')) + 'px',
+                left: -parseFloat(that.$wrapper.css('border-left-width')) + 'px'
+                //maxHeight: (spaceUnderInput - containerHBorders) + 'px'
             }
             
             if (that.options.width === 'auto') {
-                styles.width = (that.el.outerWidth() -2) + 'px';
+                styles.right = -parseFloat(that.$wrapper.css('border-right-width')) + 'px';
+                styles.width = 'auto';
+            } else {
+                styles.rigth = 'auto';
+                styles.width = that.options.width + 'px';
             }
 
             $container.css(styles);
@@ -593,6 +611,9 @@
                 if (options.onSearchStart.call(that.element, options.params) === false) {
                     return;
                 }
+                if (options.usePreloader) {
+                    that.$preloader.stop(true).animate({'opacity':1});
+                }
                 if (that.currentRequest) {
                     that.currentRequest.abort();
                 }
@@ -609,6 +630,10 @@
                     options.onSearchComplete.call(that.element, q, result.suggestions);
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
+                }).always(function(){
+                    if (options.usePreloader) {
+                        that.$preloader.stop(true).animate({'opacity':0}, 'fast');
+                    }
                 });
             }
         },
@@ -682,10 +707,10 @@
             // because if instance was created before input had width, it will be zero.
             // Also it adjusts if input width has changed.
             // -2px to account for suggestions border.
-            if (options.width === 'auto') {
-                width = that.el.outerWidth() - 2;
-                container.width(width > 0 ? width : 300);
-            }
+//            if (options.width === 'auto') {
+//                width = that.el.outerWidth() - 2;
+//                container.width(width > 0 ? width : 300);
+//            }
 
             container.html(html);
 
@@ -926,6 +951,8 @@
             that.el.off(eventNS).removeData(dataAttrKey);
             that.$viewport.off('resize' + eventNS);
             $(that.suggestionsContainer).remove();
+            that.$preloader.remove();
+            that.el.unwrap();
         },
 
         _delay: function (handler, delay) {

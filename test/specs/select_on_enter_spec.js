@@ -13,7 +13,7 @@ describe('Select on Enter', function () {
     });
 
     afterEach(function () {
-        $('.autocomplete-suggestions').remove();
+        $('.suggestions-suggestions').remove();
         this.server.restore();
     });
 

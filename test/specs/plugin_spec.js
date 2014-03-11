@@ -6,7 +6,8 @@ describe('Suggestions-jquery', function () {
 
     beforeEach(function(){
         this.input = document.createElement('input');
-        this.instance = $(this.input).suggestions({
+        this.$input = $(this.input).appendTo('body');
+        this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
         
@@ -14,7 +15,8 @@ describe('Suggestions-jquery', function () {
     });
     
     afterEach(function () {
-        $('.autocomplete-suggestions').remove();
+        this.instance.dispose()
+        this.$input.remove();
         this.server.restore();
     });
 
@@ -76,20 +78,19 @@ describe('Suggestions-jquery', function () {
     });
 
     it('Should destroy suggestions instance', function () {
-        var $div = $(document.createElement('div')),
-            $input = $(this.input);
-        $input.suggestions({
-            serviceUrl: '/test-dispose',
-            appendTo: $div
-        });
+        var $div = $(document.createElement('div'));
 
-        expect($input.data('suggestions')).toBeDefined();
-        expect($div.children().length).toBeGreaterThan(0);
+        this.instance.$wrapper.appendTo($div);
+        
+        expect(this.$input.data('suggestions')).toBeDefined();
+        expect($div.find('.suggestions-suggestions').length).toBeGreaterThan(0);
+        expect($div.find('.suggestions-preloader').length).toBeGreaterThan(0);
 
-        $input.suggestions('dispose');
+        this.$input.suggestions('dispose');
 
-        expect($input.data('suggestions')).toBeUndefined();
-        expect($div.children().length).toBe(0);
+        expect(this.$input.data('suggestions')).toBeUndefined();
+        expect($div.find('.suggestions-suggestions').length).toEqual(0);
+        expect($div.find('.suggestions-preloader').length).toEqual(0);
     });
 
     it('Should construct serviceUrl via callback function.', function () {
@@ -168,7 +169,7 @@ describe('Suggestions-jquery', function () {
         this.input.value = 'japa';
         this.instance.onValueChange();
         
-        var $item = $('.autocomplete-suggestion');
+        var $item = $('.suggestions-suggestion');
             
         expect($item.length).toEqual(1);
         expect($item.html()).toContain('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
