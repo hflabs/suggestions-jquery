@@ -30,6 +30,19 @@
                     div.style.position = 'absolute';
                     div.style.display = 'none';
                     return div;
+                },
+                getDefaultType: function () {
+                    return ($.support.cors ? 'POST' : 'GET');
+                },
+                getDefaultContentType: function () {
+                    return ($.support.cors ? 'application/json' : 'application/x-www-form-urlencoded');
+                },
+                serialize: function (data) {
+                    if ($.support.cors) {
+                        return JSON.stringify(data);
+                    } else {
+                        return $.param(data, true);
+                    }
                 }
             };
         }()),
@@ -264,9 +277,9 @@
                 token = $.trim(that.options.token);
             
             params = {
-                type: 'POST',
+                type: utils.getDefaultType(),
                 dataType: 'json',
-                contentType: 'application/json'
+                contentType: utils.getDefaultContentType()
             };
             if (token) {
                 params.headers = {
@@ -593,7 +606,7 @@
                 that.currentRequest = $.ajax(
                     $.extend(that.getAjaxParams(), {
                         url: serviceUrl,
-                        data: JSON.stringify(params)
+                        data: utils.serialize(params)
                     })
                 ).done(function (data) {
                     var result;
