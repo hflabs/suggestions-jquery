@@ -1,7 +1,8 @@
 Changelog
 =========
-### 4.2.3 Mar 11, 2014
+### 4.2.3 Mar 13, 2014
 
+* plugin file renamed to jquery.suggestions.js
 * added wrapper element to input
 * added animated preloader at the right side of the widget
 * added `usePreloader` option

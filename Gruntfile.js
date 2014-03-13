@@ -11,7 +11,7 @@ module.exports = function(grunt){
                     ' <%= pkg.description %>, version <%= pkg.version %>',
                     '',
                     ' <%= pkg.description %> is freely distributable under the terms of MIT-style license',
-                    ' Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
+                    ' Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
                     ' For details, see <%= pkg.homepage %>',
                     '/\n'].join('\n *')
             },
@@ -25,7 +25,9 @@ module.exports = function(grunt){
                     cwd: 'src/',
                     src: '*.js',
                     dest: 'dist/js/',
-                    ext: '.min.js'
+                    rename: function (dest, src) {
+                        return dest + src.replace(/.js$/, '.min.js');
+                    }
                 }]
             }
         },
