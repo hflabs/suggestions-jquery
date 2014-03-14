@@ -1,52 +1,31 @@
 Changelog
 =========
-### 4.2.3 Mar 13, 2014
 
-* plugin file renamed to jquery.suggestions.js
-* added wrapper element to input
-* added animated preloader at the right side of the widget
-* added `usePreloader` option
-* removed `appendTo` option. Suggestions list always appended to the wrapper
-* css classes replaced with ones beginning with 'suggestions-'
-* default .less and .css styles added
+### 4.3.1 14.03.2014
 
-### 4.2.2 Mar 03, 2014
+* добавлен поясняющий текст вверху выпадающего списка
 
-* changed behavour for pressing ENTER with no suggestions selected. Instead of the first one, select a suggestion matching a query.
-* navigating with UP and DOWN arrow keys is looped
-* after clicking a suggestion, input stays focused
+### 4.2.3 13.03.2014
+
+* файл плагина переименован в jquery.suggestions.js
+* добавлены дополнительные элементы, создаваемые при инициализации плагина
+* добавлен анимированный прелоадер
+* добавлена опция `usePreloader`
+* удалена опция `appendTo`; список подсказок всегда вставляется в элемент-обертку
+* переименованы css классы, теперь они начинаются с 'suggestions-'
+* добавлены стили по умолчанию
+
+### 4.2.2 03.03.2014
+
+* по нажатию ENTER, если ни одной подсказки не выделено, ищется и выделяется подсказка, совпадающая с поисковой фразой
+* перемещение по подсказкам с помощью клавиш ВВЕРХ и ВНИЗ зациклено
+* после щелчка на подсказке, фокус отстается в поле ввода
  
-### 4.2.1 Feb 18, 2014
+### 4.2.1 18.02.2014
 
-* when press ENTER with no suggestions selected, select first one
+* по нажатию ENTER, если ни одной подсказки не выделено, выделяется первая
 
-### 4.2.0 Feb 07, 2014
+### 4.2.0 07.02.2014
 
-* authorization token added to options. If it presents, the plugin sends authorization request just after initialization.
-=======
-Changelog
-=========
-### 4.2.3 Mar 13, 2014
-
-* plugin file renamed to jquery.suggestions.js
-* added wrapper element to input
-* added animated preloader at the right side of the widget
-* added `usePreloader` option
-* removed `appendTo` option. Suggestions list always appended to the wrapper
-* css classes replaced with ones beginning with 'suggestions-'
-* default .less and .css styles added
-
-### 4.2.2 Mar 03, 2014
-
-* changed behavour for pressing ENTER with no suggestions selected. Instead of the first one, select a suggestion matching a query.
-* navigating with UP and DOWN arrow keys is looped
-* after clicking a suggestion, input stays focused
- 
-### 4.2.1 Feb 18, 2014
-
-* when press ENTER with no suggestions selected, select first one
-
-### 4.2.0 Feb 07, 2014
-
-* authorization token added to options. If it presents, the plugin sends authorization request just after initialization.
-* name of `selectOnSpace` option changed to `triggerSelectOnSpace`
+* добавлена опция `token`. Если она задана, при инициализации отправляется авторизационный запрос
+* опция `selectOnSpace` переименована в `triggerSelectOnSpace`

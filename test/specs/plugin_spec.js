@@ -1,4 +1,4 @@
-﻿
+
 describe('Common features', function () {
     'use strict';
     
@@ -173,6 +173,50 @@ describe('Common features', function () {
             
         expect($item.length).toEqual(1);
         expect($item.html()).toContain('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
+    });
+    
+    it('Should display default hint message above suggestions', function(){
+        this.instance.setOptions({
+            lookup: ['Jamaice']
+        });
+
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+        
+        var $hint = this.instance.$wrapper.find('.suggestions-hint');
+            
+        expect($hint.length).toEqual(1);
+        expect($hint.text()).toEqual($.Suggestions.defaultHint);
+    });
+
+    it('Should display custom hint message above suggestions', function(){
+        var customHint = 'This is custon hint';
+        this.instance.setOptions({
+            lookup: ['Jamaice'],
+            hint: customHint
+        });
+
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+        
+        var $hint = this.instance.$wrapper.find('.suggestions-hint');
+            
+        expect($hint.length).toEqual(1);
+        expect($hint.text()).toEqual(customHint);
+    });
+
+    it('Should not display any hint message above suggestions', function(){
+        this.instance.setOptions({
+            lookup: ['Jamaice'],
+            hint: false
+        });
+
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+        
+        var $hint = this.instance.$wrapper.find('.suggestions-hint');
+            
+        expect($hint.length).toEqual(0);
     });
 
 });

@@ -88,7 +88,8 @@
                 transformResult: function (response) {
                     return typeof response === 'string' ? $.parseJSON(response) : response;
                 },
-                usePreloader: true
+                usePreloader: true,
+                hint: Suggestions.defaultHint
             };
 
         // Shared variables:
@@ -108,6 +109,7 @@
         that.$preloader = null;
         that.options = $.extend({}, defaults, options);
         that.classes = {
+            hint: 'suggestions-hint',
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion'
         };
@@ -125,12 +127,14 @@
 
     Suggestions.utils = utils;
 
-    $.Suggestions = Suggestions;
-
     Suggestions.formatResult = function (suggestion, currentValue) {
         var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
         return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
     };
+    
+    Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
+
+    $.Suggestions = Suggestions;
 
     Suggestions.prototype = {
 
@@ -677,7 +681,7 @@
                 classSelected = that.classes.selected,
                 container = $(that.suggestionsContainer),
                 beforeRender = options.beforeRender,
-                html = '',
+                html = [],
                 index,
                 width;
 
@@ -695,24 +699,17 @@
                     that.onSelect(index);
                 }
             }
-            
-            
 
+            // Build hint html
+            if (options.hint && that.suggestions.length) {
+                html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
+            }
             // Build suggestions inner HTML:
             $.each(that.suggestions, function (i, suggestion) {
-                html += '<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>';
+                html.push('<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>');
             });
 
-            // If width is auto, adjust width before displaying suggestions,
-            // because if instance was created before input had width, it will be zero.
-            // Also it adjusts if input width has changed.
-            // -2px to account for suggestions border.
-//            if (options.width === 'auto') {
-//                width = that.el.outerWidth() - 2;
-//                container.width(width > 0 ? width : 300);
-//            }
-
-            container.html(html);
+            container.html(html.join(''));
 
             // Select first value by default:
             if (options.autoSelectFirst) {
@@ -802,7 +799,7 @@
                 activeItem,
                 selected = that.classes.selected,
                 container = $(that.suggestionsContainer),
-                children = container.children();
+                children = container.children('.' + that.classes.suggestion);
 
             container.children('.' + selected).removeClass(selected);
 

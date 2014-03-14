@@ -43,3 +43,9 @@
   font-weight: normal;
   color: #3399FF;
 }
+.suggestions-hint {
+  color: #777;
+  padding: 2px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+}
