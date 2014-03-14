@@ -1,5 +1,5 @@
 ﻿
-describe('Suggestions-jquery', function () {
+describe('Common features', function () {
     'use strict';
     
     var serviceUrl = '/some/url';

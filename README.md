@@ -1,11 +1,11 @@
 [![Build Status](https://travis-ci.org/hflabs/suggestions-jquery.png?branch=master)](https://travis-ci.org/hflabs/suggestions-jquery)
 
-#suggestions-jquery
+#DaData Suggestions
 ==================
 
-jQuery plugin for DaData.ru suggestions service.
+jQuery-плагин для сервиса Подсказок DaData.ru.
 
-Built on jQuery and Ajax Autocomplete plugin (https://github.com/devbridge/jQuery-Autocomplete).
+Основан на jQuery и плагине DevBridge Autocomplete (https://github.com/devbridge/jQuery-Autocomplete).
 
 ##API
 

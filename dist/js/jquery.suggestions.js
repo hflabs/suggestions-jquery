@@ -1,8 +1,8 @@
 /**
- * Suggestions-jquery plugin, version 4.2.3
+ * DaData.ru Suggestions jQuery plugin, version 4.2.3
  *
- * Suggestions-jquery plugin is freely distributable under the terms of MIT-style license
- * Built on Ajax Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
+ * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
+ * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
  * For details, see https://github.com/hflabs/suggestions-jquery
  */
 // Expose plugin as an AMD module if AMD loader is present:
