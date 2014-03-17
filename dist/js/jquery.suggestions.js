@@ -71,7 +71,7 @@
                 lookup: null,
                 onSelect: null,
                 width: 'auto',
-                minChars: 1, 
+                minChars: 1,
                 maxHeight: 300,
                 deferRequestBy: 0,
                 params: {},
@@ -139,7 +139,11 @@
         return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
     };
     
-    Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
+    Suggestions.resetTokens = function() {
+        tokensValid = {};
+    };
+    
+    Suggestions.defaultHint = '�������� ������� ���� ��� ���������� ����';
 
     $.Suggestions = Suggestions;
 
@@ -330,7 +334,7 @@
                             that.disable();
                             break;
                         default:
-                            tokenValid.then(onTokenReady);
+                            tokenValid.always(onTokenReady);
                     }
                 } else {
                     serviceUrl = that.options.serviceUrl;
@@ -341,7 +345,7 @@
                         $.extend(that.getAjaxParams(), {
                             url: serviceUrl
                         })
-                    ).then(onTokenReady);
+                    ).always(onTokenReady);
                 }
             }
         },

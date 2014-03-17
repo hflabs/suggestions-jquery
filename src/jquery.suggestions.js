@@ -132,7 +132,11 @@
         return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
     };
     
-    Suggestions.defaultHint = 'Р’С‹Р±РµСЂРёС‚Рµ РІР°СЂРёР°РЅС‚ РЅРёР¶Рµ РёР»Рё РїСЂРѕРґРѕР»Р¶РёС‚Рµ РІРІРѕРґ';
+    Suggestions.resetTokens = function() {
+        tokensValid = {};
+    };
+    
+    Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
 
     $.Suggestions = Suggestions;
 
@@ -323,7 +327,7 @@
                             that.disable();
                             break;
                         default:
-                            tokenValid.then(onTokenReady);
+                            tokenValid.always(onTokenReady);
                     }
                 } else {
                     serviceUrl = that.options.serviceUrl;
@@ -334,7 +338,7 @@
                         $.extend(that.getAjaxParams(), {
                             url: serviceUrl
                         })
-                    ).then(onTokenReady);
+                    ).always(onTokenReady);
                 }
             }
         },
