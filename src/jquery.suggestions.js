@@ -131,6 +131,10 @@
         var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
         return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
     };
+    
+    Suggestions.resetTokens = function() {
+        tokensValid = {};
+    };
 
     Suggestions.prototype = {
 
@@ -319,7 +323,7 @@
                             that.disable();
                             break;
                         default:
-                            tokenValid.then(onTokenReady);
+                            tokenValid.always(onTokenReady);
                     }
                 } else {
                     serviceUrl = that.options.serviceUrl;
@@ -330,7 +334,7 @@
                         $.extend(that.getAjaxParams(), {
                             url: serviceUrl
                         })
-                    ).then(onTokenReady);
+                    ).always(onTokenReady);
                 }
             }
         },
