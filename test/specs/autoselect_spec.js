@@ -13,7 +13,8 @@ describe('Autoselect', function () {
     });
 
     afterEach(function () {
-        $('.suggestions-suggestions').remove();
+        this.instance.dispose()
+        $(this.input).remove();
         this.server.restore();
     });
 
