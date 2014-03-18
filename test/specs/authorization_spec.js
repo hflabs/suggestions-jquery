@@ -17,7 +17,7 @@ describe('Authorization features', function () {
     });
     
     afterEach(function () {
-        this.instance.dispose()
+        this.instance.dispose();
         this.$input.remove();
         this.server.restore();
         $.Suggestions.resetTokens();
@@ -30,7 +30,7 @@ describe('Authorization features', function () {
 
     it('Should deactivate plugin if authorization failed', function () {
         this.server.respond(serviceUrl, [401, {}, 'Not Authorized']);
-        expect(this.instance.disabled).toEqual(true);
+        expect(this.instance.disabled).toBeTruthy();
     });
 
     it('Should stay enabled if request succesed', function () {
@@ -64,4 +64,39 @@ describe('Authorization features', function () {
         });
     });
 
+});
+
+describe('Authorization without token', function() {
+    var serviceUrl = '/some/url';
+
+    beforeEach(function(){
+        this.server = sinon.fakeServer.create();
+
+        this.input = document.createElement('input');
+        this.$input = $(this.input).appendTo('body');
+    });
+
+    afterEach(function () {
+        this.instance.dispose();
+        this.$input.remove();
+        this.server.restore();
+    });
+
+
+    it('Should not send authorization request (no token)', function() {
+        this.instance = this.$input.suggestions({
+            serviceUrl: serviceUrl
+        }).suggestions();
+
+        expect(this.server.requests.length).toEqual(0);
+    });
+
+    it('Should not send authorization request (empty token)', function() {
+        this.instance = this.$input.suggestions({
+            serviceUrl: serviceUrl,
+            token: ''
+        }).suggestions();
+
+        expect(this.server.requests.length).toEqual(0);
+    });
 });
