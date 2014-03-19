@@ -50,7 +50,7 @@
             RIGHT: 39,
             DOWN: 40
         },
-        
+
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
         dadataConfig = {
@@ -58,67 +58,134 @@
                 'gender': {
                     'М': 'MALE',
                     'Ж': 'FEMALE',
-                    null: 'UNKNOWN'
+                    'НД': 'UNKNOWN'
                 }
             },
             url: 'https://dadata.ru/api/v1/clean',
-            timeout: 200,
+            timeout: 2000,
             types: ['NAME', 'ADDRESS']
         },
         tokensValid = {},
-        enrichServices = {
-            'default': function (suggestion) {
-                return $.Deferred().resolve(suggestion);
-            },
-            'dadata': function (suggestion) {
-                var that = this,
-                    token = $.trim(that.options.token),
-                    data = {
-                        structure: [that.options.dadataType],
-                        data: [[ suggestion.value ]]
-                    },
-                    resolver = $.Deferred();
-                    
-                that.showPreloader();
-                $.ajax(dadataConfig.url, {
-                    type: 'POST',
-                    headers: { 
-                        'Authorization': 'Token ' + token
-                    },
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify(data),
-                    timeout: dadataConfig.timeout
-                })
-                    .done(function(resp){
-                        var data = resp.data,
-                            s = data && data[0] && data[0][0];
-                        if (s && s.qc === 0) {
-                            // map some fields' values
-                            $.each(dadataConfig.fieldMaps, function(field, map){
-                                if (field in s) {
-                                    s[field] = map[s[field]];
-                                }
-                            });
-                            // make `response.suggestion`-like structure
-                            s = {
-                                value: suggestion.value,
-                                data: s
-                            };
-                        } else {
-                            s = suggestion;
-                        }
-                        resolver.resolve(s);
-                    })
-                    .fail(function(){
-                        resolver.resolve(suggestion);
-                    })
-                    .always(function(){
-                        that.hidePreloader();
-                    });
-                return resolver;
+        enrichServices = {};
+
+    enrichServices['default'] = {
+        enrichSuggestion: function (suggestion) {
+            return $.Deferred().resolve(suggestion);
+        },
+        enrichResponse: function (response, query) {
+            return $.Deferred().resolve(response);
+        }
+    };
+
+    enrichServices['dadata'] = {
+        enrichSuggestion: function (suggestion) {
+            var that = this,
+                token = $.trim(that.options.token),
+                data = {
+                    structure: [that.options.dadataType],
+                    data: [
+                        [ suggestion.value ]
+                    ]
+                },
+                resolver = $.Deferred();
+
+            // if current suggestion is from dadata, use it
+            if (suggestion.data && 'qc' in suggestion.data) {
+                return resolver.resolve(suggestion);
             }
-        };
+
+            that.showPreloader();
+            that.disableDropdown();
+            $.ajax(dadataConfig.url, {
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Token ' + token
+                },
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                timeout: dadataConfig.timeout
+            })
+                .done(function (resp) {
+                    var data = resp.data,
+                        s = data && data[0] && data[0][0];
+                    if (s && s.qc === 0) {
+                        // map some fields' values
+                        $.each(dadataConfig.fieldMaps, function (field, map) {
+                            if (field in s) {
+                                s[field] = map[s[field]];
+                            }
+                        });
+                        // make `response.suggestion`-like structure
+                        s = {
+                            value: suggestion.value,
+                            data: s
+                        };
+                    } else {
+                        s = suggestion;
+                    }
+                    resolver.resolve(s);
+                })
+                .fail(function () {
+                    resolver.resolve(suggestion);
+                })
+                .always(function () {
+                    that.hidePreloader();
+                    that.enableDropdown();
+                });
+            return resolver;
+        },
+        enrichResponse: function (response, query) {
+            var that = this,
+                token = $.trim(that.options.token),
+                data = {
+                    structure: [that.options.dadataType],
+                    data: [
+                        [ query ]
+                    ]
+                },
+                suggestions = response.suggestions || [],
+                resolver = $.Deferred();
+
+            if (suggestions.length) {
+                return resolver.resolve(response);
+            }
+
+            $.ajax(dadataConfig.url, {
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Token ' + token
+                },
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                timeout: dadataConfig.timeout
+            })
+                .done(function (resp) {
+                    var data = resp.data,
+                        s = data && data[0] && data[0][0];
+                    if (s) {
+                        // map some fields' values
+                        $.each(dadataConfig.fieldMaps, function (field, map) {
+                            if (field in s) {
+                                s[field] = map[s[field]];
+                            }
+                        });
+                        // make `response.suggestion`-like structure
+                        s = {
+                            value: query,
+                            data: s
+                        };
+                        response.suggestions = [s];
+                    }
+                    resolver.resolve(response);
+                })
+                .fail(function () {
+                    resolver.resolve(response);
+                });
+            return resolver;
+        }
+    };
 
     function Suggestions(el, options) {
         var noop = function () { },
@@ -716,11 +783,14 @@
                     var result;
                     that.currentRequest = null;
                     result = options.transformResult(data);
-                    that.processResponse(result, q, cacheKey);
-                    options.onSearchComplete.call(that.element, q, result.suggestions);
+                    that.enrichService.enrichResponse.call(that, result, q)
+                        .done(function(enrichedResponse){
+                            that.processResponse(enrichedResponse, q, cacheKey);
+                            options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
+                            that.hidePreloader();
+                        })
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                }).always(function(){
                     that.hidePreloader();
                 });
             }
@@ -959,10 +1029,8 @@
             that.signalHint(null);
             that.selection = suggestion;
             
-            that.disableDropdown();
             that.onSelect(index)
                 .done(function(){
-                    that.enableDropdown();
                     if (!noHide) {
                         that.hide();
                     }
@@ -1052,7 +1120,7 @@
                 selectionCompleter = $.Deferred();
 
             if ($.isFunction(onSelectCallback)) {
-                that.enrichService(suggestion)
+                that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function(enrichedSuggestion){
                         onSelectCallback.call(that.element, enrichedSuggestion),
                         selectionCompleter.resolve();

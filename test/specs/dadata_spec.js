@@ -28,20 +28,31 @@ describe('DaData API', function () {
                 patronymic: null,
                 gender: 'Ж',
                 qc: 0
+            },
+            'Bad': {
+                source: 'Bad',
+                surname: null,
+                name: null,
+                patronymic: null,
+                gender: 'НД',
+                qc: 1
             }
         };
 
     beforeEach(function(){
         this.server = sinon.fakeServer.create();
         this.server.respondWith('POST', serviceUrl, function(xhr){
+            var request = JSON.parse(xhr.requestBody),
+                query = request && request.query,
+                filter = query && new RegExp('^' + query + '|\\s+' + query, 'i');
             xhr.respond(
                 200, 
                 {'Content-type':'application/json'},
-                JSON.stringify(xhr.requestBody ?
+                JSON.stringify(query ?
                     {
-                        suggestions: [
-                            'Adam', 'Alexander', 'Anny'
-                        ]
+                        suggestions: $.grep(['Adam', 'Alexander', 'Anny'], function(a){
+                            return filter.test(a);
+                        })
                     } : {})
             );
         });
@@ -71,10 +82,6 @@ describe('DaData API', function () {
             onSelect: $.noop
         }).suggestions();
 
-        this.input.value = 'A';
-        this.instance.onValueChange();
-
-        this.server.respond();
         this.server.respond();
         this.server.requests.length = 0;
     });
@@ -83,93 +90,133 @@ describe('DaData API', function () {
         this.instance.dispose()
         this.$input.remove();
         this.server.restore();
+        $.Suggestions.resetTokens();
     });
 
-    it('Should send request on suggestion click', function () {
-        this.instance.$container.children('.suggestions-suggestion').first().click();
-        
-        expect(this.server.requests.length).toEqual(1);
-        expect(this.server.requests[0].url).toEqual($.Suggestions.dadataConfig.url);
+    describe('For individual suggestion', function(){
+
+        beforeEach(function(){
+
+            // shows three suggestions
+            this.input.value = 'A';
+            this.instance.onValueChange();
+            this.server.respond();
+            this.server.requests.length = 0;
+
+        });
+
+        it('Should send request on suggestion click', function () {
+            this.instance.$container.children('.suggestions-suggestion').first().click();
+
+            expect(this.server.requests.length).toEqual(1);
+            expect(this.server.requests[0].url).toEqual($.Suggestions.dadataConfig.url);
+        });
+
+        it('Should send request on SPACE click', function () {
+            this.instance.selectedIndex = 0;
+            helpers.keydown(this.input, 32);
+
+            expect(this.server.requests.length).toEqual(1);
+            expect(this.server.requests[0].url).toEqual($.Suggestions.dadataConfig.url);
+        });
+
+        it('Should pass original suggestion for not guaranteed response', function () {
+            var options = {
+                onSelect: $.noop
+            };
+            spyOn(options, 'onSelect');
+            this.instance.setOptions(options);
+
+            // click on Adam
+            this.instance.$container.children('.suggestions-suggestion').eq(0).click();
+            this.server.respond();
+
+            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: null});
+        });
+
+        it('Should pass enriched suggestion for guaranteed response', function () {
+            var options = {
+                onSelect: $.noop
+            };
+            spyOn(options, 'onSelect');
+            this.instance.setOptions(options);
+
+            // click on Alexander
+            this.instance.$container.children('.suggestions-suggestion').eq(1).click();
+            this.server.respond();
+
+            var expectation = {
+                value: 'Alexander',
+                data: fixtures['Alexander']
+            };
+            expectation.data.gender = 'MALE';
+
+            expect(options.onSelect).toHaveBeenCalledWith(expectation);
+        });
+
+        it('Should pass original suggestion if ajax request failed', function () {
+            var options = {
+                onSelect: $.noop
+            };
+            spyOn(options, 'onSelect');
+            this.instance.setOptions(options);
+
+            // click on Anny
+            this.instance.$container.children('.suggestions-suggestion').eq(2).click();
+            this.server.respond();
+
+            expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: null});
+        });
+
+        it('Should lock dropdown list while request is pending', function () {
+            this.instance.selectedIndex = 0;
+
+            // click on Adam
+            this.instance.$container.children('.suggestions-suggestion').eq(0).click();
+
+            expect(this.server.requests.length).toEqual(1);
+
+            // be sure container is disabled
+            expect(this.instance.$container.attr('disabled')).toBeTruthy();
+
+            // be sure keyboard navigation does nothing
+            helpers.keydown(this.input, 40);
+            expect(this.instance.selectedIndex).toEqual(0);
+
+            // be sure mouseover on other suggesion does nothing
+            this.instance.$container.children('.suggestions-suggestion').eq(1).mouseover();
+            expect(this.instance.selectedIndex).toEqual(0);
+
+            // be sure click on other suggesion does nothing
+            this.instance.$container.children('.suggestions-suggestion').eq(1).click();
+            expect(this.instance.selectedIndex).toEqual(0);
+        });
+
     });
 
-    it('Should send request on SPACE click', function () {
-        this.instance.selectedIndex = 0;
-        helpers.keydown(this.input, 32);
+    describe('For empty response', function(){
 
-        expect(this.server.requests.length).toEqual(1);
-        expect(this.server.requests[0].url).toEqual($.Suggestions.dadataConfig.url);
-    });
+        beforeEach(function(){
 
-    it('Should pass original suggestion for not guaranteed response', function () {
-        var options = {
-            onSelect: $.noop
-        };
-        spyOn(options, 'onSelect');
-        this.instance.setOptions(options);
-        
-        // click on Adam
-        this.instance.$container.children('.suggestions-suggestion').eq(0).click();
-        this.server.respond();
-        
-        expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: null});
-    });
+            // shows empty suggestions list
+            this.input.value = 'Bad';
+            this.instance.onValueChange();
+            this.server.respond();
 
-    it('Should pass enriched suggestion for guaranteed response', function () {
-        var options = {
-            onSelect: $.noop
-        };
-        spyOn(options, 'onSelect');
-        this.instance.setOptions(options);
-        
-        // click on Alexander
-        this.instance.$container.children('.suggestions-suggestion').eq(1).click();
-        this.server.respond();
-        
-        var expectation = {
-            value: 'Alexander',
-            data: fixtures['Alexander']
-        };
-        expectation.data.gender = 'MALE';
-        
-        expect(options.onSelect).toHaveBeenCalledWith(expectation);
-    });
+        });
 
-    it('Should pass original suggestion if ajax request failed', function () {
-        var options = {
-            onSelect: $.noop
-        };
-        spyOn(options, 'onSelect');
-        this.instance.setOptions(options);
-        
-        // click on Anny
-        this.instance.$container.children('.suggestions-suggestion').eq(2).click();
-        this.server.respond();
-        
-        expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: null});
-    });
-    
-    it('Should lock dropdown list while request is pending', function () {
-        this.instance.selectedIndex = 0;
-        
-        // click on Adam
-        this.instance.$container.children('.suggestions-suggestion').eq(0).click();
-        
-        expect(this.server.requests.length).toEqual(1);
-        
-        // be sure container is disabled
-        expect(this.instance.$container.attr('disabled')).toBeTruthy();
-        
-        // be sure keyboard navigation does nothing
-        helpers.keydown(this.input, 40);
-        expect(this.instance.selectedIndex).toEqual(0);
+        it('Should send request when no suggestions received', function () {
+            expect(this.server.requests.length).toEqual(2);
+            expect(this.server.requests[1].url).toEqual($.Suggestions.dadataConfig.url);
+        });
 
-        // be sure mouseover on other suggesion does nothing
-        this.instance.$container.children('.suggestions-suggestion').eq(1).mouseover();
-        expect(this.instance.selectedIndex).toEqual(0);
+        it('Should display even not guaranteed suggestion', function(){
+            this.server.respond();
+            var $items = this.instance.$container.children('.suggestions-suggestion');
+            expect($items.length).toEqual(1);
+            expect($items.text()).toEqual('Bad');
+        });
 
-        // be sure click on other suggesion does nothing
-        this.instance.$container.children('.suggestions-suggestion').eq(1).click();
-        expect(this.instance.selectedIndex).toEqual(0);
     });
 
 });

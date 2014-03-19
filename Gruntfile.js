@@ -45,15 +45,18 @@ module.exports = function(grunt){
         },
         
         jasmine: {
+            options: {
+                specs: 'test/specs/*.js',
+                helpers: 'test/helpers/*.js',
+                vendor: 'test/vendor/*.js',
+                outfile: 'test/runner.html',
+                keepRunner: true
+            },
             js: {
-                src: 'src/*.js',
-                options: {
-                    specs: 'test/specs/*.js',
-                    helpers: 'test/helpers/*.js',
-                    vendor: 'test/vendor/*.js',
-                    outfile: 'test/runner.html',
-                    keepRunner: true
-                }
+                src: 'dist/js/jquery.suggestions.js',
+            },
+            jsmin: {
+                src: 'dist/js/jquery.suggestions.min.js',
             }
         },
 
@@ -74,6 +77,6 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-less');
 
     grunt.registerTask('test', ['jasmine']);
-    grunt.registerTask('build', ['test', 'less', 'concat', 'uglify:jsmin']);
+    grunt.registerTask('build', ['less', 'concat', 'uglify:jsmin', 'test']);
     grunt.registerTask('default', ['build']);
 };
