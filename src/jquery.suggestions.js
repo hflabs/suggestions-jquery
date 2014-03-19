@@ -62,7 +62,7 @@
                 }
             },
             url: 'https://dadata.ru/api/v1/clean',
-            timeout: 2000,
+            timeout: 200,
             types: ['NAME', 'ADDRESS']
         },
         tokensValid = {},
