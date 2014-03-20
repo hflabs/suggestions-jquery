@@ -57,6 +57,9 @@ module.exports = function(grunt){
             },
             jsmin: {
                 src: 'dist/js/jquery.suggestions.min.js',
+            },
+            sources: {
+                src: 'src/*.js',
             }
         },
 
@@ -76,7 +79,7 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-less');
 
-    grunt.registerTask('test', ['jasmine']);
-    grunt.registerTask('build', ['less', 'concat', 'uglify:jsmin', 'test']);
+    grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
+    grunt.registerTask('build', ['jasmine:sources', 'less', 'concat', 'uglify:jsmin', 'test']);
     grunt.registerTask('default', ['build']);
 };

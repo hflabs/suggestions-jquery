@@ -139,6 +139,7 @@ describe('Common features', function () {
 
     it('Should prevent Ajax requests if previous query with matching root failed.', function () {
 
+        this.instance.setOptions({ preventBadQueries: true });
         this.input.value = 'Jam';
         this.instance.onValueChange();
 
@@ -153,12 +154,11 @@ describe('Common features', function () {
         this.instance.onValueChange();
         
         expect(this.server.requests.length).toEqual(1);
-        
-        this.instance.setOptions({ preventBadQueries: false });
+
         this.input.value = 'Jamai';
         this.instance.onValueChange();
         
-        expect(this.server.requests.length).toEqual(2);
+        expect(this.server.requests.length).toEqual(1);
     });
 
     it('Should highlight search phrase', function () {

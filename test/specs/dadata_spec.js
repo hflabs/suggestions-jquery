@@ -16,7 +16,7 @@ describe('DaData API', function () {
             'Alexander': {
                 source: 'Alexander',
                 surname: null,
-                name: 'Alexander',
+                name: 'Aleksander',
                 patronymic: null,
                 gender: 'М',
                 qc: 0
@@ -31,6 +31,14 @@ describe('DaData API', function () {
             },
             'Bad': {
                 source: 'Bad',
+                surname: 'Bad',
+                name: null,
+                patronymic: null,
+                gender: 'НД',
+                qc: 1
+            },
+            'Very bad': {
+                source: 'Very bad',
                 surname: null,
                 name: null,
                 patronymic: null,
@@ -50,9 +58,14 @@ describe('DaData API', function () {
                 {'Content-type':'application/json'},
                 JSON.stringify(query ?
                     {
-                        suggestions: $.grep(['Adam', 'Alexander', 'Anny'], function(a){
-                            return filter.test(a);
-                        })
+                        suggestions: $.grep([
+                                {value: 'Adam', data: {name: 'Adam'}},
+                                {value: 'Alexander', data: {name: 'Alexander'}},
+                                {value: 'Anny', data: {}}
+                            ], function(a){
+                                return filter.test(a.value);
+                            }
+                        )
                     } : {})
             );
         });
@@ -131,7 +144,7 @@ describe('DaData API', function () {
             this.instance.$container.children('.suggestions-suggestion').eq(0).click();
             this.server.respond();
 
-            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: null});
+            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: {name: 'Adam'}});
         });
 
         it('Should pass enriched suggestion for guaranteed response', function () {
@@ -147,9 +160,14 @@ describe('DaData API', function () {
 
             var expectation = {
                 value: 'Alexander',
-                data: fixtures['Alexander']
+                data: $.extend({}, fixtures['Alexander'], {
+                    // field reformatted
+                    gender: 'MALE',
+                    // fields from original suggestion are not overridden
+                    name: 'Alexander'
+                })
             };
-            expectation.data.gender = 'MALE';
+            delete expectation.data.source;
 
             expect(options.onSelect).toHaveBeenCalledWith(expectation);
         });
@@ -165,7 +183,7 @@ describe('DaData API', function () {
             this.instance.$container.children('.suggestions-suggestion').eq(2).click();
             this.server.respond();
 
-            expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: null});
+            expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: {}});
         });
 
         it('Should lock dropdown list while request is pending', function () {
@@ -215,6 +233,16 @@ describe('DaData API', function () {
             var $items = this.instance.$container.children('.suggestions-suggestion');
             expect($items.length).toEqual(1);
             expect($items.text()).toEqual('Bad');
+        });
+
+        it('Should not display a suggestion, with all displayable fields are NULL', function(){
+
+            this.input.value = 'Very';
+            this.instance.onValueChange();
+            this.server.respond();
+            this.server.respond();
+            var $items = this.instance.$container.children('.suggestions-suggestion');
+            expect($items.length).toEqual(0);
         });
 
     });

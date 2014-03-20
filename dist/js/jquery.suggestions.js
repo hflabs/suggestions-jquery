@@ -43,6 +43,9 @@
                     } else {
                         return $.param(data, true);
                     }
+                },
+                compact: function(array){
+                    return $.grep(array, function(el){ return !!el; });
                 }
             };
         }()),
@@ -61,16 +64,22 @@
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
         dadataConfig = {
-            fieldMaps: {
-                'gender': {
-                    'М': 'MALE',
-                    'Ж': 'FEMALE',
-                    'НД': 'UNKNOWN'
-                }
-            },
+            fieldParsers: {},
             url: 'https://dadata.ru/api/v1/clean',
             timeout: 200,
-            types: ['NAME', 'ADDRESS']
+            types: ['NAME', 'ADDRESS'],
+            composer: {
+                'NAME': function(data) {
+                    return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
+                },
+                'ADDRESS': function(data) {
+                    return utils.compact([data.country, data.region, data.area, data.city, data.settlement, data.street,
+                        utils.compact([data.house_type, data.house]).join(' '),
+                        utils.compact([data.block_type, data.block]).join(' '),
+                        utils.compact([data.flat_type, data.flat]).join(' ')
+                    ]).join(', ');
+                }
+            }
         },
         tokensValid = {},
         enrichServices = {};
@@ -83,6 +92,42 @@
             return $.Deferred().resolve(response);
         }
     };
+
+    /**
+     * Values of `gender` from dadata.ru differ from ones in original suggestions
+     * @param value
+     * @returns {{gender: string}}
+     */
+    dadataConfig.fieldParsers.gender = function(value){
+        return {
+            gender: value == 'М' ? 'MALE' :
+                    value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
+        }
+    };
+
+    /**
+     * Each of these fields in dadata's answer combines two fields of standard suggestion object
+     */
+    $.each(['area', 'city', 'street', 'region'], function(i, field){
+        dadataConfig.fieldParsers[field] = function(value){
+            var parts = [],
+                result = {};
+            if (value) {
+                value = value.split(' ');
+                parts[0] = value.shift();
+                parts[1] = value.join(' ');
+            } else {
+                parts[0] = null;
+                parts[1] = value;
+            }
+            if (field == 'region' && ['край', 'обл', 'АО', 'Аобл'].indexOf(parts[1]) >= 0) {
+                parts.reverse();
+            }
+            result[field + '_type'] = parts[0];
+            result[field] = parts[1];
+            return result;
+        };
+    });
 
     enrichServices['dadata'] = {
         enrichSuggestion: function (suggestion) {
@@ -117,21 +162,22 @@
                     var data = resp.data,
                         s = data && data[0] && data[0][0];
                     if (s && s.qc === 0) {
-                        // map some fields' values
-                        $.each(dadataConfig.fieldMaps, function (field, map) {
-                            if (field in s) {
-                                s[field] = map[s[field]];
+                        if (!suggestion.data) {
+                            suggestion.data = {};
+                        }
+                        delete s.source;
+                        $.each(s, function (field, value) {
+                            if (!(field in suggestion.data)) {
+                                var parser = dadataConfig.fieldParsers[field];
+                                if (parser) {
+                                    $.extend(suggestion.data, parser(value))
+                                } else {
+                                    suggestion.data[field] = value;
+                                }
                             }
                         });
-                        // make `response.suggestion`-like structure
-                        s = {
-                            value: suggestion.value,
-                            data: s
-                        };
-                    } else {
-                        s = suggestion;
                     }
-                    resolver.resolve(s);
+                    resolver.resolve(suggestion);
                 })
                 .fail(function () {
                     resolver.resolve(suggestion);
@@ -145,8 +191,9 @@
         enrichResponse: function (response, query) {
             var that = this,
                 token = $.trim(that.options.token),
+                dadataType = that.options.dadataType,
                 data = {
-                    structure: [that.options.dadataType],
+                    structure: [dadataType],
                     data: [
                         [ query ]
                     ]
@@ -170,20 +217,21 @@
             })
                 .done(function (resp) {
                     var data = resp.data,
-                        s = data && data[0] && data[0][0];
-                    if (s) {
-                        // map some fields' values
-                        $.each(dadataConfig.fieldMaps, function (field, map) {
-                            if (field in s) {
-                                s[field] = map[s[field]];
-                            }
-                        });
-                        // make `response.suggestion`-like structure
-                        s = {
-                            value: query,
-                            data: s
-                        };
-                        response.suggestions = [s];
+                        value;
+                    data = data && data[0] && data[0][0];
+                    if (data) {
+                        value = dadataConfig.composer[dadataType](data);
+                        if (value) {
+                            $.each(dadataConfig.fieldParsers, function (field, parser) {
+                                if (field in data) {
+                                    $.extend(data, parser(data[field]));
+                                }
+                            });
+                            response.suggestions = [{
+                                value: value,
+                                data: data
+                            }];
+                        }
                     }
                     resolver.resolve(response);
                 })
@@ -195,8 +243,7 @@
     };
 
     function Suggestions(el, options) {
-        var noop = function () { },
-            that = this,
+        var that = this,
             defaults = {
                 autoSelectFirst: false,
                 serviceUrl: null,
@@ -211,15 +258,15 @@
                 delimiter: null,
                 zIndex: 9999,
                 noCache: false,
-                onSearchStart: noop,
-                onSearchComplete: noop,
-                onSearchError: noop,
+                onSearchStart: $.noop,
+                onSearchComplete: $.noop,
+                onSearchError: $.noop,
                 containerClass: 'suggestions-suggestions',
                 tabDisabled: false,
                 currentRequest: null,
                 triggerSelectOnValidInput: false,
                 triggerSelectOnSpace: true,
-                preventBadQueries: true,
+                preventBadQueries: false,
                 lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
                     return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
                 },
@@ -824,7 +871,7 @@
             var that = this;
             that.visible = false;
             that.selectedIndex = -1;
-            that.$container.hide();
+            that.$container.hide().empty();
             that.signalHint(null);
         },
 
