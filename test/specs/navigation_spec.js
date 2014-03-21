@@ -13,13 +13,10 @@ describe('Keyboard navigation', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        $('.autocomplete-suggestions').remove();
-        this.server.restore();
+        this.instance.dispose()
     });
 
     it('Should select first suggestion on DOWN key in textbox', function () {

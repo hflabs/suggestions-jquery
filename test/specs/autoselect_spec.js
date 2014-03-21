@@ -8,14 +8,10 @@ describe('Autoselect', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
         this.instance.dispose()
-        $(this.input).remove();
-        this.server.restore();
     });
 
     it('Should not autoselect first item by default', function () {

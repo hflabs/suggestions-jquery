@@ -8,13 +8,10 @@ describe('Select on blur', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        $('.autocomplete-suggestions').remove();
-        this.server.restore();
+        this.instance.dispose()
     });
 
     it('Should trigger on full match', function () {

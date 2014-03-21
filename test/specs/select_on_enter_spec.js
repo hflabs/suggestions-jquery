@@ -8,13 +8,10 @@ describe('Select on Enter', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        $('.suggestions-suggestions').remove();
-        this.server.restore();
+        this.instance.dispose()
     });
 
     it('Should trigger on full match', function () {

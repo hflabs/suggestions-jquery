@@ -8,13 +8,10 @@ describe('Select on Space', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        $('.suggestions-suggestions').remove();
-        this.server.restore();
+        this.instance.dispose();
     });
 
     it('Should trigger when suggestion is selected', function () {

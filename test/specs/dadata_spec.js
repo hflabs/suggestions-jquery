@@ -91,7 +91,7 @@ describe('DaData API', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             token: token,
-            dadataType: 'NAME',
+            type: 'NAME',
             onSelect: $.noop
         }).suggestions();
 

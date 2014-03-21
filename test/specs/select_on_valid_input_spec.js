@@ -8,13 +8,10 @@ describe('Select on valid input', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        $('.suggestions-suggestions').remove();
-        this.server.restore();
+        this.instance.dispose()
     });
 
     it('Should trigger when input value matches suggestion', function () {
