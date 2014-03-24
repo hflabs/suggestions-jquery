@@ -61,7 +61,7 @@
         dataAttrKey = 'suggestions',
         dadataConfig = {
             url: 'https://dadata.ru/api/v1/clean',
-            timeout: 200
+            timeout: 1000
         },
         tokensValid = {},
         enrichServices = {};
