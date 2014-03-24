@@ -93,23 +93,33 @@
         /**
          * Each of these fields in dadata's answer combines two fields of standard suggestion object
          */
-        $.each(['area', 'city', 'street', 'region'], function (i, field) {
+        $.each(['region', 'area', 'city', 'settlement', 'street'], function (i, field) {
+            function typeGoesFirst(addressPart) {
+                if (field === 'city' || field === 'settlement' || field === 'street' ) {
+                    return true;
+                } else {
+                    var typeRE = /^(г|Респ|тер|у)/i;
+                    return typeRE.test(addressPart);
+                }
+            }
             fieldParsers[field] = function (value) {
-                var parts = [],
+                var addressPartType,
+                    addressPartValue,
                     result = {};
                 if (value) {
-                    value = value.split(' ');
-                    parts[0] = value.shift();
-                    parts[1] = value.join(' ');
+                    var addressParts = value.split(' ');
+                    if (typeGoesFirst(value)) {
+                        addressPartType = addressParts.shift();
+                    } else {
+                        addressPartType = addressParts.pop();
+                    }
+                    addressPartValue = addressParts.join(' ');
                 } else {
-                    parts[0] = null;
-                    parts[1] = value;
+                    addressPartType = null;
+                    addressPartValue = value;
                 }
-                if (field == 'region' && parts[1] && ['край','обл','ао','аобл'].indexOf(parts[1].toLowerCase()) >= 0) {
-                    parts.reverse();
-                }
-                result[field + '_type'] = parts[0];
-                result[field] = parts[1];
+                result[field + '_type'] = addressPartType;
+                result[field] = addressPartValue;
                 return result;
             };
         });
@@ -621,7 +631,7 @@
                 top: that.$wrapper.innerHeight() + 'px',
                 left: -parseFloat(that.$wrapper.css('border-left-width')) + 'px'
                 //maxHeight: (spaceUnderInput - containerHBorders) + 'px'
-            }
+            };
 
             if (that.options.width === 'auto') {
                 styles.right = -parseFloat(that.$wrapper.css('border-right-width')) + 'px';
@@ -654,7 +664,7 @@
 
         onKeyPress: function (e) {
             var that = this,
-                index, value;
+                index;
 
             that.triggeredSelectOnSpace = false;
             that.triggeringSelectOnSpace = false;
@@ -932,8 +942,7 @@
                 beforeRender = options.beforeRender,
                 $container = that.$container,
                 html = [],
-                index,
-                width;
+                index;
 
             if (options.triggerSelectOnValidInput) {
                 index = that.findSuggestionIndex(value);
