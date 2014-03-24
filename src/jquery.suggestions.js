@@ -611,7 +611,7 @@
             bounds.bottom = bounds.top + that.el.outerHeight();
 
             styles = {
-                top: that.$wrapper.innerHeight() + parseFloat(that.$container.css('border-bottom-width')) + 'px',
+                top: that.$wrapper.innerHeight() + 'px',
                 left: -parseFloat(that.$wrapper.css('border-left-width')) + 'px'
                 //maxHeight: (spaceUnderInput - containerHBorders) + 'px'
             }
