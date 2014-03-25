@@ -37,3 +37,26 @@
   white-space: nowrap;
   overflow: hidden;
 }
+.suggestions-wrapper .suggestions-constraints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+}
+.suggestions-wrapper .suggestions-constraints li {
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 0 4px 0 0;
+  padding: 0 4px;
+}
+.suggestions-wrapper .suggestions-constraints li .suggestions-remove {
+  cursor: pointer;
+}
+.suggestions-wrapper .suggestions-constraints li .suggestions-remove:after {
+  color: #ccc;
+  content: 'x';
+  font-weight: bold;
+}

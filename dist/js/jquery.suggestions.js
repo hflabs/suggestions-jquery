@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.3.3
+ * DaData.ru Suggestions jQuery plugin, version 4.4.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -20,6 +20,7 @@
 
     var
         utils = (function () {
+            var uniqueId = 0;
             return {
                 escapeRegExChars: function (value) {
                     return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
@@ -41,6 +42,9 @@
                     return $.grep(array, function (el) {
                         return !!el;
                     });
+                },
+                uniqueId: function () {
+                    return ++uniqueId;
                 }
             };
         }()),
@@ -86,7 +90,7 @@
         fieldParsers.gender = function (value) {
             return {
                 gender: value == 'М' ? 'MALE' :
-                        value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
+                    value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
             }
         };
 
@@ -95,13 +99,14 @@
          */
         $.each(['region', 'area', 'city', 'settlement', 'street'], function (i, field) {
             function typeGoesFirst(addressPart) {
-                if (field === 'city' || field === 'settlement' || field === 'street' ) {
+                if (field === 'city' || field === 'settlement' || field === 'street') {
                     return true;
                 } else {
                     var typeRE = /^(г|Респ|тер|у)/i;
                     return typeRE.test(addressPart);
                 }
             }
+
             fieldParsers[field] = function (value) {
                 var addressPartType,
                     addressPartValue,
@@ -215,7 +220,7 @@
                 }
 
                 startRequest.call(that, query)
-                    .always(function(){
+                    .always(function () {
                         that.currentRequest = null;
                     })
                     .done(function (resp) {
@@ -285,7 +290,8 @@
                 hint: Suggestions.defaultHint,
                 useDadata: true,
                 type: null,
-                count: Suggestions.defaultCount
+                count: Suggestions.defaultCount,
+                constraints: null
             };
 
         // Shared variables:
@@ -303,6 +309,7 @@
         that.suggestionsContainer = null;
         that.$wrapper = null;
         that.$preloader = null;
+        that.$constraints = null;
         that.options = $.extend({}, defaults, options);
         that.classes = {
             hint: 'suggestions-hint',
@@ -319,6 +326,9 @@
         that.enrichService = enrichServices.default;
         that.dropdownDisabled = false;
         that.expectedComponents = [];
+        that.constraints = {};
+        that.initialPaddingLeft = 0;
+        that.uniqueId = utils.uniqueId();
 
         // Initialize and set options:
         that.initialize();
@@ -355,12 +365,23 @@
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
+            that.initialPaddingLeft = parseFloat(that.el.css('padding-left'))||0;
 
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
             that.el.after(that.$wrapper);
 
             that.$preloader = $('<i class="suggestions-preloader"/>');
             that.$wrapper.append(that.$preloader);
+
+            that.$constraints = $('<ul class="suggestions-constraints"/>');
+            that.$wrapper.append(that.$constraints);
+            that.$constraints.on('click', '.suggestions-remove', function (e) {
+                var $item = $(e.target).closest('li'),
+                    key = $item.attr('data-key');
+                $item.fadeOut('fast', function () {
+                    that.removeConstraint(key);
+                });
+            });
 
             that.killerFn = function (e) {
                 if ($(e.target).closest('.' + that.options.containerClass).length === 0) {
@@ -438,13 +459,7 @@
 
             that.fixPosition();
 
-            that.fixPositionCapture = function () {
-                if (that.visible) {
-                    that.fixPosition();
-                }
-            };
-
-            that.$viewport.on('resize' + eventNS, that.fixPositionCapture);
+            that.$viewport.on('resize' + eventNS + that.uniqueId, $.proxy(that.fixPosition, that));
 
             that.el.on('keydown' + eventNS, function (e) {
                 that.onKeyPress(e);
@@ -511,6 +526,7 @@
             that.checkToken();
             that.selectEnrichService();
             that.selectExpectedComponents();
+            that.setupConstraints();
         },
 
         getAjaxParams: function () {
@@ -583,7 +599,7 @@
                 params = that.options.params;
             switch (type) {
                 case 'NAME':
-                    that.expectedComponents = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function(part){
+                    that.expectedComponents = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
                         return part.toLowerCase();
                     });
                     break;
@@ -623,13 +639,14 @@
                 borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width')),
                 borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width')),
                 elOffset = that.el.offset(),
-                elInnerHeight = that.el.innerHeight(),
-                elInnerWidth = that.el.innerWidth(),
+                elInnerHeight,
                 wrapperOffset = that.$wrapper.offset(),
                 origin = {
                     top: elOffset.top - wrapperOffset.top,
                     left: elOffset.left - wrapperOffset.left
                 };
+
+            elInnerHeight = that.el.innerHeight();
 
             that.$container.css({
                 left: origin.left + 'px',
@@ -638,9 +655,19 @@
             });
 
             that.$preloader.css({
-                left: origin.left + borderLeft + elInnerWidth - that.$preloader.width() - 4 + 'px',
+                left: origin.left + borderLeft + that.el.innerWidth() - that.$preloader.width() - 4 + 'px',
                 top: origin.top + Math.round((elInnerHeight - that.$preloader.height()) / 2) + 'px'
             });
+
+            that.$constraints.css({
+                left: origin.left + that.initialPaddingLeft + 'px',
+                top: origin.top + Math.round((elInnerHeight - that.$constraints.height()) / 2) + 'px'
+            });
+
+            that.el.css({
+                'paddingLeft': that.initialPaddingLeft + that.$constraints.outerWidth(true) + 'px'
+            });
+
         },
 
         isCursorAtEnd: function () {
@@ -879,11 +906,11 @@
                 }
                 that.showPreloader();
                 that.currentRequest = $.ajax(
-                    $.extend(that.getAjaxParams(), {
-                        url: serviceUrl,
-                        data: utils.serialize(params)
-                    })
-                ).done(function (data) {
+                        $.extend(that.getAjaxParams(), {
+                            url: serviceUrl,
+                            data: utils.serialize(params)
+                        })
+                    ).done(function (data) {
                         var result;
                         that.currentRequest = null;
                         result = options.transformResult(data);
@@ -1152,10 +1179,10 @@
             that.findBestHint();
         },
 
-        hasExpectedComponents: function(suggestion) {
+        hasExpectedComponents: function (suggestion) {
             var that = this,
                 result = true;
-            $.each(that.expectedComponents, function(i, part){
+            $.each(that.expectedComponents, function (i, part) {
                 return result = result && !!suggestion.data[part];
             });
             return result;
@@ -1264,9 +1291,48 @@
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
         },
 
+        getConstraintItem: function (key) {
+            return this.$constraints.children('[data-key="' + key + '"]');
+        },
+
+        addConstraint: function (key, value) {
+            var that = this,
+                $item = that.getConstraintItem(key);
+
+            that.constraints[key] = value;
+            if (!$item.length) {
+                $item = $('<li><span/> <span class="suggestions-remove"/></li>').attr('data-key', key);
+                that.$constraints.append($item);
+            }
+            $item.children().first().text(value);
+            that.fixPosition();
+        },
+
+        removeConstraint: function (key) {
+            var that = this;
+            delete that.constraints[key];
+            that.getConstraintItem(key).remove();
+            that.fixPosition();
+        },
+
+        setupConstraints: function () {
+            var that = this,
+                constraints = that.options.constraints;
+
+            if (!constraints) {
+                return;
+            }
+            $.each(that.constraints, function (key) {
+                if (!(key in constraints)) {
+                    that.removeConstraint(key);
+                }
+            });
+            $.each(constraints, $.proxy(that.addConstraint, that));
+        },
+
         dispose: function () {
             var that = this;
-            that.el.off(eventNS).removeData(dataAttrKey);
+            that.el.off(eventNS + that.uniqueId).removeData(dataAttrKey);
             that.$viewport.off('resize' + eventNS);
             that.$wrapper.remove();
         },

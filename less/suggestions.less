@@ -42,4 +42,30 @@
         color: #777;
         .suggestions-suggestion;
     }
+
+    .suggestions-constraints {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        white-space: nowrap;
+
+        li {
+            background: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 0 4px 0 0;
+            padding: 0 4px;
+
+            .suggestions-remove {
+                cursor: pointer;
+                &:after {
+                    color: #ccc;
+                    content: 'x';
+                    font-weight: bold;
+                }
+            }
+        }
+    }
 }
