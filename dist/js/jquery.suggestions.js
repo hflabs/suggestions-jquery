@@ -357,8 +357,7 @@
             that.element.setAttribute('autocomplete', 'off');
 
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
-            that.el.before(that.$wrapper);
-            that.$wrapper.append(that.el);
+            that.el.after(that.$wrapper);
 
             that.$preloader = $('<i class="suggestions-preloader"/>');
             that.$wrapper.append(that.$preloader);
@@ -621,28 +620,27 @@
 
         fixPosition: function () {
             var that = this,
-                bounds,
-                styles;
+                borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width')),
+                borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width')),
+                elOffset = that.el.offset(),
+                elInnerHeight = that.el.innerHeight(),
+                elInnerWidth = that.el.innerWidth(),
+                wrapperOffset = that.$wrapper.offset(),
+                origin = {
+                    top: elOffset.top - wrapperOffset.top,
+                    left: elOffset.left - wrapperOffset.left
+                };
 
-            bounds = that.el.offset();
-            bounds.bottom = bounds.top + that.el.outerHeight();
+            that.$container.css({
+                left: origin.left + 'px',
+                top: origin.top + borderTop + elInnerHeight + 'px',
+                width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
+            });
 
-            styles = {
-                top: that.$wrapper.innerHeight() + 'px',
-                left: -parseFloat(that.$wrapper.css('border-left-width')) + 'px'
-                //maxHeight: (spaceUnderInput - containerHBorders) + 'px'
-            };
-
-            if (that.options.width === 'auto') {
-                styles.right = -parseFloat(that.$wrapper.css('border-right-width')) + 'px';
-                styles.width = 'auto';
-            } else {
-                styles.rigth = 'auto';
-                styles.width = that.options.width + 'px';
-            }
-
-            that.$container.css(styles);
-
+            that.$preloader.css({
+                left: origin.left + borderLeft + elInnerWidth - that.$preloader.width() - 4 + 'px',
+                top: origin.top + Math.round((elInnerHeight - that.$preloader.height()) / 2) + 'px'
+            });
         },
 
         isCursorAtEnd: function () {

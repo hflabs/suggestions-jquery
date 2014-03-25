@@ -60,6 +60,7 @@ jQuery-плагин для сервиса Подсказок DaData.ru.
 * `disable`: временно деактивирует функционал плагина.
 * `enable`: включает плагин, если он был деактивирован.
 * `hide`: скрывает список с подсказками.
+* `fixPosition`: принудительно позиционирует вспомогательные элементы
 * `dispose`: уничтожает экземпляр плагина.
 
 Есть два способа обращения к этим методам. Первый состоит в передаче названия метода как строкового аргумента, за которым могут следовать иные необходимые аргументы:
@@ -106,8 +107,8 @@ Html:
 
 При инициализации плагин создает дополнительные HTML-элементы. Пример приведен ниже.
 
+    <input type="text" name="fio" id="suggestions"/>
     <div class="suggestions-wrapper">
-        <input type="text" name="fio" id="suggestions"/>
         <i class="suggestions-preloader"></i>
         <div class="suggestions-suggestions">
             <div class="suggestions-suggestion suggestions-selected">...</div>
