@@ -294,7 +294,7 @@
         that.onChange = null;
         that.isLocal = false;
         that.suggestionsContainer = null;
-        that.$wrapped = null;
+        that.$wrapper = null;
         that.$preloader = null;
         that.options = $.extend({}, defaults, options);
         that.classes = {
@@ -1261,9 +1261,7 @@
             var that = this;
             that.el.off(eventNS).removeData(dataAttrKey);
             that.$viewport.off('resize' + eventNS);
-            that.$container.remove();
-            that.$preloader.remove();
-            that.el.unwrap();
+            that.$wrapper.remove();
         },
 
         _delay: function (handler, delay) {
