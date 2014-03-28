@@ -8,10 +8,12 @@ describe('Select on Enter', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
+        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        this.instance.dispose()
+        this.server.restore();
+        this.instance.dispose();
     });
 
     it('Should trigger on full match', function () {
@@ -21,7 +23,6 @@ describe('Select on Enter', function () {
                 { value: 'Andorra', data: 'An' }
             ],
             options = {
-                lookup: suggestions,
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
@@ -31,22 +32,20 @@ describe('Select on Enter', function () {
 
         this.input.value = 'Albania';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
 
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 13);
 
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
     
     it('Should trigger when suggestion is selected manually', function () {
         var suggestions = [
-            { value: 'Afghanistan', data: 'Af' },
-            { value: 'Albania', data: 'Al' },
-            { value: 'Andorra', data: 'An' }
-        ];
-        var options = {
-                lookup: suggestions,
+                { value: 'Afghanistan', data: 'Af' },
+                { value: 'Albania', data: 'Al' },
+                { value: 'Andorra', data: 'An' }
+            ],
+            options = {
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
@@ -55,6 +54,7 @@ describe('Select on Enter', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
 
         this.instance.selectedIndex = 2;
         helpers.keydown(this.input, 13); // code of Enter
@@ -63,9 +63,8 @@ describe('Select on Enter', function () {
     });
 
     it('Should NOT trigger on partial match', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
+        var suggestions = [{ value: 'Jamaica', data: 'J' }],
             options = {
-                lookup: [suggestion],
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
@@ -75,15 +74,16 @@ describe('Select on Enter', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+
         helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
     it('Should NOT trigger when nothing matched', function () {
-        var suggestion = { value: 'Jamaica', data: 'J' },
+        var suggestions = [{ value: 'Jamaica', data: 'J' }],
             options = {
-                lookup: [suggestion],
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
@@ -93,6 +93,8 @@ describe('Select on Enter', function () {
 
         this.input.value = 'Alg';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+
         helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect).not.toHaveBeenCalled();

@@ -1,6 +1,16 @@
 Changelog
 =========
 
+### 4.4.1 28.03.2014
+
+* удалена опция `lookup`
+* удалена опция `lookupFilter`
+* удалена опция `lookupLimit`
+* удалена опция `transformResult`
+* удалена опция `triggerSelectOnValidInput`
+* в обработчик `onInvalidateSelection` передается объект `suggestions`, который был прежде выбран
+* проведен рефакторинг
+
 ### 4.3.3 21.03.2014
 
 * удалена опция `dadataType`

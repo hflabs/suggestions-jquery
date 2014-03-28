@@ -8,33 +8,33 @@ describe('Autoselect', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
+        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
-        this.instance.dispose()
+        this.server.restore();
+        this.instance.dispose();
     });
 
     it('Should not autoselect first item by default', function () {
-        this.instance.setOptions({
-            lookup: ['Jamaica', 'Jamaica', 'Jamaica']
-        });
         this.instance.selectedIndex = -1;
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
 
         expect(this.instance.selectedIndex).toBe(-1);
     });
 
     it('Should autoselect first item if autoSelectFirst set to true', function () {
         this.instance.setOptions({
-            lookup: ['Jamaica', 'Jamaica', 'Jamaica'],
             autoSelectFirst: true
         });
         this.instance.selectedIndex = -1;
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
 
         expect(this.instance.selectedIndex).toBe(0);
     });

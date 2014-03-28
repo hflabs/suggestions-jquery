@@ -13,20 +13,20 @@ describe('Keyboard navigation', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl
         }).suggestions();
+        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
+        this.server.restore();
         this.instance.dispose()
     });
 
     it('Should select first suggestion on DOWN key in textbox', function () {
-        this.instance.setOptions({
-            lookup: suggestions
-        });
         this.instance.selectedIndex = -1;
 
         this.input.value = 'A';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
         helpers.keydown(this.input, 40);
 
         expect(this.instance.selectedIndex).toBe(0);
@@ -34,13 +34,11 @@ describe('Keyboard navigation', function () {
     });
 
     it('Should select last suggestion on UP key in textbox', function () {
-        this.instance.setOptions({
-            lookup: suggestions
-        });
         this.instance.selectedIndex = -1;
 
         this.input.value = 'A';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
         helpers.keydown(this.input, 38);
 
         expect(this.instance.selectedIndex).toBe(2);
@@ -48,13 +46,11 @@ describe('Keyboard navigation', function () {
     });
 
     it('Should select textbox on DOWN key in last suggestion', function () {
-        this.instance.setOptions({
-            lookup: suggestions
-        });
         this.instance.selectedIndex = -1;
 
         this.input.value = 'A';
         this.instance.onValueChange();
+        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
         this.instance.selectedIndex = 2;
         helpers.keydown(this.input, 40);
 

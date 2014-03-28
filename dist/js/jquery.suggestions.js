@@ -43,6 +43,9 @@
                         return !!el;
                     });
                 },
+                delay: function (handler, delay) {
+                    return setTimeout(handler, delay || 0);
+                },
                 uniqueId: function () {
                     return ++uniqueId;
                 }
@@ -68,224 +71,216 @@
             timeout: 1000
         },
         tokensValid = {},
-        enrichServices = {};
-
-    enrichServices['default'] = {
-        enrichSuggestion: function (suggestion) {
-            return $.Deferred().resolve(suggestion);
-        },
-        enrichResponse: function (response, query) {
-            return $.Deferred().resolve(response);
-        }
-    };
-
-    enrichServices['dadata'] = (function () {
-        var fieldParsers = {};
-
-        /**
-         * Values of `gender` from dadata.ru differ from ones in original suggestions
-         * @param value
-         * @returns {{gender: string}}
-         */
-        fieldParsers.gender = function (value) {
-            return {
-                gender: value == 'М' ? 'MALE' :
-                    value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
-            }
-        };
-
-        /**
-         * Each of these fields in dadata's answer combines two fields of standard suggestion object
-         */
-        $.each(['region', 'area', 'city', 'settlement', 'street'], function (i, field) {
-            function typeGoesFirst(addressPart) {
-                if (field === 'city' || field === 'settlement' || field === 'street') {
-                    return true;
-                } else {
-                    var typeRE = /^(г|Респ|тер|у)/i;
-                    return typeRE.test(addressPart);
+        enrichServices = {
+            'default': {
+                enrichSuggestion: function (suggestion) {
+                    return $.Deferred().resolve(suggestion);
+                },
+                enrichResponse: function (response, query) {
+                    return $.Deferred().resolve(response);
                 }
-            }
-
-            fieldParsers[field] = function (value) {
-                var addressPartType,
-                    addressPartValue,
-                    result = {};
-                if (value) {
-                    var addressParts = value.split(' ');
-                    if (typeGoesFirst(value)) {
-                        addressPartType = addressParts.shift();
-                    } else {
-                        addressPartType = addressParts.pop();
-                    }
-                    addressPartValue = addressParts.join(' ');
-                } else {
-                    addressPartType = null;
-                    addressPartValue = value;
-                }
-                result[field + '_type'] = addressPartType;
-                result[field] = addressPartValue;
-                return result;
-            };
-        });
-
-        var valueComposer = {
-            'NAME': function (data) {
-                return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            'ADDRESS': function (data) {
-                return utils.compact([data.country, data.region, data.area, data.city, data.settlement, data.street,
-                    utils.compact([data.house_type, data.house]).join(' '),
-                    utils.compact([data.block_type, data.block]).join(' '),
-                    utils.compact([data.flat_type, data.flat]).join(' ')
-                ]).join(', ');
-            }
-        };
+            'dadata': (function () {
+                var fieldParsers = {};
 
-        function startRequest(query) {
-            var that = this,
-                token = $.trim(that.options.token),
-                data = {
-                    structure: [that.options.type],
-                    data: [
-                        [ query ]
-                    ]
+                /**
+                 * Values of `gender` from dadata.ru differ from ones in original suggestions
+                 * @param value
+                 * @returns {{gender: string}}
+                 */
+                fieldParsers.gender = function (value) {
+                    return {
+                        gender: value == 'М' ? 'MALE' :
+                            value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
+                    }
                 };
 
-            that.currentRequest = $.ajax(dadataConfig.url, {
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Token ' + token
-                },
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify(data),
-                timeout: dadataConfig.timeout
-            });
-            return that.currentRequest;
-        }
+                /**
+                 * Each of these fields in dadata's answer combines two fields of standard suggestion object
+                 */
+                $.each(['region', 'area', 'city', 'settlement', 'street'], function (i, field) {
+                    function typeGoesFirst(addressPart) {
+                        if (field === 'city' || field === 'settlement' || field === 'street') {
+                            return true;
+                        } else {
+                            var typeRE = /^(г|Респ|тер|у)/i;
+                            return typeRE.test(addressPart);
+                        }
+                    }
 
-        return {
-            enrichSuggestion: function (suggestion) {
-                var that = this,
-                    resolver = $.Deferred();
+                    fieldParsers[field] = function (value) {
+                        var addressPartType,
+                            addressPartValue,
+                            result = {};
+                        if (value) {
+                            var addressParts = value.split(' ');
+                            if (typeGoesFirst(value)) {
+                                addressPartType = addressParts.shift();
+                            } else {
+                                addressPartType = addressParts.pop();
+                            }
+                            addressPartValue = addressParts.join(' ');
+                        } else {
+                            addressPartType = null;
+                            addressPartValue = value;
+                        }
+                        result[field + '_type'] = addressPartType;
+                        result[field] = addressPartValue;
+                        return result;
+                    };
+                });
 
-                // if current suggestion is from dadata, use it
-                if (suggestion.data && 'qc' in suggestion.data) {
-                    return resolver.resolve(suggestion);
+                var valueComposer = {
+                    'NAME': function (data) {
+                        return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
+                    },
+                    'ADDRESS': function (data) {
+                        return utils.compact([data.country, data.region, data.area, data.city, data.settlement, data.street,
+                            utils.compact([data.house_type, data.house]).join(' '),
+                            utils.compact([data.block_type, data.block]).join(' '),
+                            utils.compact([data.flat_type, data.flat]).join(' ')
+                        ]).join(', ');
+                    }
+                };
+
+                function startRequest(query) {
+                    var that = this,
+                        token = $.trim(that.options.token),
+                        data = {
+                            structure: [that.options.type],
+                            data: [
+                                [ query ]
+                            ]
+                        };
+
+                    that.currentRequest = $.ajax(dadataConfig.url, {
+                        type: 'POST',
+                        headers: {
+                            'Authorization': 'Token ' + token
+                        },
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(data),
+                        timeout: dadataConfig.timeout
+                    });
+                    return that.currentRequest;
                 }
 
-                that.showPreloader();
-                that.disableDropdown();
-                startRequest.call(that, suggestion.value)
-                    .always(function () {
-                        that.hidePreloader();
-                        that.enableDropdown();
-                        that.currentRequest = null;
-                    })
-                    .done(function (resp) {
-                        var data = resp.data,
-                            s = data && data[0] && data[0][0];
+                return {
+                    enrichSuggestion: function (suggestion) {
+                        var that = this,
+                            resolver = $.Deferred();
 
-                        if (s && s.qc === 0) {
-                            if (!suggestion.data) {
-                                suggestion.data = {};
-                            }
-                            delete s.source;
-                            $.each(s, function (field, value) {
-                                if (!(field in suggestion.data)) {
-                                    var parser = fieldParsers[field];
-                                    if (parser) {
-                                        $.extend(suggestion.data, parser(value))
-                                    } else {
-                                        suggestion.data[field] = value;
+                        // if current suggestion is from dadata, use it
+                        if (suggestion.data && 'qc' in suggestion.data) {
+                            return resolver.resolve(suggestion);
+                        }
+
+                        that.showPreloader();
+                        that.disableDropdown();
+                        startRequest.call(that, suggestion.value)
+                            .always(function () {
+                                that.hidePreloader();
+                                that.enableDropdown();
+                                that.currentRequest = null;
+                            })
+                            .done(function (resp) {
+                                var data = resp.data,
+                                    s = data && data[0] && data[0][0];
+
+                                if (s && s.qc === 0) {
+                                    if (!suggestion.data) {
+                                        suggestion.data = {};
+                                    }
+                                    delete s.source;
+                                    $.each(s, function (field, value) {
+                                        if (!(field in suggestion.data)) {
+                                            var parser = fieldParsers[field];
+                                            if (parser) {
+                                                $.extend(suggestion.data, parser(value))
+                                            } else {
+                                                suggestion.data[field] = value;
+                                            }
+                                        }
+                                    });
+                                }
+                                resolver.resolve(suggestion);
+                            })
+                            .fail(function () {
+                                resolver.resolve(suggestion);
+                            });
+                        return resolver;
+                    },
+                    enrichResponse: function (response, query) {
+                        var that = this,
+                            suggestions = response.suggestions || [],
+                            resolver = $.Deferred();
+
+                        if (suggestions.length) {
+                            return resolver.resolve(response);
+                        }
+
+                        startRequest.call(that, query)
+                            .always(function () {
+                                that.currentRequest = null;
+                            })
+                            .done(function (resp) {
+                                var data = resp.data,
+                                    value;
+                                data = data && data[0] && data[0][0];
+                                if (data) {
+                                    delete data.source;
+                                    value = valueComposer[that.options.type](data);
+                                    if (value) {
+                                        $.each(fieldParsers, function (field, parser) {
+                                            if (field in data) {
+                                                $.extend(data, parser(data[field]));
+                                            }
+                                        });
+                                        response.suggestions = [
+                                            {
+                                                value: value,
+                                                data: data
+                                            }
+                                        ];
                                     }
                                 }
+                                resolver.resolve(response);
+                            })
+                            .fail(function () {
+                                resolver.resolve(response);
                             });
-                        }
-                        resolver.resolve(suggestion);
-                    })
-                    .fail(function () {
-                        resolver.resolve(suggestion);
-                    });
-                return resolver;
-            },
-            enrichResponse: function (response, query) {
-                var that = this,
-                    suggestions = response.suggestions || [],
-                    resolver = $.Deferred();
-
-                if (suggestions.length) {
-                    return resolver.resolve(response);
+                        return resolver;
+                    }
                 }
-
-                startRequest.call(that, query)
-                    .always(function () {
-                        that.currentRequest = null;
-                    })
-                    .done(function (resp) {
-                        var data = resp.data,
-                            value;
-                        data = data && data[0] && data[0][0];
-                        if (data) {
-                            delete data.source;
-                            value = valueComposer[that.options.type](data);
-                            if (value) {
-                                $.each(fieldParsers, function (field, parser) {
-                                    if (field in data) {
-                                        $.extend(data, parser(data[field]));
-                                    }
-                                });
-                                response.suggestions = [
-                                    {
-                                        value: value,
-                                        data: data
-                                    }
-                                ];
-                            }
-                        }
-                        resolver.resolve(response);
-                    })
-                    .fail(function () {
-                        resolver.resolve(response);
-                    });
-                return resolver;
-            }
-        }
-    })();
+            }())
+        };
 
     function Suggestions(el, options) {
         var that = this,
             defaults = {
                 autoSelectFirst: false,
                 serviceUrl: null,
-                lookup: null,
                 onSelect: null,
-                width: 'auto',
-                minChars: 1,
-                maxHeight: 300,
-                deferRequestBy: 0,
-                params: {},
-                formatResult: Suggestions.formatResult,
-                delimiter: null,
-                zIndex: 9999,
-                noCache: false,
+                onInvalidateSelection: $.noop,
                 onSearchStart: $.noop,
                 onSearchComplete: $.noop,
                 onSearchError: $.noop,
+                minChars: 1,
+                width: 'auto',
+                zIndex: 9999,
+                maxHeight: 300,
+                deferRequestBy: 0,
+                params: {},
+                paramName: 'query',
+                ignoreParams: false,
+                formatResult: Suggestions.formatResult,
+                delimiter: null,
+                noCache: false,
                 containerClass: 'suggestions-suggestions',
                 tabDisabled: false,
-                currentRequest: null,
-                triggerSelectOnValidInput: false,
                 triggerSelectOnSpace: true,
                 preventBadQueries: false,
-                lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
-                    return suggestion.value.toLowerCase().indexOf(queryLowerCase) !== -1;
-                },
-                paramName: 'query',
-                transformResult: function (response) {
-                    return typeof response === 'string' ? $.parseJSON(response) : response;
-                },
                 usePreloader: true,
                 hint: Suggestions.defaultHint,
                 useDadata: true,
@@ -303,10 +298,8 @@
         that.currentValue = that.element.value;
         that.intervalId = 0;
         that.cachedResponse = {};
-        that.onChangeInterval = null;
-        that.onChange = null;
-        that.isLocal = false;
-        that.suggestionsContainer = null;
+        that.currentRequest = null;
+        that.onChangeTimeout = null;
         that.$wrapper = null;
         that.$preloader = null;
         that.$constraints = null;
@@ -314,21 +307,22 @@
         that.classes = {
             hint: 'suggestions-hint',
             selected: 'suggestions-selected',
-            suggestion: 'suggestions-suggestion'
+            suggestion: 'suggestions-suggestion',
+            removeConstraint: 'suggestions-remove'
         };
-        that.hint = null;
-        that.hintValue = '';
         that.selection = null;
         that.$viewport = $(window);
-        that.triggeredSelectOnSpace = false;
-        that.triggeringSelectOnSpace = false;
-        that.skipOnFocus = false;
+        that.cancelBlur = false;
+        that.cancelFocus = false;
         that.enrichService = enrichServices.default;
         that.dropdownDisabled = false;
         that.expectedComponents = [];
         that.constraints = {};
         that.initialPaddingLeft = 0;
         that.uniqueId = utils.uniqueId();
+        that._waitingForTriggerSelectOnSpace = false;
+        that._constraintsUpdating = false;
+        that._lastPressedKeyCode = 0;
 
         // Initialize and set options:
         that.initialize();
@@ -356,48 +350,68 @@
 
     Suggestions.prototype = {
 
+        // Creation and destruction
+
         initialize: function () {
-            var that = this,
-                suggestionSelector = '.' + that.classes.suggestion,
-                selected = that.classes.selected,
-                options = that.options,
-                $container;
+            var that = this;
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
-            that.initialPaddingLeft = parseFloat(that.el.css('padding-left'))||0;
+            that.initialPaddingLeft = parseFloat(that.el.css('padding-left')) || 0;
+
+            that.createWrapper();
+            that.createPreloader();
+            that.createConstraints();
+            that.createContainer();
+
+            that.bindElementEvents();
+            that.bindWindowEvents();
+
+            that.fixPosition();
+        },
+
+        dispose: function () {
+            var that = this;
+            that.unbindElementEvents();
+            that.el.removeData(dataAttrKey)
+            that.unbindWindowEvents();
+            that.removeWrapper();
+        },
+
+        createWrapper: function () {
+            var that = this;
 
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
             that.el.after(that.$wrapper);
+        },
+
+        createPreloader: function () {
+            var that = this;
 
             that.$preloader = $('<i class="suggestions-preloader"/>');
             that.$wrapper.append(that.$preloader);
+        },
+
+        createConstraints: function () {
+            var that = this;
 
             that.$constraints = $('<ul class="suggestions-constraints"/>');
             that.$wrapper.append(that.$constraints);
-            that.$constraints.on('click', '.suggestions-remove', function (e) {
-                var $item = $(e.target).closest('li'),
-                    key = $item.attr('data-key');
-                $item.fadeOut('fast', function () {
-                    that.removeConstraint(key);
-                });
-            });
+            that.$constraints.on('click', '.' + that.classes.removeConstraint, $.proxy(that.onConstraintRemoveClick, that));
+        },
 
-            that.killerFn = function (e) {
-                if ($(e.target).closest('.' + that.options.containerClass).length === 0) {
-                    that.killSuggestions();
-                    that.disableKillerFn();
-                }
-            };
+        createContainer: function () {
+            var that = this,
+                suggestionSelector = '.' + that.classes.suggestion,
+                options = that.options,
+                $container = $('<div/>')
+                    .addClass(options.containerClass)
+                    .css({
+                        position: 'absolute',
+                        display: 'none'
+                    });
 
-            $container = $('<div/>')
-                .addClass(options.containerClass)
-                .css({
-                    position: 'absolute',
-                    display: 'none'
-                });
             that.$container = $container;
-            that.suggestionsContainer = $container[0];
             that.$wrapper.append($container);
 
             // Only set width if it was provided:
@@ -405,91 +419,42 @@
                 $container.width(options.width);
             }
 
-            // This whole handler is needed to prevent blur event on textbox
-            // when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
-            // See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
-            $container.on('mousedown' + eventNS, suggestionSelector, function (event) {
-                // prevent moving focus out of the text field
-                event.preventDefault();
-
-                // IE doesn't prevent moving focus even with event.preventDefault()
-                // so we set a flag to know when we should ignore the blur event
-                that.cancelBlur = true;
-                that._delay(function () {
-                    delete that.cancelBlur;
-                });
-
-                // clicking on the scrollbar causes focus to shift to the body
-                // but we can't detect a mouseup or a click immediately afterward
-                // so we have to track the next mousedown and close the menu if
-                // the user clicks somewhere outside of the autocomplete
-                if (!$(event.target).closest(".ui-menu-item").length) {
-                    that._delay(function () {
-                        $(document).one("mousedown", function (event) {
-                            if (event.target !== that.element &&
-                                event.target !== that.suggestionsContainer && !$.contains(that.suggestionsContainer, event.target)) {
-                                that.hide();
-                            }
-                        });
-                    });
-                }
-            });
-
-            // Listen for mouse over event on suggestions list:
-            $container.on('mouseover' + eventNS, suggestionSelector, function () {
-                that.activate($(this).data('index'));
-            });
-
-            // Deselect active element when mouse leaves suggestions container:
-            $container.on('mouseout' + eventNS, function () {
-                if (!that.dropdownDisabled) {
-                    that.selectedIndex = -1;
-                    $container.children('.' + selected).removeClass(selected);
-                }
-            });
-
-            // Listen for click event on suggestions list:
-            $container.on('click' + eventNS, suggestionSelector, function () {
-                if (!that.dropdownDisabled) {
-                    that.select($(this).data('index'));
-                }
-                that.skipOnFocus = true;
-                that.el.focus();
-            });
-
-            that.fixPosition();
-
-            that.$viewport.on('resize' + eventNS + that.uniqueId, $.proxy(that.fixPosition, that));
-
-            that.el.on('keydown' + eventNS, function (e) {
-                that.onKeyPress(e);
-            });
-            that.el.on('keyup' + eventNS, function (e) {
-                that.onKeyUp(e);
-            });
-            that.el.on('blur' + eventNS, function () {
-                that.onBlur();
-            });
-            that.el.on('focus' + eventNS, function () {
-                that.onFocus();
-            });
-            that.el.on('change' + eventNS, function (e) {
-                that.onKeyUp(e);
-            });
+            $container.on('mousedown' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMousedown, that));
+            $container.on('mouseover' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMouseover, that));
+            $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
+            $container.on('mouseout' + eventNS, $.proxy(that.onSuggestionsMouseout, that));
         },
 
-        onFocus: function () {
+        bindElementEvents: function () {
             var that = this;
-            if (!that.skipOnFocus) {
-                that.fixPosition();
-                if (that.options.minChars <= that.el.val().length) {
-                    that.onValueChange();
-                }
-            }
-            that.skipOnFocus = false;
+
+            that.el.on('keydown' + eventNS, $.proxy(that.onElementKeyDown, that));
+            that.el.on('keyup' + eventNS, $.proxy(that.onElementKeyUp, that));
+            that.el.on('blur' + eventNS, $.proxy(that.onElementBlur, that));
+            that.el.on('focus' + eventNS, $.proxy(that.onElementFocus, that));
+            that.el.on('change' + eventNS, $.proxy(that.onElementKeyUp, that));
         },
 
-        onBlur: function () {
+        unbindElementEvents: function () {
+            this.el.off(eventNS);
+        },
+
+        bindWindowEvents: function () {
+            var that = this;
+            that.$viewport.on('resize' + eventNS + that.uniqueId, $.proxy(that.fixPosition, that));
+        },
+
+        unbindWindowEvents: function () {
+            this.$viewport.off('resize' + eventNS + this.uniqueId);
+        },
+
+        removeWrapper: function () {
+            this.$wrapper.remove();
+        },
+
+        // Element event handlers
+
+        onElementBlur: function () {
             var that = this;
             // suggestion was clicked, blur should be ignored
             // see container mousedown handler
@@ -497,9 +462,204 @@
                 delete that.cancelBlur;
                 return;
             }
-            that.selectCurrentValue();
-            that.hide();
+            that.selectCurrentValue({noSpace: true});
         },
+
+        onElementFocus: function () {
+            var that = this;
+            if (!that.cancelFocus) {
+                that.fixPosition();
+                if (that.options.minChars <= that.el.val().length) {
+                    that.onValueChange();
+                }
+            }
+            that.cancelFocus = false;
+        },
+
+        onElementKeyDown: function (e) {
+            var that = this,
+                index;
+
+            that._lastPressedKeyCode = e.which;
+
+            // If suggestions are hidden and user presses arrow down, display suggestions:
+            if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
+                that.suggest();
+                return;
+            }
+
+            if (that.disabled || !that.visible) {
+                return;
+            }
+
+            switch (e.which) {
+                case keys.ESC:
+                    that.el.val(that.currentValue);
+                    that.hide();
+                    break;
+
+                case keys.RIGHT:
+                    return;
+
+                case keys.TAB:
+                    if (that.selectedIndex === -1) {
+                        that.hide();
+                        return;
+                    }
+                    that.select(that.selectedIndex, {noSpace: true});
+                    if (that.options.tabDisabled === false) {
+                        return;
+                    }
+                    break;
+
+                case keys.RETURN:
+                    that.selectCurrentValue();
+                    break;
+
+                case keys.SPACE:
+                    if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
+                        index = that.selectCurrentValue({noHide: true, noSpace: true});
+                        that._waitingForTriggerSelectOnSpace = index !== -1;
+                    }
+                    return;
+                case keys.UP:
+                    that.moveUp();
+                    break;
+                case keys.DOWN:
+                    that.moveDown();
+                    break;
+                default:
+                    return;
+            }
+
+            // Cancel event if function did not return:
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        },
+
+        onElementKeyUp: function (e) {
+            var that = this;
+
+            if (that.disabled) {
+                return;
+            }
+
+            switch (e.which) {
+                case keys.UP:
+                case keys.DOWN:
+                    return;
+            }
+
+            clearTimeout(that.onChangeTimeout);
+
+            if (that.currentValue !== that.el.val()) {
+                if (that.options.deferRequestBy > 0) {
+                    // Defer lookup in case when value changes very quickly:
+                    that.onChangeTimeout = utils.delay(function () {
+                        that.onValueChange();
+                    }, that.options.deferRequestBy);
+                } else {
+                    that.onValueChange();
+                }
+            }
+        },
+
+        onValueChange: function () {
+            var that = this,
+                options = that.options,
+                value = that.el.val(),
+                query = that.getQuery(value);
+
+            if (that.selection) {
+                (options.onInvalidateSelection || $.noop).call(that.element, that.selection);
+                that.selection = null;
+            }
+
+            clearTimeout(that.onChangeTimeout);
+            that.currentValue = value;
+            that.selectedIndex = -1;
+
+            if (query.length < options.minChars) {
+                that.hide();
+            } else {
+                that.getSuggestions(query);
+            }
+        },
+
+        // Suggestions event handlers
+
+        /** This whole handler is needed to prevent blur event on textbox
+         * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
+         * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
+         */
+        onSuggestionMousedown: function (event) {
+            var that = this;
+
+            // prevent moving focus out of the text field
+            event.preventDefault();
+
+            // IE doesn't prevent moving focus even with event.preventDefault()
+            // so we set a flag to know when we should ignore the blur event
+            that.cancelBlur = true;
+            utils.delay(function () {
+                delete that.cancelBlur;
+            });
+
+            // clicking on the scrollbar causes focus to shift to the body
+            // but we can't detect a mouseup or a click immediately afterward
+            // so we have to track the next mousedown and close the menu if
+            // the user clicks somewhere outside of the autocomplete
+            if (!$(event.target).closest(".ui-menu-item").length) {
+                utils.delay(function () {
+                    $(document).one("mousedown", function (event) {
+                        if (event.target !== that.element && !$.contains(that.$wrapper[0], event.target)) {
+                            that.hide();
+                        }
+                    });
+                });
+            }
+        },
+
+        /**
+         * Listen for mouse over event on suggestions list:
+         */
+        onSuggestionMouseover: function (e) {
+            var index = $(e.target).data('index');
+            this.activate(index);
+        },
+
+        /**
+         * Listen for click event on suggestions list:
+         */
+        onSuggestionClick: function (e) {
+            var that = this,
+                index = $(e.target).data('index');
+            if (!that.dropdownDisabled) {
+                that.select(index);
+            }
+            that.cancelFocus = true;
+            that.el.focus();
+        },
+
+        /**
+         * Deselect active element when mouse leaves suggestions container:
+         */
+        onSuggestionsMouseout: function () {
+            this.deactivate(false);
+        },
+
+        // Constraints event handlers
+
+        onConstraintRemoveClick: function (e) {
+            var that = this,
+                $item = $(e.target).closest('li'),
+                key = $item.attr('data-key');
+            $item.fadeOut('fast', function () {
+                that.removeConstraint(key);
+            });
+        },
+
+        // Configuration methods
 
         setOptions: function (suppliedOptions) {
             var that = this,
@@ -507,44 +667,17 @@
 
             $.extend(options, suppliedOptions);
 
-            that.isLocal = $.isArray(options.lookup);
-
-            if (that.isLocal) {
-                options.lookup = that.verifySuggestionsFormat(options.lookup);
-            }
-
             // Adjust height, width and z-index:
-            var styles = {
+            that.$container.css({
                 'max-height': options.maxHeight + 'px',
-                'z-index': options.zIndex
-            };
-            if (options.width !== 'auto') {
-                styles['width'] = options.width + 'px';
-            }
-            that.$container.css(styles);
+                'z-index': options.zIndex,
+                'width': options.width
+            });
 
             that.checkToken();
             that.selectEnrichService();
             that.selectExpectedComponents();
             that.setupConstraints();
-        },
-
-        getAjaxParams: function () {
-            var that = this,
-                params,
-                token = $.trim(that.options.token);
-
-            params = {
-                type: utils.getDefaultType(),
-                dataType: 'json',
-                contentType: utils.getDefaultContentType()
-            };
-            if (token) {
-                params.headers = {
-                    'Authorization': 'Token ' + token
-                }
-            }
-            return params;
         },
 
         checkToken: function () {
@@ -586,6 +719,7 @@
             var that = this,
                 type = that.options.type,
                 token = $.trim(that.options.token);
+
             if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
                 that.enrichService = enrichServices.dadata;
             } else {
@@ -597,6 +731,7 @@
             var that = this,
                 type = that.options.type,
                 params = that.options.params;
+
             switch (type) {
                 case 'NAME':
                     that.expectedComponents = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
@@ -611,28 +746,25 @@
             }
         },
 
-        clearCache: function () {
-            this.cachedResponse = {};
-            this.badQueries = [];
-        },
+        setupConstraints: function () {
+            var that = this,
+                constraints = that.options.constraints;
 
-        clear: function () {
-            this.clearCache();
-            this.currentValue = '';
-            this.suggestions = [];
-        },
-
-        disable: function () {
-            var that = this;
-            that.disabled = true;
-            if (that.currentRequest) {
-                that.currentRequest.abort();
+            if (!constraints) {
+                return;
             }
+            that._constraintsUpdating = true;
+            $.each(that.constraints, function (key) {
+                if (!(key in constraints)) {
+                    that.removeConstraint(key);
+                }
+            });
+            $.each(constraints, $.proxy(that.addConstraint, that));
+            that._constraintsUpdating = false;
+            that.fixPosition();
         },
 
-        enable: function () {
-            this.disabled = false;
-        },
+        // Common public methods
 
         fixPosition: function () {
             var that = this,
@@ -670,170 +802,62 @@
 
         },
 
-        isCursorAtEnd: function () {
-            var that = this,
-                valLength = that.el.val().length,
-                selectionStart = that.element.selectionStart,
-                range;
-
-            if (typeof selectionStart === 'number') {
-                return selectionStart === valLength;
-            }
-            if (document.selection) {
-                range = document.selection.createRange();
-                range.moveStart('character', -valLength);
-                return valLength === range.text.length;
-            }
-            return true;
+        clearCache: function () {
+            this.cachedResponse = {};
+            this.badQueries = [];
         },
 
-        onKeyPress: function (e) {
-            var that = this,
-                index;
-
-            that.triggeredSelectOnSpace = false;
-            that.triggeringSelectOnSpace = false;
-
-            // If suggestions are hidden and user presses arrow down, display suggestions:
-            if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
-                that.suggest();
-                return;
-            }
-
-            if (that.disabled || !that.visible) {
-                return;
-            }
-
-            switch (e.which) {
-                case keys.ESC:
-                    that.el.val(that.currentValue);
-                    that.hide();
-                    break;
-                case keys.RIGHT:
-                    if (that.hint && that.options.onHint && that.isCursorAtEnd()) {
-                        that.selectHint();
-                        break;
-                    }
-                    return;
-                case keys.TAB:
-                    if (that.hint && that.options.onHint) {
-                        that.selectHint();
-                        return;
-                    }
-                    if (that.selectedIndex === -1) {
-                        that.hide();
-                        return;
-                    }
-                    that.select(that.selectedIndex);
-                    if (that.options.tabDisabled === false) {
-                        return;
-                    }
-                    break;
-
-                case keys.RETURN:
-                    index = that.selectCurrentValue();
-                    if (index === -1) {
-                        that.hide();
-                        return;
-                    }
-                    break;
-                case keys.SPACE:
-                    if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                        that.triggeringSelectOnSpace = true;
-                        index = that.selectCurrentValue(true);
-                        if (index !== -1) {
-                            that.triggeredSelectOnSpace = true;
-                        }
-                    }
-                    return;
-                case keys.UP:
-                    that.moveUp();
-                    break;
-                case keys.DOWN:
-                    that.moveDown();
-                    break;
-                default:
-                    return;
-            }
-
-            // Cancel event if function did not return:
-            e.stopImmediatePropagation();
-            e.preventDefault();
+        clear: function () {
+            this.clearCache();
+            this.currentValue = '';
+            this.selection = null;
+            this.suggestions = [];
         },
 
-        onKeyUp: function (e) {
+        disable: function () {
             var that = this;
-
-            if (that.disabled) {
-                return;
+            that.disabled = true;
+            if (that.currentRequest) {
+                that.currentRequest.abort();
             }
-
-            switch (e.which) {
-                case keys.UP:
-                case keys.DOWN:
-                    return;
-            }
-
-            clearInterval(that.onChangeInterval);
-
-            if (that.currentValue !== that.el.val()) {
-                that.findBestHint();
-                if (that.options.deferRequestBy > 0) {
-                    // Defer lookup in case when value changes very quickly:
-                    that.onChangeInterval = setInterval(function () {
-                        that.onValueChange();
-                    }, that.options.deferRequestBy);
-                } else {
-                    that.onValueChange();
-                }
-            }
+            that.hide();
         },
 
-        onValueChange: function () {
-            var that = this,
-                options = that.options,
-                value = that.el.val(),
-                query = that.getQuery(value),
-                index;
-
-            if (that.selection) {
-                that.selection = null;
-                (options.onInvalidateSelection || $.noop).call(that.element);
-            }
-
-            clearInterval(that.onChangeInterval);
-            that.currentValue = value;
-            that.selectedIndex = -1;
-
-            // Check existing suggestion for the match before proceeding:
-            if (options.triggerSelectOnValidInput) {
-                index = that.findSuggestionIndex(query);
-                if (index !== -1) {
-                    that.select(index);
-                    return;
-                }
-            }
-
-            if (query.length < options.minChars) {
-                that.hide();
-            } else {
-                that.getSuggestions(query);
-            }
+        enable: function () {
+            this.disabled = false;
         },
 
-        findSuggestionIndex: function (query) {
+        toggleDropdownEnabling: function (enable) {
+            this.dropdownDisabled = !enable;
+            this.$container.attr('disabled', !enable);
+        },
+
+        disableDropdown: function () {
+            this.toggleDropdownEnabling(false);
+        },
+
+        enableDropdown: function () {
+            this.toggleDropdownEnabling(true);
+        },
+
+        // Querying related methods
+
+        getAjaxParams: function () {
             var that = this,
-                index = -1,
-                queryLowerCase = query.toLowerCase();
+                params,
+                token = $.trim(that.options.token);
 
-            $.each(that.suggestions, function (i, suggestion) {
-                if (suggestion.value.toLowerCase() === queryLowerCase) {
-                    index = i;
-                    return false;
+            params = {
+                type: utils.getDefaultType(),
+                dataType: 'json',
+                contentType: utils.getDefaultContentType()
+            };
+            if (token) {
+                params.headers = {
+                    'Authorization': 'Token ' + token
                 }
-            });
-
-            return index;
+            }
+            return params;
         },
 
         getQuery: function (value) {
@@ -845,27 +869,6 @@
             }
             parts = value.split(delimiter);
             return $.trim(parts[parts.length - 1]);
-        },
-
-        getSuggestionsLocal: function (query) {
-            var that = this,
-                options = that.options,
-                queryLowerCase = query.toLowerCase(),
-                filter = options.lookupFilter,
-                limit = parseInt(options.lookupLimit, 10),
-                data;
-
-            data = {
-                suggestions: $.grep(options.lookup, function (suggestion) {
-                    return filter(suggestion, query, queryLowerCase);
-                })
-            };
-
-            if (limit && data.suggestions.length > limit) {
-                data.suggestions = data.suggestions.slice(0, limit);
-            }
-
-            return data;
         },
 
         getSuggestions: function (q) {
@@ -884,18 +887,14 @@
                 }
             }
 
-            if (that.isLocal) {
-                response = that.getSuggestionsLocal(q);
-            } else {
-                if ($.isFunction(serviceUrl)) {
-                    serviceUrl = serviceUrl.call(that.element, q);
-                }
-                cacheKey = serviceUrl + '?' + $.param(params || {});
-                response = that.cachedResponse[cacheKey];
+            if ($.isFunction(serviceUrl)) {
+                serviceUrl = serviceUrl.call(that.element, q);
             }
-
+            cacheKey = serviceUrl + '?' + $.param(params || {});
+            response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
                 that.suggestions = response.suggestions;
+                that.trySelectOnSpace(q);
                 that.suggest();
             } else if (!that.isBadQuery(q)) {
                 if (options.onSearchStart.call(that.element, options.params) === false) {
@@ -910,11 +909,10 @@
                             url: serviceUrl,
                             data: utils.serialize(params)
                         })
-                    ).done(function (data) {
-                        var result;
+                    ).always(function () {
                         that.currentRequest = null;
-                        result = options.transformResult(data);
-                        that.enrichService.enrichResponse.call(that, result, q)
+                    }).done(function (response) {
+                        that.enrichService.enrichResponse.call(that, response, q)
                             .done(function (enrichedResponse) {
                                 that.processResponse(enrichedResponse, q, cacheKey);
                                 options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
@@ -932,84 +930,53 @@
                 return false;
             }
 
-            var badQueries = this.badQueries,
-                i = badQueries.length;
+            var result = false;
+            $.each(this.badQueries, function (i, query) {
+                return !(result = q.indexOf(query) === 0);
+            });
+            return result;
+        },
 
-            while (i--) {
-                if (q.indexOf(badQueries[i]) === 0) {
-                    return true;
-                }
+        verifySuggestionsFormat: function (suggestions) {
+            // If suggestions is string array, convert them to supported format:
+            if (suggestions.length && typeof suggestions[0] === 'string') {
+                return $.map(suggestions, function (value) {
+                    return { value: value, data: null };
+                });
             }
 
-            return false;
+            return suggestions;
         },
 
-        hide: function () {
-            var that = this;
-            that.visible = false;
-            that.selectedIndex = -1;
-            that.$container.hide().empty();
-            that.signalHint(null);
-        },
+        processResponse: function (response, originalQuery, cacheKey) {
+            var that = this,
+                options = that.options;
 
-        suggest: function () {
-            if (this.suggestions.length === 0) {
-                this.hide();
+            if (!response || !$.isArray(response.suggestions)) {
                 return;
             }
 
-            var that = this,
-                options = that.options,
-                formatResult = options.formatResult,
-                value = that.getQuery(that.currentValue),
-                className = that.classes.suggestion,
-                classSelected = that.classes.selected,
-                beforeRender = options.beforeRender,
-                $container = that.$container,
-                html = [],
-                index;
+            response.suggestions = that.verifySuggestionsFormat(response.suggestions);
 
-            if (options.triggerSelectOnValidInput) {
-                index = that.findSuggestionIndex(value);
-                if (index !== -1) {
-                    that.select(index);
-                    return;
+            // Cache results if cache is not disabled:
+            if (!options.noCache) {
+                that.cachedResponse[cacheKey] = response;
+                if (options.preventBadQueries && response.suggestions.length === 0) {
+                    that.badQueries.push(originalQuery);
                 }
             }
 
-            if (options.triggerSelectOnSpace && !that.triggeredSelectOnSpace && /\s$/.test(value)) {
-                index = that.findSuggestionIndex(value.replace(/\s$/, ''));
-                if (index !== -1) {
-                    that.onSelect(index);
-                }
+            // Return if originalQuery is not matching current query:
+            if (originalQuery !== that.getQuery(that.currentValue)) {
+                return;
             }
 
-            // Build hint html
-            if (options.hint && that.suggestions.length) {
-                html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
-            }
-            // Build suggestions inner HTML:
-            $.each(that.suggestions, function (i, suggestion) {
-                html.push('<div class="' + className + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>');
-            });
-
-            $container.html(html.join(''));
-
-            // Select first value by default:
-            if (options.autoSelectFirst) {
-                that.selectedIndex = 0;
-                $container.children().first().addClass(classSelected);
-            }
-
-            if ($.isFunction(beforeRender)) {
-                beforeRender.call(that.element, $container);
-            }
-
-            $container.show();
-            that.visible = true;
-
-            that.findBestHint();
+            that.suggestions = response.suggestions;
+            that.trySelectOnSpace(originalQuery);
+            that.suggest();
         },
+
+        // Preloader UI methods
 
         showPreloader: function () {
             if (this.options.usePreloader) {
@@ -1028,88 +995,74 @@
             }
         },
 
-        findBestHint: function () {
-            var that = this,
-                value = that.el.val().toLowerCase(),
-                bestMatch = null;
+        // Dropdown UI methods
 
-            if (!value) {
+        getSuggestionsItems: function () {
+            return this.$container.children('.' + this.classes.suggestion);
+        },
+
+        suggest: function () {
+            if (this.suggestions.length === 0) {
+                this.hide();
                 return;
             }
 
+            var that = this,
+                options = that.options,
+                formatResult = options.formatResult,
+                value = that.getQuery(that.currentValue),
+                beforeRender = options.beforeRender,
+                html = [],
+                index;
+
+            // Build hint html
+            if (options.hint && that.suggestions.length) {
+                html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
+            }
+            // Build suggestions inner HTML:
             $.each(that.suggestions, function (i, suggestion) {
-                var foundMatch = suggestion.value.toLowerCase().indexOf(value) === 0;
-                if (foundMatch) {
-                    bestMatch = suggestion;
-                }
-                return !foundMatch;
+                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>');
             });
 
-            that.signalHint(bestMatch);
+            that.$container.html(html.join(''));
+
+            // Select first value by default:
+            if (options.autoSelectFirst) {
+                that.selectedIndex = 0;
+                that.getSuggestionsItems().first().addClass(that.classes.selected);
+            }
+
+            if ($.isFunction(beforeRender)) {
+                beforeRender.call(that.element, that.$container);
+            }
+
+            that.$container.show();
+            that.visible = true;
         },
 
-        signalHint: function (suggestion) {
-            var hintValue = '',
-                that = this;
-            if (suggestion) {
-                hintValue = that.currentValue + suggestion.value.substr(that.currentValue.length);
-            }
-            if (that.hintValue !== hintValue) {
-                that.hintValue = hintValue;
-                that.hint = suggestion;
-                (this.options.onHint || $.noop)(hintValue);
-            }
-        },
-
-        verifySuggestionsFormat: function (suggestions) {
-            // If suggestions is string array, convert them to supported format:
-            if (suggestions.length && typeof suggestions[0] === 'string') {
-                return $.map(suggestions, function (value) {
-                    return { value: value, data: null };
-                });
-            }
-
-            return suggestions;
-        },
-
-        processResponse: function (result, originalQuery, cacheKey) {
-            var that = this,
-                options = that.options;
-
-            result.suggestions = that.verifySuggestionsFormat(result.suggestions);
-
-            // Cache results if cache is not disabled:
-            if (!options.noCache) {
-                that.cachedResponse[cacheKey] = result;
-                if (options.preventBadQueries && result.suggestions.length === 0) {
-                    that.badQueries.push(originalQuery);
-                }
-            }
-
-            // Return if originalQuery is not matching current query:
-            if (originalQuery !== that.getQuery(that.currentValue)) {
-                return;
-            }
-
-            that.suggestions = result.suggestions;
-            that.suggest();
+        hide: function () {
+            var that = this;
+            that.visible = false;
+            that.selectedIndex = -1;
+            that.$container.hide()
+                .empty();
         },
 
         activate: function (index) {
             var that = this,
                 activeItem,
                 selected = that.classes.selected,
-                children;
+                $children;
 
             if (!that.dropdownDisabled) {
-                children = that.$container.children('.' + that.classes.suggestion);
+                $children = that.getSuggestionsItems();
 
-                children.filter('.' + selected).removeClass(selected);
+                $children.removeClass(selected);
 
                 that.selectedIndex = index;
 
-                if (that.selectedIndex !== -1 && children.length > that.selectedIndex) {
-                    activeItem = children.get(that.selectedIndex);
+                if (that.selectedIndex !== -1 && $children.length > that.selectedIndex) {
+                    activeItem = $children.get(that.selectedIndex);
                     $(activeItem).addClass(selected);
                     return activeItem;
                 }
@@ -1118,74 +1071,16 @@
             return null;
         },
 
-        enableDropdown: function () {
+        deactivate: function (restoreValue) {
             var that = this;
-            that.dropdownDisabled = false;
-            that.$container.attr('disabled', false);
-        },
 
-        disableDropdown: function () {
-            var that = this;
-            that.dropdownDisabled = true;
-            that.$container.attr('disabled', true);
-        },
-
-        selectHint: function () {
-            var that = this,
-                i = $.inArray(that.hint, that.suggestions);
-
-            that.select(i);
-        },
-
-        selectCurrentValue: function (noHide) {
-            var that = this,
-                index = that.selectedIndex;
-            if (index === -1) {
-                var value = that.getQuery(that.el.val());
-                index = that.findSuggestionIndex(value);
+            if (!that.dropdownDisabled) {
+                that.selectedIndex = -1;
+                that.getSuggestionsItems().removeClass(that.classes.selected);
+                if (restoreValue) {
+                    that.el.val(that.currentValue);
+                }
             }
-            if (index !== -1) {
-                that.select(index, noHide);
-            }
-            return index;
-        },
-
-        select: function (index, noHide) {
-            var that = this,
-                suggestion = that.suggestions[index],
-                valueSuffix = that.hasExpectedComponents(suggestion) || that.triggeringSelectOnSpace ? '' : ' ';
-
-            that.currentValue = that.getValue(suggestion.value);
-            that.el.val(that.currentValue + valueSuffix);
-            that.signalHint(null);
-            that.selection = suggestion;
-
-            that.onSelect(index)
-                .done(function () {
-                    if (!noHide) {
-                        that.hide();
-                    }
-                });
-
-            that.suggestions = [];
-        },
-
-        unselect: function () {
-            var that = this;
-
-            that.$container.children().removeClass(that.classes.selected);
-            that.selectedIndex = -1;
-            that.el.val(that.currentValue);
-            that.findBestHint();
-        },
-
-        hasExpectedComponents: function (suggestion) {
-            var that = this,
-                result = true;
-            $.each(that.expectedComponents, function (i, part) {
-                return result = result && !!suggestion.data[part];
-            });
-            return result;
         },
 
         moveUp: function () {
@@ -1202,7 +1097,7 @@
             }
 
             if (that.selectedIndex === 0) {
-                that.unselect();
+                that.deactivate(true);
                 return;
             }
 
@@ -1216,7 +1111,7 @@
                 return;
             }
             if (that.selectedIndex === (that.suggestions.length - 1)) {
-                that.unselect();
+                that.deactivate(true);
                 return;
             }
 
@@ -1246,30 +1141,39 @@
             }
 
             that.el.val(that.getValue(that.suggestions[index].value));
-            that.signalHint(null);
         },
 
-        /**
-         * Provides a suggetion outside of the instance
-         * Returns $.Deferred, which will be resolved after enrichService proceeded
-         */
-        onSelect: function (index) {
+        // Constraints methods
+
+        getConstraintItem: function (key) {
+            return this.$constraints.children('[data-key="' + key + '"]');
+        },
+
+        addConstraint: function (key, value) {
             var that = this,
-                onSelectCallback = that.options.onSelect,
-                suggestion = that.suggestions[index],
-                selectionCompleter = $.Deferred();
+                $item = that.getConstraintItem(key);
 
-            if ($.isFunction(onSelectCallback)) {
-                that.enrichService.enrichSuggestion.call(that, suggestion)
-                    .done(function (enrichedSuggestion) {
-                        onSelectCallback.call(that.element, enrichedSuggestion),
-                            selectionCompleter.resolve();
-                    });
-            } else {
-                selectionCompleter.resolve();
+            that.constraints[key] = value;
+            if (!$item.length) {
+                $item = $('<li><span/> <span class="suggestions-remove"/></li>').attr('data-key', key);
+                that.$constraints.append($item);
             }
-            return selectionCompleter;
+            $item.children().first().text(value);
+            if (!that._constraintsUpdating) {
+                that.fixPosition();
+            }
         },
+
+        removeConstraint: function (key) {
+            var that = this;
+            delete that.constraints[key];
+            that.getConstraintItem(key).remove();
+            if (!that._constraintsUpdating) {
+                that.fixPosition();
+            }
+        },
+
+        // Selecting related methods
 
         getValue: function (value) {
             var that = this,
@@ -1291,61 +1195,125 @@
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
         },
 
-        getConstraintItem: function (key) {
-            return this.$constraints.children('[data-key="' + key + '"]');
-        },
-
-        addConstraint: function (key, value) {
+        isCursorAtEnd: function () {
             var that = this,
-                $item = that.getConstraintItem(key);
+                valLength = that.el.val().length,
+                selectionStart = that.element.selectionStart,
+                range;
 
-            that.constraints[key] = value;
-            if (!$item.length) {
-                $item = $('<li><span/> <span class="suggestions-remove"/></li>').attr('data-key', key);
-                that.$constraints.append($item);
+            if (typeof selectionStart === 'number') {
+                return selectionStart === valLength;
             }
-            $item.children().first().text(value);
-            that.fixPosition();
+            if (document.selection) {
+                range = document.selection.createRange();
+                range.moveStart('character', -valLength);
+                return valLength === range.text.length;
+            }
+            return true;
         },
 
-        removeConstraint: function (key) {
-            var that = this;
-            delete that.constraints[key];
-            that.getConstraintItem(key).remove();
-            that.fixPosition();
-        },
-
-        setupConstraints: function () {
+        findSuggestionIndex: function (query) {
             var that = this,
-                constraints = that.options.constraints;
+                index = -1,
+                queryLowerCase = query.toLowerCase();
 
-            if (!constraints) {
-                return;
-            }
-            $.each(that.constraints, function (key) {
-                if (!(key in constraints)) {
-                    that.removeConstraint(key);
+            $.each(that.suggestions, function (i, suggestion) {
+                if (suggestion.value.toLowerCase() === queryLowerCase) {
+                    index = i;
+                    return false;
                 }
             });
-            $.each(constraints, $.proxy(that.addConstraint, that));
+
+            return index;
         },
 
-        dispose: function () {
-            var that = this;
-            that.el.off(eventNS + that.uniqueId).removeData(dataAttrKey);
-            that.$viewport.off('resize' + eventNS);
-            that.$wrapper.remove();
+        selectCurrentValue: function (selectionOptions) {
+            var that = this,
+                index = that.selectedIndex,
+                noHide = selectionOptions && selectionOptions.noHide;
+
+            if (index === -1) {
+                var value = that.getQuery(that.el.val());
+                index = that.findSuggestionIndex(value);
+            }
+            if (index !== -1) {
+                that.select(index, selectionOptions);
+            } else {
+                if (!noHide) {
+                    that.hide();
+                }
+            }
         },
 
-        _delay: function (handler, delay) {
-            function handlerProxy() {
-                return ( typeof handler === "string" ? instance[ handler ] : handler )
-                    .apply(instance, arguments);
+        hasExpectedComponents: function (suggestion) {
+            var result = true;
+            $.each(this.expectedComponents, function (i, part) {
+                return result = !!suggestion.data[part];
+            });
+            return result;
+        },
+
+        /**
+         * Selects a suggestion at specified index
+         * @param index
+         * @param selectionOptions  Contains flags:
+         *          `noHide` prevents hiding after selection,
+         *          `noSpace` - prevents adding space at the end of current value
+         */
+        select: function (index, selectionOptions) {
+            var that = this,
+                suggestion = that.suggestions[index],
+                onSelectCallback = that.options.onSelect,
+                noHide = selectionOptions && selectionOptions.noHide,
+                noSpace = selectionOptions && selectionOptions.noSpace;
+
+            function onSelectionCompleted() {
+                if (!noHide) {
+                    that.hide();
+                    that.suggestions = [];
+                }
             }
 
-            var instance = this;
-            return setTimeout(handlerProxy, delay || 0);
+            if (!suggestion) {
+                return;
+            }
+
+            that.currentValue = that.getValue(suggestion.value);
+            if (!noSpace && !that.hasExpectedComponents(suggestion)) {
+                that.currentValue += ' ';
+            }
+            that.el.val(that.currentValue);
+            that.selection = suggestion;
+
+            // if onSelect exists, trigger it with enriched suggestion
+            if ($.isFunction(onSelectCallback)) {
+                that.enrichService.enrichSuggestion.call(that, suggestion)
+                    .done(function (enrichedSuggestion) {
+                        onSelectCallback.call(that.element, enrichedSuggestion);
+                        onSelectionCompleted();
+                    });
+            } else {
+                onSelectionCompleted();
+            }
+        },
+
+        trySelectOnSpace: function (value) {
+            var that = this,
+                rLastSpace = /\s$/,
+                index;
+
+            if (that.options.triggerSelectOnSpace &&
+                that._waitingForTriggerSelectOnSpace &&
+                that._lastPressedKeyCode == keys.SPACE &&
+                rLastSpace.test(value)
+                ) {
+                index = that.findSuggestionIndex(value.replace(rLastSpace, ''));
+                if (index !== -1) {
+                    that.select(index, {noHide: true, noSpace: true});
+                }
+            }
         }
+
     };
 
     // Create chainable jQuery plugin:
@@ -1374,4 +1342,5 @@
             }
         });
     };
+
 }));
