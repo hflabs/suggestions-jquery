@@ -1301,12 +1301,8 @@
             }
 
             that.currentValue = that.getValue(suggestion.value);
-            if (that.hasAllExpectedComponents(suggestion)) {
-                noHide = false;
-            } else {
-                if (!noSpace) {
-                    that.currentValue += ' ';
-                }
+            if (!noSpace && !that.hasAllExpectedComponents(suggestion)) {
+                that.currentValue += ' ';
             }
             that.el.val(that.currentValue);
             that.selection = suggestion;
