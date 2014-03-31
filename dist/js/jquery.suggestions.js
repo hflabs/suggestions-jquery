@@ -430,7 +430,7 @@
             // Listen for click event on suggestions list:
             $container.on('click' + eventNS, suggestionSelector, function () {
                 if (!that.dropdownDisabled) {
-                    that.select($(this).data('index'));
+                    that.select($(this).data('index'), true);
                 }
                 that.skipOnFocus = true;
                 that.el.focus();
@@ -704,7 +704,7 @@
                     break;
 
                 case keys.RETURN:
-                    index = that.selectCurrentValue();
+                    index = that.selectCurrentValue(true);
                     if (index === -1) {
                         that.hide();
                         return;
@@ -925,12 +925,12 @@
             that.signalHint(null);
         },
 
-        suggest: function () {
-            if (this.suggestions.length === 0) {
-                this.hide();
-                return;
-            }
+        hasExtraSuggestions: function(){
+            var that = this;
+            return that.suggestions.length !== 1 || !that.selection || that.suggestions[0].value != this.selection.value;
+        },
 
+        suggest: function () {
             var that = this,
                 options = that.options,
                 formatResult = options.formatResult,
@@ -941,6 +941,11 @@
                 $container = that.$container,
                 html = [],
                 index;
+
+            if (that.suggestions.length === 0 || !that.hasExtraSuggestions()) {
+                that.hide();
+                return;
+            }
 
             if (options.triggerSelectOnValidInput) {
                 index = that.findSuggestionIndex(value);
@@ -1126,21 +1131,27 @@
         select: function (index, noHide) {
             var that = this,
                 suggestion = that.suggestions[index],
-                valueSuffix = that.hasExpectedComponents(suggestion) || that.triggeringSelectOnSpace ? '' : ' ';
+                valueIsFull = that.hasExpectedComponents(suggestion),
+                valueSuffix = valueIsFull || that.triggeringSelectOnSpace ? '' : ' ';
 
-            that.currentValue = that.getValue(suggestion.value);
-            that.el.val(that.currentValue + valueSuffix);
+            if (valueIsFull) {
+                noHide = false;
+            }
+
+            that.currentValue = that.getValue(suggestion.value) + valueSuffix;
+            that.el.val(that.currentValue);
             that.signalHint(null);
             that.selection = suggestion;
 
             that.onSelect(index)
                 .done(function () {
-                    if (!noHide) {
+                    if (noHide) {
+                        that.getSuggestions(that.currentValue);
+                    } else {
                         that.hide();
+                        that.suggestions = [];
                     }
                 });
-
-            that.suggestions = [];
         },
 
         unselect: function () {
