@@ -513,7 +513,7 @@
                     break;
 
                 case keys.RETURN:
-                    that.selectCurrentValue();
+                    that.selectCurrentValue({noHide: true});
                     break;
 
                 case keys.SPACE:
@@ -624,8 +624,15 @@
          * Listen for mouse over event on suggestions list:
          */
         onSuggestionMouseover: function (e) {
-            var index = $(e.target).data('index');
-            this.activate(index);
+            var that = this,
+                $item = $(e.target),
+                selector = '.' + that.classes.suggestion,
+                index;
+            if (!$item.is(selector)) {
+                $item = $item.closest(selector);
+            }
+            index = $item.data('index');
+            that.activate(index);
         },
 
         /**
@@ -635,7 +642,7 @@
             var that = this,
                 index = $(e.target).data('index');
             if (!that.dropdownDisabled) {
-                that.select(index);
+                that.select(index, {noHide: true});
             }
             that.cancelFocus = true;
             that.el.focus();
@@ -1001,8 +1008,20 @@
             return this.$container.children('.' + this.classes.suggestion);
         },
 
+        /**
+         * Shows if there are any suggestions besides currently selected
+         * @returns {boolean}
+         */
+        hasSuggestionsToChoose: function () {
+            var that = this;
+            return that.suggestions.length > 1 ||
+                (that.suggestions.length === 1 &&
+                    (!that.selection || $.trim(that.suggestions[0].value) != $.trim(that.selection.value))
+                );
+        },
+
         suggest: function () {
-            if (this.suggestions.length === 0) {
+            if (!this.hasSuggestionsToChoose()) {
                 this.hide();
                 return;
             }
@@ -1010,7 +1029,7 @@
             var that = this,
                 options = that.options,
                 formatResult = options.formatResult,
-                value = that.getQuery(that.currentValue),
+                trimmedValue = $.trim(that.getQuery(that.currentValue)),
                 beforeRender = options.beforeRender,
                 html = [],
                 index;
@@ -1021,7 +1040,7 @@
             }
             // Build suggestions inner HTML:
             $.each(that.suggestions, function (i, suggestion) {
-                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, value) + '</div>');
+                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
             });
 
             that.$container.html(html.join(''));
@@ -1245,7 +1264,7 @@
             }
         },
 
-        hasExpectedComponents: function (suggestion) {
+        hasAllExpectedComponents: function (suggestion) {
             var result = true;
             $.each(this.expectedComponents, function (i, part) {
                 return result = !!suggestion.data[part];
@@ -1268,7 +1287,10 @@
                 noSpace = selectionOptions && selectionOptions.noSpace;
 
             function onSelectionCompleted() {
-                if (!noHide) {
+                if (noHide) {
+                    that.selectedIndex = -1;
+                    that.getSuggestions(that.currentValue);
+                } else {
                     that.hide();
                     that.suggestions = [];
                 }
@@ -1279,8 +1301,12 @@
             }
 
             that.currentValue = that.getValue(suggestion.value);
-            if (!noSpace && !that.hasExpectedComponents(suggestion)) {
-                that.currentValue += ' ';
+            if (that.hasAllExpectedComponents(suggestion)) {
+                noHide = false;
+            } else {
+                if (!noSpace) {
+                    that.currentValue += ' ';
+                }
             }
             that.el.val(that.currentValue);
             that.selection = suggestion;
@@ -1309,7 +1335,8 @@
                 ) {
                 index = that.findSuggestionIndex(value.replace(rLastSpace, ''));
                 if (index !== -1) {
-                    that.select(index, {noHide: true, noSpace: true});
+                    that._waitingForTriggerSelectOnSpace = false;
+                    that.select(index, {noHide: true});
                 }
             }
         }
