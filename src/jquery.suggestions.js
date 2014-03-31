@@ -1124,12 +1124,7 @@
         select: function (index, noHide) {
             var that = this,
                 suggestion = that.suggestions[index],
-                valueIsFull = that.hasExpectedComponents(suggestion),
-                valueSuffix = valueIsFull || that.triggeringSelectOnSpace ? '' : ' ';
-
-            if (valueIsFull) {
-                noHide = false;
-            }
+                valueSuffix = that.hasExpectedComponents(suggestion) || that.triggeringSelectOnSpace ? '' : ' ';
 
             that.currentValue = that.getValue(suggestion.value) + valueSuffix;
             that.el.val(that.currentValue);
