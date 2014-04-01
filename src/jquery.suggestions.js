@@ -617,25 +617,16 @@
          * Listen for mouse over event on suggestions list:
          */
         onSuggestionMouseover: function (e) {
-            var that = this,
-                $item = $(e.target),
-                selector = '.' + that.classes.suggestion,
-                index;
-            if (!$item.is(selector)) {
-                $item = $item.closest(selector);
-            }
-            index = $item.data('index');
-            that.activate(index);
+            this.activate(this.getClosestSuggestionIndex(e.target));
         },
 
         /**
          * Listen for click event on suggestions list:
          */
         onSuggestionClick: function (e) {
-            var that = this,
-                index = $(e.target).data('index');
+            var that = this;
             if (!that.dropdownDisabled) {
-                that.select(index, {noHide: true});
+                that.select(that.getClosestSuggestionIndex(e.target), {noHide: true});
             }
             that.cancelFocus = true;
             that.el.focus();
@@ -827,19 +818,6 @@
             this.disabled = false;
         },
 
-        toggleDropdownEnabling: function (enable) {
-            this.dropdownDisabled = !enable;
-            this.$container.attr('disabled', !enable);
-        },
-
-        disableDropdown: function () {
-            this.toggleDropdownEnabling(false);
-        },
-
-        enableDropdown: function () {
-            this.toggleDropdownEnabling(true);
-        },
-
         // Querying related methods
 
         getAjaxParams: function () {
@@ -997,8 +975,31 @@
 
         // Dropdown UI methods
 
+        getClosestSuggestionIndex: function(el) {
+            var that = this,
+                $item = $(el),
+                selector = '.' + that.classes.suggestion + '[data-index]';
+            if (!$item.is(selector)) {
+                $item = $item.closest(selector);
+            }
+            return $item.data('index');
+        },
+
         getSuggestionsItems: function () {
             return this.$container.children('.' + this.classes.suggestion);
+        },
+
+        toggleDropdownEnabling: function (enable) {
+            this.dropdownDisabled = !enable;
+            this.$container.attr('disabled', !enable);
+        },
+
+        disableDropdown: function () {
+            this.toggleDropdownEnabling(false);
+        },
+
+        enableDropdown: function () {
+            this.toggleDropdownEnabling(true);
         },
 
         /**
