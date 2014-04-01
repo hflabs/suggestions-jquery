@@ -409,7 +409,7 @@
 
             // Listen for mouse over event on suggestions list:
             $container.on('mouseover' + eventNS, suggestionSelector, function () {
-                that.activate($(this).data('index'));
+                that.activate(that.getClosestSuggestionIndex(this));
             });
 
             // Deselect active element when mouse leaves suggestions container:
@@ -423,7 +423,7 @@
             // Listen for click event on suggestions list:
             $container.on('click' + eventNS, suggestionSelector, function () {
                 if (!that.dropdownDisabled) {
-                    that.select($(this).data('index'), true);
+                    that.select(that.getClosestSuggestionIndex(this), true);
                 }
                 that.skipOnFocus = true;
                 that.el.focus();
@@ -454,6 +454,15 @@
             that.el.on('change' + eventNS, function (e) {
                 that.onKeyUp(e);
             });
+        },
+
+        getClosestSuggestionIndex: function(el){
+            var $item = $(el),
+                selector = '.' + this.classes.suggestion + '[data-index]';
+            if (!$item.is(selector)) {
+                $item = $item.closest(selector);
+            }
+            return $item.data('index');
         },
 
         onFocus: function () {
