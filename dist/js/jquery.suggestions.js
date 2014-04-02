@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.1
+ * DaData.ru Suggestions jQuery plugin, version 4.4.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -46,8 +46,8 @@
                 delay: function (handler, delay) {
                     return setTimeout(handler, delay || 0);
                 },
-                uniqueId: function () {
-                    return ++uniqueId;
+                uniqueId: function (prefix) {
+                    return (prefix || '') + ++uniqueId;
                 }
             };
         }()),
@@ -318,8 +318,7 @@
         that.dropdownDisabled = false;
         that.expectedComponents = [];
         that.constraints = {};
-        that.initialPaddingLeft = 0;
-        that.uniqueId = utils.uniqueId();
+        that.uniqueId = utils.uniqueId('i');
         that._waitingForTriggerSelectOnSpace = false;
         that._constraintsUpdating = false;
         that._lastPressedKeyCode = 0;
@@ -357,7 +356,6 @@
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
-            that.initialPaddingLeft = parseFloat(that.el.css('padding-left')) || 0;
 
             that.createWrapper();
             that.createPreloader();
@@ -651,9 +649,9 @@
         onConstraintRemoveClick: function (e) {
             var that = this,
                 $item = $(e.target).closest('li'),
-                key = $item.attr('data-key');
+                id = $item.attr('data-constraint-id');
             $item.fadeOut('fast', function () {
-                that.removeConstraint(key);
+                that.removeConstraint(id);
             });
         },
 
@@ -752,12 +750,10 @@
                 return;
             }
             that._constraintsUpdating = true;
-            $.each(that.constraints, function (key) {
-                if (!(key in constraints)) {
-                    that.removeConstraint(key);
-                }
+            $.each(that.constraints, $.proxy(that.removeConstraint, that));
+            $.each($.makeArray(constraints), function (i, constraint) {
+                that.addConstraint(constraint);
             });
-            $.each(constraints, $.proxy(that.addConstraint, that));
             that._constraintsUpdating = false;
             that.fixPosition();
         },
@@ -768,15 +764,22 @@
             var that = this,
                 borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width')),
                 borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width')),
-                elOffset = that.el.offset(),
+                paddingLeft,
+                elOffset,
                 elInnerHeight,
                 wrapperOffset = that.$wrapper.offset(),
-                origin = {
-                    top: elOffset.top - wrapperOffset.top,
-                    left: elOffset.left - wrapperOffset.left
-                };
+                origin;
 
+            that.element.style.paddingLeft = '';
+            paddingLeft = parseFloat(that.el.css('paddingLeft'));
+
+            elOffset = that.el.offset();
             elInnerHeight = that.el.innerHeight();
+
+            origin = {
+                top: elOffset.top - wrapperOffset.top,
+                left: elOffset.left - wrapperOffset.left
+            };
 
             that.$container.css({
                 left: origin.left + 'px',
@@ -790,12 +793,12 @@
             });
 
             that.$constraints.css({
-                left: origin.left + that.initialPaddingLeft + 'px',
+                left: origin.left + paddingLeft + 'px',
                 top: origin.top + Math.round((elInnerHeight - that.$constraints.height()) / 2) + 'px'
             });
 
             that.el.css({
-                'paddingLeft': that.initialPaddingLeft + that.$constraints.outerWidth(true) + 'px'
+                'paddingLeft': paddingLeft + that.$constraints.outerWidth(true) + 'px'
             });
 
         },
@@ -865,7 +868,7 @@
                 cacheKey;
 
             if (!options.ignoreParams) {
-                params = $.extend({}, options.params);
+                params = $.extend({}, options.params, that.constructConstraintsParams());
                 params[options.paramName] = q;
                 if ($.isNumeric(options.count) && options.count > 0) {
                     params.count = options.count;
@@ -982,7 +985,7 @@
 
         // Dropdown UI methods
 
-        getClosestSuggestionIndex: function(el) {
+        getClosestSuggestionIndex: function (el) {
             var that = this,
                 $item = $(el),
                 selector = '.' + that.classes.suggestion + '[data-index]';
@@ -1018,7 +1021,7 @@
             return that.suggestions.length > 1 ||
                 (that.suggestions.length === 1 &&
                     (!that.selection || $.trim(that.suggestions[0].value) != $.trim(that.selection.value))
-                );
+                    );
         },
 
         suggest: function () {
@@ -1165,32 +1168,63 @@
 
         // Constraints methods
 
-        getConstraintItem: function (key) {
-            return this.$constraints.children('[data-key="' + key + '"]');
+        formatConstraint: function (constraint) {
+            if ($.isPlainObject(constraint) && !$.isEmptyObject(constraint.restrictions)) {
+                if (!constraint.label) {
+                    var labels = $.map(['kladr_id', 'okato', 'postal_code', 'region', 'area', 'city', 'settlement'], function (field) {
+                        return constraint.restrictions[field];
+                    });
+                    constraint.label = utils.compact(labels).join(', ');
+                }
+                return constraint;
+            }
         },
 
-        addConstraint: function (key, value) {
+        addConstraint: function (constraint) {
             var that = this,
-                $item = that.getConstraintItem(key);
+                $item,
+                id;
 
-            that.constraints[key] = value;
-            if (!$item.length) {
-                $item = $('<li><span/> <span class="suggestions-remove"/></li>').attr('data-key', key);
-                that.$constraints.append($item);
+            constraint = that.formatConstraint(constraint);
+            if (!constraint) {
+                return;
             }
-            $item.children().first().text(value);
+
+            id = utils.uniqueId('c');
+            that.constraints[id] = constraint;
+            $item = $('<li/>')
+                .append($('<span/>').text(constraint.label))
+                .attr('data-constraint-id', id);
+            if (constraint.deletable) {
+                $item.append($('<span class="suggestions-remove"/>'));
+            }
+
+            that.$constraints.append($item);
             if (!that._constraintsUpdating) {
                 that.fixPosition();
             }
         },
 
-        removeConstraint: function (key) {
+        removeConstraint: function (id) {
             var that = this;
-            delete that.constraints[key];
-            that.getConstraintItem(key).remove();
+            delete that.constraints[id];
+            that.$constraints.children('[data-constraint-id="' + id + '"]').remove();
             if (!that._constraintsUpdating) {
                 that.fixPosition();
             }
+        },
+
+        constructConstraintsParams: function () {
+            var that = this,
+                restrictions = $.map(that.constraints, function(constraint){
+                    return constraint.restrictions;
+                }),
+                params = {};
+
+            if (restrictions.length) {
+                params.restrictions = restrictions;
+            }
+            return params;
         },
 
         // Selecting related methods

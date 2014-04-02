@@ -47,16 +47,23 @@
 .suggestions-wrapper .suggestions-constraints li {
   background: #f8f8f8;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 3px;
+  cursor: default;
   display: inline-block;
   margin: 0 4px 0 0;
-  padding: 0 4px;
+  padding: 0 0.5em;
 }
 .suggestions-wrapper .suggestions-constraints li .suggestions-remove {
+  background: transparent url("data:image/gif;base64,R0lGODlhBwAHAIABAIiIiP///yH5BAEKAAEALAAAAAAHAAcAAAINDIIHa7yP2klPORdPAQA7") 50% 50% no-repeat;
   cursor: pointer;
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  opacity: 0.8;
 }
-.suggestions-wrapper .suggestions-constraints li .suggestions-remove:after {
-  color: #ccc;
-  content: 'x';
-  font-weight: bold;
+.suggestions-wrapper .suggestions-constraints li .suggestions-remove:hover {
+  opacity: 1;
+}
+.suggestions-wrapper .suggestions-constraints li span {
+  vertical-align: middle;
 }
