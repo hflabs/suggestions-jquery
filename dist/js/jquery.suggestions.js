@@ -767,14 +767,16 @@
                 paddingLeft,
                 elOffset,
                 elInnerHeight,
-                wrapperOffset = that.$wrapper.offset(),
+                wrapperOffset,
                 origin;
 
-            that.element.style.paddingLeft = '';
+            that.el.css('paddingLeft', '');
             paddingLeft = parseFloat(that.el.css('paddingLeft'));
+            that.el.css('paddingLeft', paddingLeft + that.$constraints.outerWidth(true) + 'px');
 
             elOffset = that.el.offset();
             elInnerHeight = that.el.innerHeight();
+            wrapperOffset = that.$wrapper.offset();
 
             origin = {
                 top: elOffset.top - wrapperOffset.top,
@@ -788,17 +790,13 @@
             });
 
             that.$preloader.css({
-                left: origin.left + borderLeft + that.el.innerWidth() - that.$preloader.width() - 4 + 'px',
-                top: origin.top + Math.round((elInnerHeight - that.$preloader.height()) / 2) + 'px'
+                left: origin.left + borderLeft + that.el.innerWidth() - that.$preloader.width() - parseFloat(that.el.css('paddingRight')) + 'px',
+                top: origin.top + borderTop + Math.round((elInnerHeight - that.$preloader.height()) / 2) + 'px'
             });
 
             that.$constraints.css({
-                left: origin.left + paddingLeft + 'px',
-                top: origin.top + Math.round((elInnerHeight - that.$constraints.height()) / 2) + 'px'
-            });
-
-            that.el.css({
-                'paddingLeft': paddingLeft + that.$constraints.outerWidth(true) + 'px'
+                left: origin.left + borderLeft + paddingLeft + 'px',
+                top: origin.top + borderTop + Math.round((elInnerHeight - that.$constraints.height()) / 2) + 'px'
             });
 
         },
