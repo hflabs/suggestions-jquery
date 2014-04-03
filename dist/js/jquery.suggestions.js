@@ -1169,12 +1169,18 @@
         // Constraints methods
 
         formatConstraint: function (constraint) {
-            if ($.isPlainObject(constraint) && !$.isEmptyObject(constraint.restrictions)) {
+            if (constraint && constraint.restrictions) {
+                constraint.restrictions = $.makeArray(constraint.restrictions);
                 if (!constraint.label) {
-                    var labels = $.map(['kladr_id', 'okato', 'postal_code', 'region', 'area', 'city', 'settlement'], function (field) {
-                        return constraint.restrictions[field];
+                    var labels = [];
+                    $.each(constraint.restrictions, function(i, restriction){
+                        $.each(['kladr_id', 'okato', 'postal_code', 'region', 'area', 'city', 'settlement'], function (i, field) {
+                            if (restriction[field]) {
+                                labels.push(restriction[field]);
+                            }
+                        });
                     });
-                    constraint.label = utils.compact(labels).join(', ');
+                    constraint.label = labels.join(', ');
                 }
                 return constraint;
             }
@@ -1216,11 +1222,12 @@
 
         constructConstraintsParams: function () {
             var that = this,
-                restrictions = $.map(that.constraints, function(constraint){
-                    return constraint.restrictions;
-                }),
+                restrictions = [],
                 params = {};
 
+            $.each(that.constraints, function(id, constraint){
+                restrictions = restrictions.concat(constraint.restrictions);
+            });
             if (restrictions.length) {
                 params.restrictions = restrictions;
             }

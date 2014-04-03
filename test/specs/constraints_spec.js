@@ -91,6 +91,45 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"city":"Москва"},{"kladr_id":"6500000000000"}]');
     });
 
+    it('Should have `restrictions` parameter in request if constraints and their restrictions specified as arrays', function () {
+        var restrictions = [
+            [
+                {'region': 'адыгея'},
+                {'region': 'астраханская'},
+                {'region': 'волгоградская'},
+                {'region': 'калмыкия'},
+                {'region': 'краснодарский'},
+                {'region': 'ростовская'}
+            ],
+            [
+                {region: 'курганская'},
+                {region: 'свердловская'},
+                {region: 'тюменская'},
+                {region: 'ханты-мансийский'},
+                {region: 'челябинская'},
+                {region: 'ямало-ненецкая'}
+            ]
+        ];
+
+        this.instance.setOptions({
+            constraints: [
+                {
+                    label: 'ЮФО',
+                    restrictions: restrictions[0]
+                },
+                {
+                    label: 'УФО',
+                    restrictions: restrictions[1]
+                }
+            ]
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"restrictions":' + JSON.stringify(restrictions[0].concat(restrictions[1])));
+    });
+
     it('Should show label for added constraint, which is build from restrictions', function () {
         this.instance.setOptions({
             constraints: {
@@ -103,6 +142,23 @@ describe('Address constraints', function () {
         var $items = this.instance.$constraints.children('li');
         expect($items.length).toEqual(1);
         expect($items.first().text()).toEqual('Москва');
+
+        this.instance.setOptions({
+            constraints: {
+                restrictions: [
+                    {
+                        region: 'Москва'
+                    },
+                    {
+                        city: 'Санкт-петербург'
+                    }
+                ]
+            }
+        });
+
+        var $items = this.instance.$constraints.children('li');
+        expect($items.length).toEqual(1);
+        expect($items.first().text()).toEqual('Москва, Санкт-петербург');
     });
 
     it('Should show label for added constraint, taken from `label`', function () {
