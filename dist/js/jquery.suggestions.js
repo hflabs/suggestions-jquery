@@ -871,7 +871,7 @@
                 that.suggestions = response.suggestions;
                 that.suggest();
             } else if (!that.isBadQuery(q)) {
-                if (options.onSearchStart.call(that.element, options.params) === false) {
+                if (options.onSearchStart.call(that.element, params) === false) {
                     return;
                 }
                 if (that.currentRequest) {
