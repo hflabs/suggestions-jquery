@@ -160,6 +160,10 @@
             return that.currentRequest;
         }
 
+        function shouldOverrideField(field, data) {
+            return !(field in data) || field === 'house';
+        }
+
         return {
             enrichSuggestion: function (suggestion) {
                 var that = this,
@@ -188,7 +192,7 @@
                             }
                             delete s.source;
                             $.each(s, function (field, value) {
-                                if (!(field in suggestion.data)) {
+                                if (shouldOverrideField(field, suggestion.data)) {
                                     var parser = fieldParsers[field];
                                     if (parser) {
                                         $.extend(suggestion.data, parser(value))
@@ -880,7 +884,7 @@
                 that.suggestions = response.suggestions;
                 that.suggest();
             } else if (!that.isBadQuery(q)) {
-                if (options.onSearchStart.call(that.element, options.params) === false) {
+                if (options.onSearchStart.call(that.element, params) === false) {
                     return;
                 }
                 if (that.currentRequest) {
