@@ -317,6 +317,7 @@
         that.hintValue = '';
         that.selection = null;
         that.$viewport = $(window);
+        that.lastKeyPressed = null;
         that.triggeredSelectOnLastKey = false;
         that.triggeringSelectOnSpace = false;
         that.skipOnFocus = false;
@@ -679,6 +680,7 @@
 
             that.triggeredSelectOnLastKey = false;
             that.triggeringSelectOnSpace = false;
+            that.lastKeyPressed = e.which;
 
             // If suggestions are hidden and user presses arrow down, display suggestions:
             if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
@@ -719,7 +721,7 @@
                 case keys.RETURN:
                     index = that.selectCurrentValue(true);
                     if (index === -1) {
-                        that.getSuggestions(that.currentValue, true);
+                        that.hide();
                         return;
                     } else {
                         that.triggeredSelectOnLastKey = true;
@@ -856,7 +858,7 @@
             return data;
         },
 
-        getSuggestions: function (q, skipMainRequest) {
+        getSuggestions: function (q) {
             var response,
                 that = this,
                 options = that.options,
@@ -864,7 +866,7 @@
                 params = null,
                 cacheKey;
 
-            if (!options.ignoreParams && !skipMainRequest) {
+            if (!options.ignoreParams) {
                 params = $.extend({}, options.params);
                 params[options.paramName] = q;
                 if ($.isNumeric(options.count) && options.count > 0) {
@@ -875,33 +877,25 @@
             if (that.isLocal) {
                 response = that.getSuggestionsLocal(q);
             } else {
-                if (!skipMainRequest) {
-                    if ($.isFunction(serviceUrl)) {
-                        serviceUrl = serviceUrl.call(that.element, q);
-                    }
-                    cacheKey = serviceUrl + '?' + $.param(params || {});
-                    response = that.cachedResponse[cacheKey];
+                if ($.isFunction(serviceUrl)) {
+                    serviceUrl = serviceUrl.call(that.element, q);
                 }
+                cacheKey = serviceUrl + '?' + $.param(params || {});
+                response = that.cachedResponse[cacheKey];
             }
 
             if (response && $.isArray(response.suggestions)) {
                 that.suggestions = response.suggestions;
                 that.suggest();
-            } else if (!that.isBadQuery(q)) {
-                if (!skipMainRequest && options.onSearchStart.call(that.element, params) === false) {
-                    return;
-                }
-                if (that.currentRequest) {
-                    that.currentRequest.abort();
-                }
-                that.showPreloader();
-                if (skipMainRequest) {
-                    that.enrichService.enrichResponse.call(that, {}, q)
-                        .done(function (enrichedResponse) {
-                            that.processResponse(enrichedResponse, q);
-                            that.hidePreloader();
-                        })
-                } else {
+            } else {
+                if (!that.isBadQuery(q)) {
+                    if (options.onSearchStart.call(that.element, params) === false) {
+                        return;
+                    }
+                    if (that.currentRequest) {
+                        that.currentRequest.abort();
+                    }
+                    that.showPreloader();
                     that.currentRequest = $.ajax(
                             $.extend(that.getAjaxParams(), {
                                 url: serviceUrl,
@@ -980,7 +974,7 @@
                 }
             }
 
-            if (options.triggerSelectOnSpace && !that.triggeredSelectOnLastKey && /\s$/.test(value)) {
+            if (options.triggerSelectOnSpace && !that.triggeredSelectOnLastKey && that.lastKeyPressed == keys.SPACE && /\s$/.test(value)) {
                 index = that.findSuggestionIndex(value.replace(/\s$/, ''));
                 if (index !== -1) {
                     that.onSelect(index);
@@ -1082,7 +1076,7 @@
             result.suggestions = that.verifySuggestionsFormat(result.suggestions || []);
 
             // Cache results if cache is not disabled:
-            if (!options.noCache && cacheKey) {
+            if (!options.noCache) {
                 that.cachedResponse[cacheKey] = result;
                 if (options.preventBadQueries && result.suggestions.length === 0) {
                     that.badQueries.push(originalQuery);
