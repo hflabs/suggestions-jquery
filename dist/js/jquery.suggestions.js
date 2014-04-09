@@ -317,7 +317,7 @@
         that.hintValue = '';
         that.selection = null;
         that.$viewport = $(window);
-        that.triggeredSelectOnSpace = false;
+        that.triggeredSelectOnLastKey = false;
         that.triggeringSelectOnSpace = false;
         that.skipOnFocus = false;
         that.enrichService = enrichServices.default;
@@ -677,7 +677,7 @@
             var that = this,
                 index;
 
-            that.triggeredSelectOnSpace = false;
+            that.triggeredSelectOnLastKey = false;
             that.triggeringSelectOnSpace = false;
 
             // If suggestions are hidden and user presses arrow down, display suggestions:
@@ -721,6 +721,8 @@
                     if (index === -1) {
                         that.getSuggestions(that.currentValue, true);
                         return;
+                    } else {
+                        that.triggeredSelectOnLastKey = true;
                     }
                     break;
                 case keys.SPACE:
@@ -728,7 +730,7 @@
                         that.triggeringSelectOnSpace = true;
                         index = that.selectCurrentValue(true);
                         if (index !== -1) {
-                            that.triggeredSelectOnSpace = true;
+                            that.triggeredSelectOnLastKey = true;
                         }
                     }
                     return;
@@ -978,7 +980,7 @@
                 }
             }
 
-            if (options.triggerSelectOnSpace && !that.triggeredSelectOnSpace && /\s$/.test(value)) {
+            if (options.triggerSelectOnSpace && !that.triggeredSelectOnLastKey && /\s$/.test(value)) {
                 index = that.findSuggestionIndex(value.replace(/\s$/, ''));
                 if (index !== -1) {
                     that.onSelect(index);
