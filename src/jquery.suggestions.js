@@ -712,7 +712,7 @@
                 case keys.RETURN:
                     index = that.selectCurrentValue(true);
                     if (index === -1) {
-                        that.hide();
+                        that.getSuggestions(that.currentValue, true);
                         return;
                     }
                     break;
@@ -847,7 +847,7 @@
             return data;
         },
 
-        getSuggestions: function (q) {
+        getSuggestions: function (q, skipMainRequest) {
             var response,
                 that = this,
                 options = that.options,
@@ -855,7 +855,7 @@
                 params = null,
                 cacheKey;
 
-            if (!options.ignoreParams) {
+            if (!options.ignoreParams && !skipMainRequest) {
                 params = $.extend({}, options.params);
                 params[options.paramName] = q;
                 if ($.isNumeric(options.count) && options.count > 0) {
@@ -866,43 +866,53 @@
             if (that.isLocal) {
                 response = that.getSuggestionsLocal(q);
             } else {
-                if ($.isFunction(serviceUrl)) {
-                    serviceUrl = serviceUrl.call(that.element, q);
+                if (!skipMainRequest) {
+                    if ($.isFunction(serviceUrl)) {
+                        serviceUrl = serviceUrl.call(that.element, q);
+                    }
+                    cacheKey = serviceUrl + '?' + $.param(params || {});
+                    response = that.cachedResponse[cacheKey];
                 }
-                cacheKey = serviceUrl + '?' + $.param(params || {});
-                response = that.cachedResponse[cacheKey];
             }
 
             if (response && $.isArray(response.suggestions)) {
                 that.suggestions = response.suggestions;
                 that.suggest();
             } else if (!that.isBadQuery(q)) {
-                if (options.onSearchStart.call(that.element, params) === false) {
+                if (!skipMainRequest && options.onSearchStart.call(that.element, params) === false) {
                     return;
                 }
                 if (that.currentRequest) {
                     that.currentRequest.abort();
                 }
                 that.showPreloader();
-                that.currentRequest = $.ajax(
-                    $.extend(that.getAjaxParams(), {
-                        url: serviceUrl,
-                        data: utils.serialize(params)
-                    })
-                ).done(function (data) {
-                        var result;
-                        that.currentRequest = null;
-                        result = options.transformResult(data);
-                        that.enrichService.enrichResponse.call(that, result, q)
-                            .done(function (enrichedResponse) {
-                                that.processResponse(enrichedResponse, q, cacheKey);
-                                options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
-                                that.hidePreloader();
+                if (skipMainRequest) {
+                    that.enrichService.enrichResponse.call(that, {}, q)
+                        .done(function (enrichedResponse) {
+                            that.processResponse(enrichedResponse, q);
+                            that.hidePreloader();
+                        })
+                } else {
+                    that.currentRequest = $.ajax(
+                            $.extend(that.getAjaxParams(), {
+                                url: serviceUrl,
+                                data: utils.serialize(params)
                             })
-                    }).fail(function (jqXHR, textStatus, errorThrown) {
-                        options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                        that.hidePreloader();
-                    });
+                        ).done(function (data) {
+                            var result;
+                            that.currentRequest = null;
+                            result = options.transformResult(data);
+                            that.enrichService.enrichResponse.call(that, result, q)
+                                .done(function (enrichedResponse) {
+                                    that.processResponse(enrichedResponse, q, cacheKey);
+                                    options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
+                                    that.hidePreloader();
+                                })
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
+                            that.hidePreloader();
+                        });
+                }
             }
         },
 
@@ -1060,10 +1070,10 @@
             var that = this,
                 options = that.options;
 
-            result.suggestions = that.verifySuggestionsFormat(result.suggestions);
+            result.suggestions = that.verifySuggestionsFormat(result.suggestions || []);
 
             // Cache results if cache is not disabled:
-            if (!options.noCache) {
+            if (!options.noCache && cacheKey) {
                 that.cachedResponse[cacheKey] = result;
                 if (options.preventBadQueries && result.suggestions.length === 0) {
                     that.badQueries.push(originalQuery);
