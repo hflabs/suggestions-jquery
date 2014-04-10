@@ -36,6 +36,7 @@ describe('Select on Enter', function () {
 
         helpers.keydown(this.input, 13);
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
     
@@ -59,6 +60,7 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = 2;
         helpers.keydown(this.input, 13); // code of Enter
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);
     });
 

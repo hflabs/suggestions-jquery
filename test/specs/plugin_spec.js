@@ -54,6 +54,7 @@ describe('Common features', function () {
         this.server.respond(serviceUrl, helpers.responseFor(suggestions));
         this.instance.select(0);
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[0]);
     });
 
@@ -124,6 +125,7 @@ describe('Common features', function () {
         this.instance.onValueChange();
         this.server.respond(serviceUrl, helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
 
+        expect(options.beforeRender.calls.count()).toEqual(1);
         expect(options.beforeRender).toHaveBeenCalledWith(this.instance.$container);
     });
 

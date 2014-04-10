@@ -36,6 +36,7 @@ describe('Select on blur', function () {
 
         $(this.input).trigger($.Event('blur'));
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
 
@@ -59,6 +60,7 @@ describe('Select on blur', function () {
         this.instance.selectedIndex = 2;
         $(this.input).trigger($.Event('blur'));
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);
     });
 
