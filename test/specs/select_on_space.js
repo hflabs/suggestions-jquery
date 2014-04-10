@@ -33,6 +33,7 @@ describe('Select on Space', function () {
         event.keyCode = event.which = 32; // code of space
         $(this.input).trigger(event);
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestion);
     });
 
@@ -51,6 +52,7 @@ describe('Select on Space', function () {
         this.instance.onValueChange();
         helpers.keydown(this.input, 32); // code of space
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestion);
     });
 

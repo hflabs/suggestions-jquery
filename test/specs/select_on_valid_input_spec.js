@@ -28,6 +28,7 @@ describe('Select on valid input', function () {
         this.input.value = 'Jamaica';
         this.instance.onValueChange();
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestion);
     });
 

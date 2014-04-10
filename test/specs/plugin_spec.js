@@ -51,6 +51,7 @@ describe('Common features', function () {
         this.instance.onValueChange();
         this.instance.select(0);
 
+        expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestion);
     });
 

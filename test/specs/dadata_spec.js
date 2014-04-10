@@ -144,6 +144,7 @@ describe('DaData API', function () {
             this.instance.$container.children('.suggestions-suggestion').eq(0).click();
             this.server.respond();
 
+            expect(options.onSelect.calls.count()).toEqual(1);
             expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: {name: 'Adam'}});
         });
 
@@ -169,6 +170,7 @@ describe('DaData API', function () {
             };
             delete expectation.data.source;
 
+            expect(options.onSelect.calls.count()).toEqual(1);
             expect(options.onSelect).toHaveBeenCalledWith(expectation);
         });
 
@@ -183,6 +185,7 @@ describe('DaData API', function () {
             this.instance.$container.children('.suggestions-suggestion').eq(2).click();
             this.server.respond();
 
+            expect(options.onSelect.calls.count()).toEqual(1);
             expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: {}});
         });
 
