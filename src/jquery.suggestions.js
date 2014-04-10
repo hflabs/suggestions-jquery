@@ -508,7 +508,7 @@
                     break;
 
                 case keys.RETURN:
-                    that.selectCurrentValue({noHide: true});
+                    that.selectCurrentValue();
                     break;
 
                 case keys.SPACE:
@@ -628,7 +628,7 @@
         onSuggestionClick: function (e) {
             var that = this;
             if (!that.dropdownDisabled) {
-                that.select(that.getClosestSuggestionIndex(e.target), {noHide: true});
+                that.select(that.getClosestSuggestionIndex(e.target));
             }
             that.cancelFocus = true;
             that.el.focus();
