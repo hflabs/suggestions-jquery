@@ -1328,7 +1328,8 @@
                 suggestion = that.suggestions[index],
                 onSelectCallback = that.options.onSelect,
                 noHide = selectionOptions && selectionOptions.noHide,
-                noSpace = selectionOptions && selectionOptions.noSpace;
+                noSpace = selectionOptions && selectionOptions.noSpace,
+                assumeDataComplete;
 
             function onSelectionCompleted() {
                 if (noHide) {
@@ -1344,8 +1345,12 @@
                 return;
             }
 
+            assumeDataComplete = that.hasAllExpectedComponents(suggestion);
+            if (that.options.type && assumeDataComplete) {
+                noHide = false;
+            }
             that.currentValue = that.getValue(suggestion.value);
-            if (!noSpace && !that.hasAllExpectedComponents(suggestion)) {
+            if (!noSpace && !assumeDataComplete) {
                 that.currentValue += ' ';
             }
             that.el.val(that.currentValue);

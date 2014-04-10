@@ -34,7 +34,7 @@ describe('Select on Enter', function () {
         this.instance.onValueChange();
         this.server.respond(serviceUrl, helpers.responseFor(suggestions));
 
-        helpers.keydown(this.input, 13);
+        helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);

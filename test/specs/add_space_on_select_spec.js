@@ -1,4 +1,4 @@
-describe('Selecting details', function () {
+describe('Adding space on selecting', function () {
     'use strict';
 
     var serviceUrl = '/some/url';
@@ -37,7 +37,6 @@ describe('Selecting details', function () {
 
         expect(this.input.value).toEqual('Name');
     });
-
 
     describe('For NAME controls', function(){
 
