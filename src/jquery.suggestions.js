@@ -1143,8 +1143,12 @@
         select: function (index, noHide) {
             var that = this,
                 suggestion = that.suggestions[index],
-                valueSuffix = that.hasExpectedComponents(suggestion) || that.triggeringSelectOnSpace ? '' : ' ';
+                assumeDataCompleted = that.hasExpectedComponents(suggestion),
+                valueSuffix = assumeDataCompleted || that.triggeringSelectOnSpace ? '' : ' ';
 
+            if (that.options.type && assumeDataCompleted) {
+                noHide = false;
+            }
             that.currentValue = that.getValue(suggestion.value) + valueSuffix;
             that.el.val(that.currentValue);
             that.signalHint(null);
@@ -1152,6 +1156,7 @@
 
             that.onSelect(index)
                 .done(function () {
+                    that.selectedIndex = -1;
                     if (noHide) {
                         that.getSuggestions(that.currentValue);
                     } else {

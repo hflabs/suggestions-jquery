@@ -11,7 +11,7 @@ describe('Select on Enter', function () {
     });
 
     afterEach(function () {
-        this.instance.dispose()
+        this.instance.dispose();
     });
 
     it('Should trigger on full match', function () {
@@ -32,9 +32,7 @@ describe('Select on Enter', function () {
         this.input.value = 'Albania';
         this.instance.onValueChange();
 
-        var event = $.Event('keydown');
-        event.keyCode = event.which = 13; // code of Enter
-        $(this.input).trigger(event);
+        helpers.keydown(this.input, 13); // code of Enter
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
