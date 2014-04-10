@@ -435,7 +435,7 @@
             // Listen for click event on suggestions list:
             $container.on('click' + eventNS, suggestionSelector, function () {
                 if (!that.dropdownDisabled) {
-                    that.select(that.getClosestSuggestionIndex(this), true);
+                    that.select(that.getClosestSuggestionIndex(this));
                 }
                 that.skipOnFocus = true;
                 that.el.focus();
@@ -719,7 +719,7 @@
                     break;
 
                 case keys.RETURN:
-                    index = that.selectCurrentValue(true);
+                    index = that.selectCurrentValue();
                     if (index === -1) {
                         that.hide();
                         return;

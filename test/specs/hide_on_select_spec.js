@@ -16,30 +16,6 @@ describe('Hiding dropdown on selecting', function () {
         this.instance.dispose()
     });
 
-    it('Should request for new suggestions when any selected', function () {
-        var suggestions = [
-            {
-                value: 'Some value',
-                data: null
-            }
-        ];
-        this.instance.setOptions({
-            lookup: suggestions
-        });
-
-        this.input.value = 'S';
-        this.instance.onValueChange();
-
-        spyOn(this.instance, 'getSuggestions');
-        spyOn(this.instance, 'hide');
-
-        this.instance.selectedIndex = 0;
-        helpers.keydown(this.input, 13);
-
-        expect(this.instance.getSuggestions).toHaveBeenCalled();
-        expect(this.instance.hide).not.toHaveBeenCalled();
-    });
-
     it('Should hide if received suggestions contains only one suggestion equal to current', function () {
         var suggestions = [{
             value: 'Some value',
