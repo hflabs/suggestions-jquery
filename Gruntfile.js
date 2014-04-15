@@ -4,16 +4,32 @@ module.exports = function(grunt){
 
         pkg: grunt.file.readJSON('package.json'),
 
+        banner: [
+            '/**',
+            ' <%= pkg.description %>, version <%= pkg.version %>',
+            '',
+            ' <%= pkg.description %> is freely distributable under the terms of MIT-style license',
+            ' Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
+            ' For details, see <%= pkg.homepage %>',
+            '/\n'].join('\n *'),
+
+        includes: {
+            options: {
+                banner: '<%= banner %>',
+                includePath: 'src/includes/',
+                includeRegexp: /^\/\/include\s+"(\S+)"\s*$/
+            },
+            files: {
+                expand: true,
+                cwd: 'src/',
+                src: '*.js',
+                dest: 'dist/js/'
+            }
+        },
+
         uglify: {
             options: {
-                banner: [
-                    '/**',
-                    ' <%= pkg.description %>, version <%= pkg.version %>',
-                    '',
-                    ' <%= pkg.description %> is freely distributable under the terms of MIT-style license',
-                    ' Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)',
-                    ' For details, see <%= pkg.homepage %>',
-                    '/\n'].join('\n *')
+                banner: '<%= banner %>'
             },
             jsmin: {
                 options: {
@@ -22,8 +38,8 @@ module.exports = function(grunt){
                 },
                 files: [{
                     expand: true,
-                    cwd: 'src/',
-                    src: '*.js',
+                    cwd: 'dist/js/',
+                    src: ['*.js', '!*.min.js'],
                     dest: 'dist/js/',
                     rename: function (dest, src) {
                         return dest + src.replace(/.js$/, '.min.js');
@@ -31,19 +47,7 @@ module.exports = function(grunt){
                 }]
             }
         },
-        
-        concat: {
-            options: {
-                banner: '<%= uglify.options.banner %>'
-            },
-            js: {
-                expand: true,
-                cwd: 'src/',
-                src: '*.js',
-                dest: 'dist/js/'
-            }
-        },
-        
+
         jasmine: {
             options: {
                 specs: 'test/specs/*.js',
@@ -53,13 +57,10 @@ module.exports = function(grunt){
                 keepRunner: true
             },
             js: {
-                src: 'dist/js/jquery.suggestions.js',
+                src: 'dist/js/jquery.suggestions.js'
             },
             jsmin: {
-                src: 'dist/js/jquery.suggestions.min.js',
-            },
-            sources: {
-                src: 'src/*.js',
+                src: 'dist/js/jquery.suggestions.min.js'
             }
         },
 
@@ -76,10 +77,10 @@ module.exports = function(grunt){
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-includes');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
-    grunt.registerTask('build', ['jasmine:sources', 'less', 'concat', 'uglify:jsmin', 'test']);
+    grunt.registerTask('build', ['less', 'includes', 'uglify:jsmin', 'test']);
     grunt.registerTask('default', ['build']);
 };
