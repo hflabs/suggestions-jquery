@@ -942,6 +942,9 @@
             that.selectedIndex = -1;
             that.$container.hide().empty();
             that.signalHint(null);
+            if (that.currentRequest) {
+                that.currentRequest.abort();
+            }
         },
 
         hasExtraSuggestions: function(){
