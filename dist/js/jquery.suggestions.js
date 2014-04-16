@@ -41,6 +41,13 @@
                     return $.grep(array, function (el) {
                         return !!el;
                     });
+                },
+                abortRequests: function(){
+                    $.each(arguments, function(i, request){
+                        if (request) {
+                            request.abort();
+                        }
+                    })
                 }
             };
         }()),
@@ -146,8 +153,7 @@
                         [ query ]
                     ]
                 };
-
-            that.currentRequest = $.ajax(dadataConfig.url, {
+            that.currentEnrichRequest = $.ajax(dadataConfig.url, {
                 type: 'POST',
                 headers: {
                     'Authorization': 'Token ' + token
@@ -156,8 +162,10 @@
                 dataType: 'json',
                 data: JSON.stringify(data),
                 timeout: dadataConfig.timeout
+            }).always(function(){
+                that.currentEnrichRequest = null;
             });
-            return that.currentRequest;
+            return that.currentEnrichRequest;
         }
 
         function shouldOverrideField(field, data) {
@@ -180,7 +188,6 @@
                     .always(function () {
                         that.hidePreloader();
                         that.enableDropdown();
-                        that.currentRequest = null;
                     })
                     .done(function (resp) {
                         var data = resp.data,
@@ -219,9 +226,6 @@
                 }
 
                 startRequest.call(that, query)
-                    .always(function(){
-                        that.currentRequest = null;
-                    })
                     .done(function (resp) {
                         var data = resp.data,
                             value;
@@ -275,6 +279,7 @@
                 containerClass: 'suggestions-suggestions',
                 tabDisabled: false,
                 currentRequest: null,
+                currentEnrichRequest: null,
                 triggerSelectOnValidInput: false,
                 triggerSelectOnSpace: true,
                 preventBadQueries: false,
@@ -623,9 +628,7 @@
         disable: function () {
             var that = this;
             that.disabled = true;
-            if (that.currentRequest) {
-                that.currentRequest.abort();
-            }
+            utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
         },
 
         enable: function () {
@@ -708,11 +711,6 @@
                         that.selectHint();
                         return;
                     }
-                    if (that.selectedIndex === -1) {
-                        that.hide();
-                        return;
-                    }
-                    that.select(that.selectedIndex);
                     if (that.options.tabDisabled === false) {
                         return;
                     }
@@ -892,18 +890,18 @@
                     if (options.onSearchStart.call(that.element, params) === false) {
                         return;
                     }
-                    if (that.currentRequest) {
-                        that.currentRequest.abort();
-                    }
+                    utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                     that.showPreloader();
                     that.currentRequest = $.ajax(
                             $.extend(that.getAjaxParams(), {
                                 url: serviceUrl,
                                 data: utils.serialize(params)
                             })
-                        ).done(function (data) {
-                            var result;
+                        )
+                        .always(function(){
                             that.currentRequest = null;
+                        }).done(function (data) {
+                            var result;
                             result = options.transformResult(data);
                             that.enrichService.enrichResponse.call(that, result, q)
                                 .done(function (enrichedResponse) {
@@ -942,9 +940,7 @@
             that.selectedIndex = -1;
             that.$container.hide().empty();
             that.signalHint(null);
-            if (that.currentRequest) {
-                that.currentRequest.abort();
-            }
+            utils.abortRequests(that.currentRequest);
         },
 
         hasExtraSuggestions: function(){
@@ -1156,6 +1152,10 @@
                 assumeDataCompleted = that.hasExpectedComponents(suggestion),
                 valueSuffix = assumeDataCompleted || that.triggeringSelectOnSpace ? '' : ' ';
 
+            if (that.currentEnrichRequest) {
+                // avoid subsequent selection if selecting process already began, e.g.: blur just after manual selection
+                return;
+            }
             if (that.options.type && assumeDataCompleted) {
                 noHide = false;
             }
