@@ -48,6 +48,110 @@
                             request.abort();
                         }
                     })
+                },
+                /**
+                 * Returns array1 minus array2
+                 */
+                arrayMinus: function(array1, array2) {
+                    return $.grep(array1, function(el, i){
+                        return $.inArray(el, array2) === -1;
+                    });
+                },
+                clearDelimeters: function(str) {
+                    return str.toLowerCase()
+                        .replace(/[.,]/g, " ")
+                        .replace(/\s\s+/g, " ");
+                },
+                /**
+                 * Returns array of words in string except the stopwords.
+                 */
+                getWords: function(str, stopwords) {
+                    stopwords = stopwords || [];
+                    var words = utils.clearDelimeters(str).split(" ");
+                    return $.grep(words, function(word, i){
+                        return word !== '' && stopwords.indexOf(word) === -1;
+                    });
+                },
+                /**
+                 * Returns normalized string without stopwords
+                 */
+                normalize: function(str, stopwords) {
+                    var that = this;
+                    return that.getWords(str.toLowerCase(), stopwords).join(' ');
+                },
+                /**
+                 * Returns true if str1 includes str2 plus something else, false otherwise.
+                 */
+                stringEncloses: function(str1, str2) {
+                    return str1.indexOf(str2) !== -1 && str1.length > str2.length;
+                },
+                haveSameParent: function(suggestions) {
+                    if (suggestions.length === 0) {
+                        return false;
+                    } else if (suggestions.length === 1) {
+                        return true;
+                    } else {
+                        var parentValue = suggestions[0].value;
+                        var aliens = $.grep(suggestions, function(suggestion) {
+                            return suggestion.value.indexOf(parentValue) === 0;
+                        }, true);
+                        return aliens.length === 0;
+                    }
+                },
+                /**
+                 * Matches query against suggestions, removing all the stopwords.
+                 */
+                matchByNormalizedQuery: function(query, suggestions, stopwords) {
+                    var index = -1,
+                        queryLowerCase = query.toLowerCase();
+
+                    // match query with suggestions
+                    var normalizedQuery = utils.normalize(queryLowerCase, stopwords);
+                    var matches = [];
+                    $.each(suggestions, function(i, suggestion) {
+                        var suggestedValue = suggestion.value.toLowerCase();
+                        // if query encloses suggestion, than it has already been selected
+                        // so we should not select it anymore
+                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                            return false;
+                        }
+                        if (normalizedQuery === utils.normalize(suggestedValue, stopwords)) {
+                            matches.push(i);
+                        }
+                    });
+
+                    if (matches.length === 1) {
+                        index = matches[0];
+                    }
+
+                    return index;
+                },
+                /**
+                 * Matches query against suggestions word-by-word (with respect to stopwords).
+                 * Matches if query words are a subset of suggested words.
+                 */
+                matchByWords: function(query, suggestions, stopwords) {
+                    var index = -1,
+                        queryLowerCase = query.toLowerCase();
+
+                    var sameParent = utils.haveSameParent(suggestions);
+                    if (sameParent) {
+                        $.each(suggestions, function(i, suggestion) {
+                            var suggestedValue = suggestion.value.toLowerCase();
+                            if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                                return false;
+                            }
+                            // check if query words are a subset of suggested words
+                            var queryWords = utils.getWords(queryLowerCase, stopwords);
+                            var suggestionWords = utils.getWords(suggestedValue, stopwords);
+                            if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
+                                index = i;
+                                return false;
+                            }
+                        });
+                    }
+
+                    return index;
                 }
             };
         }()),
@@ -71,7 +175,11 @@
             timeout: 1000
         },
         tokensValid = {},
-        enrichServices = {};
+        enrichServices = {},
+        STOPWORDS = {
+            'NAME': [],
+            'ADDRESS': ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш']
+        };
 
     enrichServices['default'] = {
         enrichSuggestion: function (suggestion) {
@@ -136,7 +244,7 @@
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
             'ADDRESS': function (data) {
-                return utils.compact([data.country, data.region, data.area, data.city, data.settlement, data.street,
+                return utils.compact([data.region, data.area, data.city, data.settlement, data.street,
                     utils.compact([data.house_type, data.house]).join(' '),
                     utils.compact([data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' ')
@@ -193,21 +301,30 @@
                         var data = resp.data,
                             s = data && data[0] && data[0][0];
 
-                        if (s && s.qc === 0) {
+                        if (s) {
                             if (!suggestion.data) {
                                 suggestion.data = {};
                             }
-                            delete s.source;
-                            $.each(s, function (field, value) {
-                                if (shouldOverrideField(field, suggestion.data)) {
-                                    var parser = fieldParsers[field];
-                                    if (parser) {
-                                        $.extend(suggestion.data, parser(value))
-                                    } else {
-                                        suggestion.data[field] = value;
+                            // should enrich suggestion only if Dadata returned good qc
+                            if (s.qc === 0) {
+                                delete s.source;
+                                $.each(s, function (field, value) {
+                                    if (shouldOverrideField(field, suggestion.data)) {
+                                        var parser = fieldParsers[field];
+                                        if (parser) {
+                                            $.extend(suggestion.data, parser(value))
+                                        } else {
+                                            suggestion.data[field] = value;
+                                        }
                                     }
+                                });
+                            // but even if qc is bad, should add it to suggestion object
+                            } else {
+                                suggestion.data.qc = s.qc;
+                                if (s.qc_complete) {
+                                    suggestion.data.qc_complete = s.qc_complete;
                                 }
-                            });
+                            }
                         }
                         resolver.resolve(suggestion);
                     })
@@ -263,7 +380,6 @@
                 autoSelectFirst: false,
                 serviceUrl: null,
                 lookup: null,
-                onSelect: null,
                 width: 'auto',
                 minChars: 1,
                 maxHeight: 300,
@@ -276,6 +392,8 @@
                 onSearchStart: $.noop,
                 onSearchComplete: $.noop,
                 onSearchError: $.noop,
+                onSelect: null,
+                onSelectNothing: null,
                 containerClass: 'suggestions-suggestions',
                 tabDisabled: false,
                 currentRequest: null,
@@ -329,6 +447,7 @@
         that.enrichService = enrichServices.default;
         that.dropdownDisabled = false;
         that.expectedComponents = [];
+        that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
 
         // Initialize and set options:
         that.initialize();
@@ -501,8 +620,11 @@
                 delete that.cancelBlur;
                 return;
             }
-            that.selectCurrentValue();
+            var index = that.selectCurrentValue();
             that.hide();
+            if (index === -1) {
+                that.onSelectNothing();
+            }
         },
 
         setOptions: function (suppliedOptions) {
@@ -692,6 +814,10 @@
             }
 
             if (that.disabled || !that.visible) {
+                // no suggestions avaliable and user pressed Enter
+                if (e.which === keys.RETURN) {
+                    that.onSelectNothing();
+                }
                 return;
             }
 
@@ -715,11 +841,11 @@
                         return;
                     }
                     break;
-
                 case keys.RETURN:
                     index = that.selectCurrentValue();
                     if (index === -1) {
                         that.hide();
+                        that.onSelectNothing();
                         return;
                     } else {
                         that.triggeredSelectOnLastKey = true;
@@ -812,15 +938,14 @@
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1,
-                queryLowerCase = query.toLowerCase();
-
-            $.each(that.suggestions, function (i, suggestion) {
-                if (suggestion.value.toLowerCase() === queryLowerCase) {
-                    index = i;
-                    return false;
-                }
-            });
-
+                stopwords = STOPWORDS[that.options.type];
+            if (query.trim() !== '') {
+                $.each(that.matchers, function(i, matcher) {
+                    if (index === -1) {
+                        index = matcher.call(that, query, that.suggestions, stopwords);
+                    }
+                });
+            }
             return index;
         },
 
@@ -1275,6 +1400,14 @@
                 selectionCompleter.resolve();
             }
             return selectionCompleter;
+        },
+
+        onSelectNothing: function() {
+            var that = this,
+                callback = that.options.onSelectNothing;
+            if ($.isFunction(callback)) {
+                callback.call(that.element, that.currentValue);
+            }
         },
 
         getValue: function (value) {
