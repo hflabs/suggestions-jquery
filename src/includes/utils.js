@@ -47,8 +47,11 @@
                 });
             },
             getWords: function(str, stopwords) {
-                var words = str.split(/[.,\s]+/g);
-                return this.arrayMinus(this.compact(words), stopwords);
+                var words = str.split(/[.,\s]+/g),
+                    lastWord = words.pop(),
+                    goodWords = this.arrayMinus(this.compact(words), stopwords);
+                goodWords.push(lastWord);
+                return goodWords;
             },
             /**
              * Returns normalized string without stopwords
