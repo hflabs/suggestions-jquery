@@ -68,9 +68,12 @@
                 getWords: function(str, stopwords) {
                     stopwords = stopwords || [];
                     var words = utils.clearDelimeters(str).split(" ");
-                    return $.grep(words, function(word, i){
+                    var lastWord = words.pop();
+                    var goodWords = $.grep(words, function(word, i){
                         return word !== '' && stopwords.indexOf(word) === -1;
                     });
+                    goodWords.push(lastWord);
+                    return goodWords;
                 },
                 /**
                  * Returns normalized string without stopwords

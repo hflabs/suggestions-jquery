@@ -32,6 +32,9 @@ describe('Select on Enter', function () {
             'ставропольский средний зеленая 36': [
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
             ],
+            'зеленоград мкр': [
+                { value: 'г Москва, г Зеленоград', data: 0 }
+            ],
             'ленина 36': [
                 { value: 'Россия, г Севастополь, ул Ленина, д 36', data: 0 },
                 { value: 'Россия, респ Коми, г Ухта, пр-кт Ленина, д 36А', data: 1 },
@@ -269,6 +272,23 @@ describe('Select on Enter', function () {
         expect(options.onSelect).toHaveBeenCalledWith(
             { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
         );
+    });
+
+    it('Should NOT trigger when the last word in query is a stop-word', function () {
+        var options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'зеленоград мкр';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
     });
 
     it('Should NOT trigger when normalized query byword-matches single suggestion from list', function () {
