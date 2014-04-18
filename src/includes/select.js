@@ -35,38 +35,32 @@
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,
-                    noHide = selectionOptions && selectionOptions.noHide;
+                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
 
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
                     index = that.findSuggestionIndex(value);
                 }
-                if (index !== -1) {
-                    that.select(index, selectionOptions);
-                } else {
-                    if (!noHide) {
-                        that.hide();
-                    }
-                }
+                that.select(index, selectionOptions);
             },
 
             /**
              * Selects a suggestion at specified index
              * @param index
              * @param selectionOptions  Contains flags:
-             *          `noHide` prevents hiding after selection,
+             *          `continueSelecting` prevents hiding after selection,
              *          `noSpace` - prevents adding space at the end of current value
              */
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
                     onSelectCallback = that.options.onSelect,
-                    noHide = selectionOptions && selectionOptions.noHide,
+                    continueSelecting = selectionOptions && selectionOptions.continueSelecting,
                     noSpace = selectionOptions && selectionOptions.noSpace,
                     assumeDataComplete;
 
                 function onSelectionCompleted() {
-                    if (noHide) {
+                    if (continueSelecting) {
                         that.selectedIndex = -1;
                         that.getSuggestions(that.currentValue);
                     } else {
@@ -75,13 +69,18 @@
                     }
                 }
 
+                // if no suggestion to select
                 if (!suggestion) {
+                    if (!continueSelecting) {
+                        that.triggerOnSelectNothing();
+                    }
+                    onSelectionCompleted();
                     return;
                 }
 
                 assumeDataComplete = that.hasAllExpectedComponents(suggestion);
                 if (that.options.type && assumeDataComplete) {
-                    noHide = false;
+                    continueSelecting = false;
                 }
                 that.currentValue = that.getValue(suggestion.value);
                 if (!noSpace && !assumeDataComplete) {
@@ -102,6 +101,14 @@
                 }
             },
 
+            triggerOnSelectNothing: function() {
+                var that = this,
+                    callback = that.options.onSelectNothing;
+                if ($.isFunction(callback)) {
+                    callback.call(that.element, that.currentValue);
+                }
+            },
+
             trySelectOnSpace: function (value) {
                 var that = this,
                     rLastSpace = /\s$/,
@@ -115,7 +122,7 @@
                     index = that.findSuggestionIndex(value.replace(rLastSpace, ''));
                     if (index !== -1) {
                         that._waitingForTriggerSelectOnSpace = false;
-                        that.select(index, {noHide: true});
+                        that.select(index, {continueSelecting: true});
                     }
                 }
             }

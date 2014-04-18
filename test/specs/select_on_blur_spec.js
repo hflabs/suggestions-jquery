@@ -34,7 +34,7 @@ describe('Select on blur', function () {
         this.instance.onValueChange();
         this.server.respond(serviceUrl, helpers.responseFor(suggestions));
 
-        $(this.input).trigger($.Event('blur'));
+        helpers.fireBlur(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
@@ -58,7 +58,7 @@ describe('Select on blur', function () {
         this.server.respond(serviceUrl, helpers.responseFor(suggestions));
 
         this.instance.selectedIndex = 2;
-        $(this.input).trigger($.Event('blur'));
+        helpers.fireBlur(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);

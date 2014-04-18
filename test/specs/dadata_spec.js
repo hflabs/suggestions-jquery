@@ -145,7 +145,7 @@ describe('DaData API', function () {
             this.server.respond();
 
             expect(options.onSelect.calls.count()).toEqual(1);
-            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: {name: 'Adam'}});
+            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: {name: 'Adam', qc: 1}});
         });
 
         it('Should pass enriched suggestion for guaranteed response', function () {

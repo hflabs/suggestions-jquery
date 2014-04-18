@@ -12,42 +12,6 @@
     'use strict';
 
     var
-        utils = (function () {
-            var uniqueId = 0;
-            return {
-                escapeRegExChars: function (value) {
-                    return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-                },
-                getDefaultType: function () {
-                    return ($.support.cors ? 'POST' : 'GET');
-                },
-                getDefaultContentType: function () {
-                    return ($.support.cors ? 'application/json' : 'application/x-www-form-urlencoded');
-                },
-                serialize: function (data) {
-                    if ($.support.cors) {
-                        return JSON.stringify(data);
-                    } else {
-                        return $.param(data, true);
-                    }
-                },
-                compact: function (array) {
-                    return $.grep(array, function (el) {
-                        return !!el;
-                    });
-                },
-                delay: function (handler, delay) {
-                    return setTimeout(handler, delay || 0);
-                },
-                uniqueId: function (prefix) {
-                    return (prefix || '') + ++uniqueId;
-                },
-                slice: function(obj, start) {
-                    return Array.prototype.slice.call(obj, start);
-                }
-            };
-        }()),
-
         keys = {
             ESC: 27,
             TAB: 9,
@@ -66,18 +30,25 @@
         requestParamsHooks = [],
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
-        dataAttrKey = 'suggestions';
+        dataAttrKey = 'suggestions',
+        STOPWORDS = {
+            'NAME': [],
+            'ADDRESS': ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш']
+        };
+
+//include "utils.js"
 
     function Suggestions(el, options) {
         var that = this,
             defaults = {
                 autoSelectFirst: false,
                 serviceUrl: null,
-                onSelect: null,
                 onInvalidateSelection: $.noop,
                 onSearchStart: $.noop,
                 onSearchComplete: $.noop,
                 onSearchError: $.noop,
+                onSelect: null,
+                onSelectNothing: null,
                 minChars: 1,
                 width: 'auto',
                 zIndex: 9999,
@@ -111,6 +82,7 @@
         that.intervalId = 0;
         that.cachedResponse = {};
         that.currentRequest = null;
+        that.currentEnrichRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
         that.options = $.extend({}, defaults, options);
@@ -122,6 +94,7 @@
         };
         that.selection = null;
         that.$viewport = $(window);
+        that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
 
         // Initialize and set options:
         that.initialize();
@@ -254,9 +227,7 @@
         disable: function () {
             var that = this;
             that.disabled = true;
-            if (that.currentRequest) {
-                that.currentRequest.abort();
-            }
+            utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
             that.hide();
         },
 
@@ -332,9 +303,7 @@
                 if (options.onSearchStart.call(that.element, params) === false) {
                     return;
                 }
-                if (that.currentRequest) {
-                    that.currentRequest.abort();
-                }
+                utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                 that.showPreloader();
                 that.currentRequest = $.ajax(
                         $.extend(that.getAjaxParams(), {
@@ -435,15 +404,14 @@
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1,
-                queryLowerCase = query.toLowerCase();
+                stopwords = STOPWORDS[that.options.type] || [];
 
-            $.each(that.suggestions, function (i, suggestion) {
-                if (suggestion.value.toLowerCase() === queryLowerCase) {
-                    index = i;
-                    return false;
-                }
-            });
-
+            if (query.trim() !== '') {
+                $.each(that.matchers, function(i, matcher) {
+                    index = matcher(query, that.suggestions, stopwords);
+                    return index === -1;
+                });
+            }
             return index;
         }
 

@@ -14,6 +14,12 @@ this.helpers = (function () {
                     suggestions: suggestions
                 })
             ];
+        },
+        hitEnter: function(el) {
+            helpers.keydown(el, 13); // code of Enter
+        },
+        fireBlur: function(el) {
+            $(el).trigger($.Event('blur'))
         }
     };
     return helpers;

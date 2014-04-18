@@ -72,7 +72,7 @@
                         return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
                     },
                     'ADDRESS': function (data) {
-                        return utils.compact([data.country, data.region, data.area, data.city, data.settlement, data.street,
+                        return utils.compact([data.region, data.area, data.city, data.settlement, data.street,
                             utils.compact([data.house_type, data.house]).join(' '),
                             utils.compact([data.block_type, data.block]).join(' '),
                             utils.compact([data.flat_type, data.flat]).join(' ')
@@ -90,7 +90,7 @@
                             ]
                         };
 
-                    that.currentRequest = $.ajax(dadataConfig.url, {
+                    that.currentEnrichRequest = $.ajax(dadataConfig.url, {
                         type: 'POST',
                         headers: {
                             'Authorization': 'Token ' + token
@@ -99,8 +99,10 @@
                         dataType: 'json',
                         data: JSON.stringify(data),
                         timeout: dadataConfig.timeout
+                    }).always(function(){
+                        that.currentEnrichRequest = null;
                     });
-                    return that.currentRequest;
+                    return that.currentEnrichRequest;
                 }
 
                 function shouldOverrideField(field, data) {
@@ -123,28 +125,37 @@
                             .always(function () {
                                 that.hidePreloader();
                                 that.enableDropdown();
-                                that.currentRequest = null;
                             })
                             .done(function (resp) {
                                 var data = resp.data,
                                     s = data && data[0] && data[0][0];
 
-                                if (s && s.qc === 0) {
+                                if (s) {
                                     if (!suggestion.data) {
                                         suggestion.data = {};
                                     }
-                                    delete s.source;
-                                    $.each(s, function (field, value) {
-                                        if (shouldOverrideField(field, suggestion.data)) {
-                                            var parser = fieldParsers[field];
-                                            if (parser) {
-                                                $.extend(suggestion.data, parser(value))
-                                            } else {
-                                                suggestion.data[field] = value;
+                                    if (s.qc === 0) {
+                                        // should enrich suggestion only if Dadata returned good qc
+                                        delete s.source;
+                                        $.each(s, function (field, value) {
+                                            if (shouldOverrideField(field, suggestion.data)) {
+                                                var parser = fieldParsers[field];
+                                                if (parser) {
+                                                    $.extend(suggestion.data, parser(value))
+                                                } else {
+                                                    suggestion.data[field] = value;
+                                                }
                                             }
+                                        });
+                                    } else {
+                                        // but even if qc is bad, should add it to suggestion object
+                                        suggestion.data.qc = s.qc;
+                                        if ('qc_complete' in s) {
+                                            suggestion.data.qc_complete = s.qc_complete;
                                         }
-                                    });
+                                    }
                                 }
+
                                 resolver.resolve(suggestion);
                             })
                             .fail(function () {
@@ -162,9 +173,6 @@
                         }
 
                         startRequest.call(that, query)
-                            .always(function () {
-                                that.currentRequest = null;
-                            })
                             .done(function (resp) {
                                 var data = resp.data,
                                     value;
@@ -199,16 +207,16 @@
 
         var methods = {
             selectEnrichService: function () {
-            var that = this,
-                type = that.options.type,
-                token = $.trim(that.options.token);
+                var that = this,
+                    type = that.options.type,
+                    token = $.trim(that.options.token);
 
-            if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
-                that.enrichService = enrichServices.dadata;
-            } else {
-                that.enrichService = enrichServices.default;
+                if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
+                    that.enrichService = enrichServices.dadata;
+                } else {
+                    that.enrichService = enrichServices.default;
+                }
             }
-        }
         };
 
         Suggestions.dadataConfig = dadataConfig;

@@ -28,6 +28,7 @@
                     return;
                 }
                 that.selectCurrentValue({noSpace: true});
+                utils.abortRequests(that.currentRequest);
             },
 
             onElementFocus: function () {
@@ -47,13 +48,21 @@
 
                 that._lastPressedKeyCode = e.which;
 
-                // If suggestions are hidden and user presses arrow down, display suggestions:
-                if (!that.disabled && !that.visible && e.which === keys.DOWN && that.currentValue) {
-                    that.suggest();
+                if (that.disabled) {
                     return;
                 }
 
-                if (that.disabled || !that.visible) {
+                if (!that.visible) {
+                    switch (e.which) {
+                        // If suggestions are hidden and user presses arrow down, display suggestions
+                        case keys.DOWN:
+                            that.suggest();
+                            break;
+                        // if no suggestions available and user pressed Enter
+                        case keys.RETURN:
+                            that.triggerOnSelectNothing();
+                            break;
+                    }
                     return;
                 }
 
@@ -61,17 +70,13 @@
                     case keys.ESC:
                         that.el.val(that.currentValue);
                         that.hide();
+                        utils.abortRequests(that.currentRequest);
                         break;
 
                     case keys.RIGHT:
                         return;
 
                     case keys.TAB:
-                        if (that.selectedIndex === -1) {
-                            that.hide();
-                            return;
-                        }
-                        that.select(that.selectedIndex, {noSpace: true});
                         if (that.options.tabDisabled === false) {
                             return;
                         }
@@ -83,7 +88,7 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            index = that.selectCurrentValue({noHide: true, noSpace: true});
+                            index = that.selectCurrentValue({continueSelecting: true, noSpace: true});
                             that._waitingForTriggerSelectOnSpace = index !== -1;
                         }
                         return;
