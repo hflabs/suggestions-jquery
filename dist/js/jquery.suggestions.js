@@ -64,6 +64,7 @@
                 },
                 /**
                  * Returns array of words in string except the stopwords.
+                 * If last word is a stopword, it is NOT removed.
                  */
                 getWords: function(str, stopwords) {
                     stopwords = stopwords || [];
