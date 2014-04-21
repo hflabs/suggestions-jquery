@@ -185,9 +185,58 @@ describe('Adding space on selecting', function () {
             }]));
 
             this.instance.selectedIndex = 0;
-            helpers.keydown(this.input, 13);
+            helpers.hitEnter(this.input);
 
             expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10');
+        });
+
+        it('Should add SPACE at the end if COUNTRY, CITY, STREET and HOUSE specified but flat is expected', function () {
+            this.instance.setOptions({
+                useDadata: true,
+                token: '123'
+            });
+
+            // select address
+            this.input.value = 'Р';
+            this.instance.onValueChange();
+            this.server.respond(serviceUrl, helpers.responseFor([{
+                value: 'Россия, г Москва, ул Арбат, дом 10',
+                data: {
+                    country: 'Россия',
+                    city: 'Москва',
+                    city_type: 'г',
+                    street: 'Арбат',
+                    street_type: 'ул',
+                    house: '10',
+                    house_type: 'дом'
+                }
+            }]));
+
+            this.server.requests.length = 0;
+            this.instance.selectedIndex = 0;
+            helpers.hitEnter(this.input);
+
+            // dadata.ru answers
+            expect(this.server.requests.length).toEqual(1);
+            this.server.respond($.Suggestions.dadataConfig.url, [200, {
+                'Content-type': 'application/json'
+            }, JSON.stringify(
+                {
+                    data: [[{
+                        country: 'Россия',
+                        city: 'Москва',
+                        city_type: 'г',
+                        street: 'Арбат',
+                        street_type: 'ул',
+                        house: '10',
+                        house_type: 'дом',
+                        qc: 0,
+                        qc_complete: 5 // means flat expected
+                    }]]
+                }
+            )]);
+
+            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10 ');
         });
 
     });
