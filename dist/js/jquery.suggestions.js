@@ -325,7 +325,7 @@
                             // but even if qc is bad, should add it to suggestion object
                             } else {
                                 suggestion.data.qc = s.qc;
-                                if (s.qc_complete) {
+                                if ('qc_complete' in s) {
                                     suggestion.data.qc_complete = s.qc_complete;
                                 }
                             }
