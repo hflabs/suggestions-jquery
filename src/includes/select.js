@@ -5,37 +5,16 @@
 
         var methods = {
 
-            selectExpectedComponents: function () {
+            selectCompleteChecker: function() {
                 var that = this,
-                    type = that.options.type,
-                    params = that.options.params;
+                    typeInfo = types[that.options.type];
 
-                switch (type) {
-                    case 'NAME':
-                        that.expectedComponents = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
-                            return part.toLowerCase();
-                        });
-                        break;
-                    case 'ADDRESS':
-                        that.expectedComponents = ['house'];
-                        break;
-                    default:
-                        that.expectedComponents = [];
-                }
-            },
-
-            hasAllExpectedComponents: function (suggestion) {
-                var result = true;
-                $.each(this.expectedComponents, function (i, part) {
-                    return result = !!suggestion.data[part];
-                });
-                return result;
+                that.completeChecker = typeInfo && typeInfo.completeChecker;
             },
 
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
-                    index = that.selectedIndex,
-                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
+                    index = that.selectedIndex;
 
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
@@ -54,10 +33,39 @@
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
-                    onSelectCallback = that.options.onSelect,
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace,
-                    assumeDataComplete;
+                    noSpace = selectionOptions && selectionOptions.noSpace;
+
+                // if no suggestion to select
+                if (!suggestion) {
+                    if (!continueSelecting) {
+                        that.triggerOnSelectNothing();
+                    }
+                    onSelectionCompleted();
+                    return;
+                }
+
+                // Set input's value to prevent onValueChange handler
+                that.currentValue = that.getValue(suggestion.value);
+                that.el.val(that.currentValue);
+
+                that.enrichService.enrichSuggestion.call(that, suggestion)
+                    .done(function (enrichedSuggestion) {
+                        var assumeDataComplete = that.completeChecker ? that.completeChecker(enrichedSuggestion) : true;
+
+                        if (that.options.type && assumeDataComplete) {
+                            continueSelecting = false;
+                        }
+
+                        if (!noSpace && !assumeDataComplete) {
+                            that.currentValue += ' ';
+                            that.el.val(that.currentValue);
+                        }
+                        that.selection = enrichedSuggestion;
+
+                        that.triggerOnSelect(enrichedSuggestion);
+                        onSelectionCompleted();
+                    });
 
                 function onSelectionCompleted() {
                     if (continueSelecting) {
@@ -69,41 +77,21 @@
                     }
                 }
 
-                // if no suggestion to select
-                if (!suggestion) {
-                    if (!continueSelecting) {
-                        that.triggerOnSelectNothing();
-                    }
-                    onSelectionCompleted();
-                    return;
-                }
+            },
 
-                assumeDataComplete = that.hasAllExpectedComponents(suggestion);
-                if (that.options.type && assumeDataComplete) {
-                    continueSelecting = false;
-                }
-                that.currentValue = that.getValue(suggestion.value);
-                if (!noSpace && !assumeDataComplete) {
-                    that.currentValue += ' ';
-                }
-                that.el.val(that.currentValue);
-                that.selection = suggestion;
+            triggerOnSelect: function(suggestion) {
+                var that = this,
+                    callback = that.options.onSelect;
 
-                // if onSelect exists, trigger it with enriched suggestion
-                if ($.isFunction(onSelectCallback)) {
-                    that.enrichService.enrichSuggestion.call(that, suggestion)
-                        .done(function (enrichedSuggestion) {
-                            onSelectCallback.call(that.element, enrichedSuggestion);
-                            onSelectionCompleted();
-                        });
-                } else {
-                    onSelectionCompleted();
+                if ($.isFunction(callback)) {
+                    callback.call(that.element, suggestion);
                 }
             },
 
             triggerOnSelectNothing: function() {
                 var that = this,
                     callback = that.options.onSelectNothing;
+
                 if ($.isFunction(callback)) {
                     callback.call(that.element, that.currentValue);
                 }
@@ -131,7 +119,7 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        setOptionsHooks.push(methods.selectExpectedComponents);
+        setOptionsHooks.push(methods.selectCompleteChecker);
 
         assignSuggestionsHooks.push(methods.trySelectOnSpace)
 

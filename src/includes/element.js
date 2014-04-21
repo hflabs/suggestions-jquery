@@ -73,9 +73,6 @@
                         utils.abortRequests(that.currentRequest);
                         break;
 
-                    case keys.RIGHT:
-                        return;
-
                     case keys.TAB:
                         if (that.options.tabDisabled === false) {
                             return;
@@ -90,6 +87,7 @@
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                             index = that.selectCurrentValue({continueSelecting: true, noSpace: true});
                             that._waitingForTriggerSelectOnSpace = index !== -1;
+                            that.cancelKeyUp = index !== -1
                         }
                         return;
                     case keys.UP:
@@ -110,7 +108,8 @@
             onElementKeyUp: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.disabled || that.cancelKeyUp) {
+                    that.cancelKeyUp = false;
                     return;
                 }
 

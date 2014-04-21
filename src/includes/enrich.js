@@ -211,7 +211,7 @@
                     type = that.options.type,
                     token = $.trim(that.options.token);
 
-                if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
+                if (that.options.useDadata && type && types[type] && token) {
                     that.enrichService = enrichServices.dadata;
                 } else {
                     that.enrichService = enrichServices.default;

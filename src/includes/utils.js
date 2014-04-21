@@ -47,9 +47,10 @@
                 });
             },
             getWords: function(str, stopwords) {
-                var words = str.split(/[.,\s]+/g),
+                var words = this.compact(str.split(/[.,\s]+/g)),
                     lastWord = words.pop(),
-                    goodWords = this.arrayMinus(this.compact(words), stopwords);
+                    goodWords = this.arrayMinus(words, stopwords);
+
                 goodWords.push(lastWord);
                 return goodWords;
             },
@@ -132,6 +133,13 @@
                     });
                 }
                 return index;
+            },
+            fieldsNotEmpty: function(obj, fields){
+                var result = true;
+                $.each(fields, function (i, field) {
+                    return result = !!obj[field];
+                });
+                return result;
             }
         };
     }());

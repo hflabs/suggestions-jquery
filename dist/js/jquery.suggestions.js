@@ -24,12 +24,29 @@
             TAB: 9,
             RETURN: 13,
             SPACE: 32,
-            LEFT: 37,
             UP: 38,
-            RIGHT: 39,
             DOWN: 40
         },
-        types = ['NAME', 'ADDRESS'],
+        types = {
+            'NAME': {
+                completeChecker: function(suggestion){
+                    var that = this,
+                        params = that.options.params,
+                        fields = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
+                            return part.toLowerCase();
+                        });
+                    return utils.fieldsNotEmpty(suggestion.data, fields);
+                }
+            },
+            'ADDRESS': {
+                STOPWORDS: ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш'],
+                completeChecker: function(suggestion){
+                    var fields = ['house'];
+                    return utils.fieldsNotEmpty(suggestion.data, fields) &&
+                        (!('qc_complete' in suggestion.data) || suggestion.data.qc_complete !== 5);
+                }
+            }
+        },
         initializeHooks = [],
         disposeHooks = [],
         setOptionsHooks = [],
@@ -37,11 +54,7 @@
         requestParamsHooks = [],
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
-        dataAttrKey = 'suggestions',
-        STOPWORDS = {
-            'NAME': [],
-            'ADDRESS': ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш']
-        };
+        dataAttrKey = 'suggestions';
 
     var utils = (function () {
         var uniqueId = 0;
@@ -92,9 +105,10 @@
                 });
             },
             getWords: function(str, stopwords) {
-                var words = str.split(/[.,\s]+/g),
+                var words = this.compact(str.split(/[.,\s]+/g)),
                     lastWord = words.pop(),
-                    goodWords = this.arrayMinus(this.compact(words), stopwords);
+                    goodWords = this.arrayMinus(words, stopwords);
+
                 goodWords.push(lastWord);
                 return goodWords;
             },
@@ -177,6 +191,13 @@
                     });
                 }
                 return index;
+            },
+            fieldsNotEmpty: function(obj, fields){
+                var result = true;
+                $.each(fields, function (i, field) {
+                    return result = !!obj[field];
+                });
+                return result;
             }
         };
     }());
@@ -548,7 +569,8 @@
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1,
-                stopwords = STOPWORDS[that.options.type] || [];
+                typeInfo = types[that.options.type],
+                stopwords = typeInfo && typeInfo.STOPWORDS || [];
 
             if (query.trim() !== '') {
                 $.each(that.matchers, function(i, matcher) {
@@ -636,9 +658,6 @@
                         utils.abortRequests(that.currentRequest);
                         break;
 
-                    case keys.RIGHT:
-                        return;
-
                     case keys.TAB:
                         if (that.options.tabDisabled === false) {
                             return;
@@ -653,6 +672,7 @@
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                             index = that.selectCurrentValue({continueSelecting: true, noSpace: true});
                             that._waitingForTriggerSelectOnSpace = index !== -1;
+                            that.cancelKeyUp = index !== -1
                         }
                         return;
                     case keys.UP:
@@ -673,7 +693,8 @@
             onElementKeyUp: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.disabled || that.cancelKeyUp) {
+                    that.cancelKeyUp = false;
                     return;
                 }
 
@@ -1015,7 +1036,7 @@
                     type = that.options.type,
                     token = $.trim(that.options.token);
 
-                if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
+                if (that.options.useDadata && type && types[type] && token) {
                     that.enrichService = enrichServices.dadata;
                 } else {
                     that.enrichService = enrichServices.default;
@@ -1530,37 +1551,16 @@
 
         var methods = {
 
-            selectExpectedComponents: function () {
+            selectCompleteChecker: function() {
                 var that = this,
-                    type = that.options.type,
-                    params = that.options.params;
+                    typeInfo = types[that.options.type];
 
-                switch (type) {
-                    case 'NAME':
-                        that.expectedComponents = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
-                            return part.toLowerCase();
-                        });
-                        break;
-                    case 'ADDRESS':
-                        that.expectedComponents = ['house'];
-                        break;
-                    default:
-                        that.expectedComponents = [];
-                }
-            },
-
-            hasAllExpectedComponents: function (suggestion) {
-                var result = true;
-                $.each(this.expectedComponents, function (i, part) {
-                    return result = !!suggestion.data[part];
-                });
-                return result;
+                that.completeChecker = typeInfo && typeInfo.completeChecker;
             },
 
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
-                    index = that.selectedIndex,
-                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
+                    index = that.selectedIndex;
 
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
@@ -1579,10 +1579,39 @@
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
-                    onSelectCallback = that.options.onSelect,
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace,
-                    assumeDataComplete;
+                    noSpace = selectionOptions && selectionOptions.noSpace;
+
+                // if no suggestion to select
+                if (!suggestion) {
+                    if (!continueSelecting) {
+                        that.triggerOnSelectNothing();
+                    }
+                    onSelectionCompleted();
+                    return;
+                }
+
+                // Set input's value to prevent onValueChange handler
+                that.currentValue = that.getValue(suggestion.value);
+                that.el.val(that.currentValue);
+
+                that.enrichService.enrichSuggestion.call(that, suggestion)
+                    .done(function (enrichedSuggestion) {
+                        var assumeDataComplete = that.completeChecker ? that.completeChecker(enrichedSuggestion) : true;
+
+                        if (that.options.type && assumeDataComplete) {
+                            continueSelecting = false;
+                        }
+
+                        if (!noSpace && !assumeDataComplete) {
+                            that.currentValue += ' ';
+                            that.el.val(that.currentValue);
+                        }
+                        that.selection = enrichedSuggestion;
+
+                        that.triggerOnSelect(enrichedSuggestion);
+                        onSelectionCompleted();
+                    });
 
                 function onSelectionCompleted() {
                     if (continueSelecting) {
@@ -1594,41 +1623,21 @@
                     }
                 }
 
-                // if no suggestion to select
-                if (!suggestion) {
-                    if (!continueSelecting) {
-                        that.triggerOnSelectNothing();
-                    }
-                    onSelectionCompleted();
-                    return;
-                }
+            },
 
-                assumeDataComplete = that.hasAllExpectedComponents(suggestion);
-                if (that.options.type && assumeDataComplete) {
-                    continueSelecting = false;
-                }
-                that.currentValue = that.getValue(suggestion.value);
-                if (!noSpace && !assumeDataComplete) {
-                    that.currentValue += ' ';
-                }
-                that.el.val(that.currentValue);
-                that.selection = suggestion;
+            triggerOnSelect: function(suggestion) {
+                var that = this,
+                    callback = that.options.onSelect;
 
-                // if onSelect exists, trigger it with enriched suggestion
-                if ($.isFunction(onSelectCallback)) {
-                    that.enrichService.enrichSuggestion.call(that, suggestion)
-                        .done(function (enrichedSuggestion) {
-                            onSelectCallback.call(that.element, enrichedSuggestion);
-                            onSelectionCompleted();
-                        });
-                } else {
-                    onSelectionCompleted();
+                if ($.isFunction(callback)) {
+                    callback.call(that.element, suggestion);
                 }
             },
 
             triggerOnSelectNothing: function() {
                 var that = this,
                     callback = that.options.onSelectNothing;
+
                 if ($.isFunction(callback)) {
                     callback.call(that.element, that.currentValue);
                 }
@@ -1656,7 +1665,7 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        setOptionsHooks.push(methods.selectExpectedComponents);
+        setOptionsHooks.push(methods.selectCompleteChecker);
 
         assignSuggestionsHooks.push(methods.trySelectOnSpace)
 
