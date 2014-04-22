@@ -274,7 +274,7 @@
         }
 
         function shouldOverrideField(field, data) {
-            return !(field in data) || field === 'house';
+            return !(field in data) || field === 'house' || (field === 'okato' && data[field] === "");
         }
 
         return {
@@ -617,9 +617,9 @@
                 delete that.cancelBlur;
                 return;
             }
-            var index = that.selectCurrentValue();
+            var index = that.selectCurrentValue({ trim: true });
             that.hide();
-            if (index === -1) {
+            if (that.selection === null && index === -1) {
                 that.onSelectNothing();
             }
         },
@@ -839,7 +839,7 @@
                     }
                     break;
                 case keys.RETURN:
-                    index = that.selectCurrentValue();
+                    index = that.selectCurrentValue({ trim: true });
                     if (index === -1) {
                         that.hide();
                         that.onSelectNothing();
@@ -851,7 +851,7 @@
                 case keys.SPACE:
                     if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                         that.triggeringSelectOnSpace = true;
-                        index = that.selectCurrentValue(true);
+                        index = that.selectCurrentValue({ noHide: true });
                         if (index !== -1) {
                             that.triggeredSelectOnLastKey = true;
                         }
@@ -1255,15 +1255,18 @@
             that.select(i);
         },
 
-        selectCurrentValue: function (noHide) {
+        selectCurrentValue: function (options) {
             var that = this,
                 index = that.selectedIndex;
             if (index === -1) {
                 var value = that.getQuery(that.el.val());
+                if (options.trim) {
+                    value = value.trim();
+                }
                 index = that.findSuggestionIndex(value);
             }
             if (index !== -1) {
-                that.select(index, noHide);
+                that.select(index, options.noHide);
             }
             return index;
         },
