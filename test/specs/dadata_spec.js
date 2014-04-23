@@ -49,7 +49,7 @@ describe('DaData API', function () {
 
     beforeEach(function(){
         this.server = sinon.fakeServer.create();
-        this.server.respondWith('POST', serviceUrl, function(xhr){
+        this.server.respondWith('POST', /suggest/, function(xhr){
             var request = JSON.parse(xhr.requestBody),
                 query = request && request.query,
                 filter = query && new RegExp('^' + query + '|\\s+' + query, 'i');
@@ -90,9 +90,10 @@ describe('DaData API', function () {
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            token: token,
             type: 'NAME',
-            onSelect: $.noop
+            token: token,
+            onSelect: $.noop,
+            constraints: false
         }).suggestions();
 
         this.server.respond();

@@ -3,53 +3,29 @@ describe('Adding space on selecting', function () {
 
     var serviceUrl = '/some/url';
 
-    beforeEach(function(){
-        this.input = document.createElement('input');
-        this.$input = $(this.input);
-        this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl,
-            useDadata: false
-        }).suggestions();
-        
-        this.server = sinon.fakeServer.create();
-    });
-
-    afterEach(function () {
-        this.server.restore();
-        this.instance.dispose()
-    });
-
-    it('Should not add SPACE at the end if `type` option not specified', function () {
-        this.input.value = 'N';
-        this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor([{
-            value: 'Name',
-            data: {
-                surname: null,
-                name: 'Name',
-                patronymic: null,
-                gender: 'MALE'
-            }
-        }]));
-
-        this.instance.selectedIndex = 0;
-        helpers.keydown(this.input, 13);
-
-        expect(this.input.value).toEqual('Name');
-    });
-
     describe('For NAME controls', function(){
 
         beforeEach(function(){
-            this.instance.setOptions({
-                type: 'NAME'
-            });
+            this.input = document.createElement('input');
+            this.$input = $(this.input);
+            this.instance = this.$input.suggestions({
+                serviceUrl: serviceUrl,
+                type: 'NAME',
+                useDadata: false
+            }).suggestions();
+
+            this.server = sinon.fakeServer.create();
+        });
+
+        afterEach(function () {
+            this.server.restore();
+            this.instance.dispose()
         });
 
         it('Should add SPACE at the end if only NAME specified', function () {
             this.input.value = 'N';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Name',
                 data: {
                     surname: null,
@@ -68,7 +44,7 @@ describe('Adding space on selecting', function () {
         it('Should add SPACE at the end if only SURNAME specified', function () {
             this.input.value = 'S';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Surname',
                 data: {
                     surname: 'Surname',
@@ -87,7 +63,7 @@ describe('Adding space on selecting', function () {
         it('Should add SPACE at the end if only NAME and PATRONYMIC specified', function () {
             this.input.value = 'N';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Name Patronymic',
                 data: {
                     surname: null,
@@ -106,7 +82,7 @@ describe('Adding space on selecting', function () {
         it('Should not add SPACE at the end if full name specified', function () {
             this.input.value = 'S';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Surname Name Patronymic',
                 data: {
                     surname: 'Surname',
@@ -127,15 +103,27 @@ describe('Adding space on selecting', function () {
     describe('For ADDRESS controls', function(){
 
         beforeEach(function(){
-            this.instance.setOptions({
-                type: 'ADDRESS'
-            });
+            this.input = document.createElement('input');
+            this.$input = $(this.input);
+            this.instance = this.$input.suggestions({
+                serviceUrl: serviceUrl,
+                type: 'ADDRESS',
+                useDadata: false,
+                constraints: false
+            }).suggestions();
+
+            this.server = sinon.fakeServer.create();
+        });
+
+        afterEach(function () {
+            this.server.restore();
+            this.instance.dispose()
         });
 
         it('Should add SPACE at the end if only COUNTRY specified', function () {
             this.input.value = 'Р';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Россия',
                 data: {
                     country: 'Россия'
@@ -151,7 +139,7 @@ describe('Adding space on selecting', function () {
         it('Should add SPACE at the end if only COUNTRY, CITY and STREET specified', function () {
             this.input.value = 'Р';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Россия, г Москва, ул Арбат',
                 data: {
                     country: 'Россия',
@@ -163,7 +151,7 @@ describe('Adding space on selecting', function () {
             }]));
 
             this.instance.selectedIndex = 0;
-            helpers.keydown(this.input, 13);
+            helpers.hitEnter(this.input);
 
             expect(this.input.value).toEqual('Россия, г Москва, ул Арбат ');
         });
@@ -171,7 +159,7 @@ describe('Adding space on selecting', function () {
         it('Should not add SPACE at the end if COUNTRY, CITY, STREET and HOUSE specified', function () {
             this.input.value = 'Р';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Россия, г Москва, ул Арбат, дом 10',
                 data: {
                     country: 'Россия',
@@ -199,7 +187,7 @@ describe('Adding space on selecting', function () {
             // select address
             this.input.value = 'Р';
             this.instance.onValueChange();
-            this.server.respond(serviceUrl, helpers.responseFor([{
+            this.server.respond(helpers.responseFor([{
                 value: 'Россия, г Москва, ул Арбат, дом 10',
                 data: {
                     country: 'Россия',

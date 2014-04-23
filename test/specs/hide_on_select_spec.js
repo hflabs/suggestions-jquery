@@ -7,6 +7,7 @@ describe('Hiding dropdown on selecting', function () {
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
+            type: 'NAME',
             useDadata: false
         }).suggestions();
 
@@ -27,7 +28,7 @@ describe('Hiding dropdown on selecting', function () {
         // show list
         this.input.value = 'S';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         spyOn(this.instance, 'hide');
 
@@ -37,7 +38,7 @@ describe('Hiding dropdown on selecting', function () {
         helpers.keydown(this.input, 13);
 
         // list is waiting for being updated
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         expect(this.instance.hide).toHaveBeenCalled();
     });
@@ -59,7 +60,7 @@ describe('Hiding dropdown on selecting', function () {
 
         this.input.value = 'S';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         spyOn(this.instance, 'getSuggestions');
         spyOn(this.instance, 'hide');
@@ -91,7 +92,7 @@ describe('Hiding dropdown on selecting', function () {
 
         this.input.value = 'Р';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         spyOn(this.instance, 'getSuggestions');
         spyOn(this.instance, 'hide');

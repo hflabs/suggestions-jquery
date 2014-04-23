@@ -54,7 +54,7 @@ describe('Select on Enter', function () {
 
     beforeEach(function(){
         this.server = sinon.fakeServer.create();
-        this.server.respondWith('POST', serviceUrl, function(xhr){
+        this.server.respondWith('POST', /suggest/, function(xhr){
             var request = JSON.parse(xhr.requestBody),
                 query = request && request.query;
             xhr.respond(
@@ -72,7 +72,8 @@ describe('Select on Enter', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            onSelect: $.noop
+            onSelect: $.noop,
+            constraints: false
         }).suggestions();
 
         this.server.respond();

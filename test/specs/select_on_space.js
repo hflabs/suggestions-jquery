@@ -6,7 +6,8 @@ describe('Select on Space', function () {
     beforeEach(function(){
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });
@@ -27,7 +28,7 @@ describe('Select on Space', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         this.instance.selectedIndex = 0;
 
@@ -49,7 +50,7 @@ describe('Select on Space', function () {
 
         this.input.value = 'Jamaica';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         helpers.keydown(this.input, 32); // code of space
 
@@ -69,7 +70,7 @@ describe('Select on Space', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         this.instance.selectedIndex = 0;
         helpers.keydown(this.input, 32); // code of space

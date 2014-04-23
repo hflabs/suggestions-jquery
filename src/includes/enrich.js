@@ -67,19 +67,6 @@
                     };
                 });
 
-                var valueComposer = {
-                    'NAME': function (data) {
-                        return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-                    },
-                    'ADDRESS': function (data) {
-                        return utils.compact([data.region, data.area, data.city, data.settlement, data.street,
-                            utils.compact([data.house_type, data.house]).join(' '),
-                            utils.compact([data.block_type, data.block]).join(' '),
-                            utils.compact([data.flat_type, data.flat]).join(' ')
-                        ]).join(', ');
-                    }
-                };
-
                 function startRequest(query) {
                     var that = this,
                         token = $.trim(that.options.token),
@@ -179,7 +166,7 @@
                                 data = data && data[0] && data[0][0];
                                 if (data) {
                                     delete data.source;
-                                    value = valueComposer[that.options.type](data);
+                                    value = that.type.composeValue(data);
                                     if (value) {
                                         $.each(fieldParsers, function (field, parser) {
                                             if (field in data) {

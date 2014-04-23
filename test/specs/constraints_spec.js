@@ -12,7 +12,8 @@ describe('Address constraints', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false
+            useDadata: false,
+            constraints: false
         }).suggestions();
     });
 
@@ -204,6 +205,27 @@ describe('Address constraints', function () {
         var $items = this.instance.$constraints.children('li');
         expect($items.length).toEqual(1);
         expect($items.find('.suggestions-remove').length).toEqual(1);
+    });
+
+    it('Should use geolocation request if no constraints specified', function () {
+        this.instance.setOptions({
+            constraints: null
+        });
+
+        expect(this.server.requests[0].url).toContain('detectAddressByIp');
+        this.server.respond([200, {'Content-type':'application/json'}, JSON.stringify({
+            location: {
+                data: {
+                    region: 'москва'
+                },
+                value: '1.2.3.4'
+            }
+        })]);
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[1].requestBody).toContain('"restrictions":[{"region":"москва"}]');
     });
 
 });

@@ -6,7 +6,8 @@ describe('Autoselect', function () {
     beforeEach(function(){
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });
@@ -21,7 +22,7 @@ describe('Autoselect', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
+        this.server.respond(helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
 
         expect(this.instance.selectedIndex).toBe(-1);
     });
@@ -34,7 +35,7 @@ describe('Autoselect', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
+        this.server.respond(helpers.responseFor(['Jamaica', 'Jamaica', 'Jamaica']));
 
         expect(this.instance.selectedIndex).toBe(0);
     });

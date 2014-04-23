@@ -5,13 +5,6 @@
 
         var methods = {
 
-            selectCompleteChecker: function() {
-                var that = this,
-                    typeInfo = types[that.options.type];
-
-                that.completeChecker = typeInfo && typeInfo.completeChecker;
-            },
-
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex;
@@ -51,7 +44,7 @@
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
-                        var assumeDataComplete = that.completeChecker ? that.completeChecker(enrichedSuggestion) : true;
+                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
 
                         if (that.options.type && assumeDataComplete) {
                             continueSelecting = false;
@@ -118,8 +111,6 @@
         };
 
         $.extend(Suggestions.prototype, methods);
-
-        setOptionsHooks.push(methods.selectCompleteChecker);
 
         assignSuggestionsHooks.push(methods.trySelectOnSpace)
 

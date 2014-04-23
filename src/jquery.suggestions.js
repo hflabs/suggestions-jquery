@@ -20,26 +20,7 @@
             UP: 38,
             DOWN: 40
         },
-        types = {
-            'NAME': {
-                completeChecker: function(suggestion){
-                    var that = this,
-                        params = that.options.params,
-                        fields = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
-                            return part.toLowerCase();
-                        });
-                    return utils.fieldsNotEmpty(suggestion.data, fields);
-                }
-            },
-            'ADDRESS': {
-                STOPWORDS: ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш'],
-                completeChecker: function(suggestion){
-                    var fields = ['house'];
-                    return utils.fieldsNotEmpty(suggestion.data, fields) &&
-                        (!('qc_complete' in suggestion.data) || suggestion.data.qc_complete !== 5);
-                }
-            }
-        },
+        types = {},
         initializeHooks = [],
         disposeHooks = [],
         setOptionsHooks = [],
@@ -50,6 +31,26 @@
         dataAttrKey = 'suggestions';
 
 //include "utils.js"
+
+//include "types.js"
+
+    var serviceMethods = {
+        'suggest': {
+            defaultParams: {
+                type: utils.getDefaultType(),
+                dataType: 'json',
+                contentType: utils.getDefaultContentType()
+            },
+            addTypeInUrl: true
+        },
+        'detectAddressByIp': {
+            defaultParams: {
+                type: 'GET',
+                dataType: 'json'
+            },
+            addTypeInUrl: false
+        }
+    };
 
     function Suggestions(el, options) {
         var that = this,
@@ -69,7 +70,6 @@
                 deferRequestBy: 0,
                 params: {},
                 paramName: 'query',
-                ignoreParams: false,
                 formatResult: Suggestions.formatResult,
                 delimiter: null,
                 noCache: false,
@@ -108,6 +108,7 @@
         that.selection = null;
         that.$viewport = $(window);
         that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
+        that.type = null;
 
         // Initialize and set options:
         that.initialize();
@@ -191,6 +192,11 @@
 
             $.extend(that.options, suppliedOptions);
 
+            that.type = types[that.options.type];
+            if (!that.type) {
+                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
+            }
+
             that.applyHooks(setOptionsHooks);
         },
 
@@ -250,16 +256,23 @@
 
         // Querying related methods
 
-        getAjaxParams: function () {
+        getAjaxParams: function (method) {
             var that = this,
-                params,
-                token = $.trim(that.options.token);
+                token = $.trim(that.options.token),
+                serviceUrl = that.options.serviceUrl,
+                serviceMethod = serviceMethods[method],
+                params = $.extend({}, serviceMethod.defaultParams);
 
-            params = {
-                type: utils.getDefaultType(),
-                dataType: 'json',
-                contentType: utils.getDefaultContentType()
-            };
+            if (!/\/$/.test(serviceUrl)) {
+                serviceUrl += '/';
+            }
+            serviceUrl += method;
+            if (serviceMethod.addTypeInUrl) {
+                serviceUrl += '/' + that.options.type.toLowerCase();
+            }
+
+            params.url = serviceUrl;
+
             if (token) {
                 params.headers = {
                     'Authorization': 'Token ' + token
@@ -282,18 +295,16 @@
         constructRequestParams: function(q){
             var that = this,
                 options = that.options,
-                params = null;
-
-            if (!options.ignoreParams) {
                 params = $.extend({}, options.params);
-                $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
-                    $.extend(params, hookParams);
-                });
-                params[options.paramName] = q;
-                if ($.isNumeric(options.count) && options.count > 0) {
-                    params.count = options.count;
-                }
+
+            $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
+                $.extend(params, hookParams);
+            });
+            params[options.paramName] = q;
+            if ($.isNumeric(options.count) && options.count > 0) {
+                params.count = options.count;
             }
+
             return params;
         },
 
@@ -305,9 +316,6 @@
                 params = that.constructRequestParams(q),
                 cacheKey;
 
-            if ($.isFunction(serviceUrl)) {
-                serviceUrl = serviceUrl.call(that.element, q);
-            }
             cacheKey = serviceUrl + '?' + $.param(params || {});
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
@@ -319,8 +327,7 @@
                 utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                 that.showPreloader();
                 that.currentRequest = $.ajax(
-                        $.extend(that.getAjaxParams(), {
-                            url: serviceUrl,
+                        $.extend(that.getAjaxParams('suggest'), {
                             data: utils.serialize(params)
                         })
                     ).always(function () {
@@ -417,8 +424,7 @@
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1,
-                typeInfo = types[that.options.type],
-                stopwords = typeInfo && typeInfo.STOPWORDS || [];
+                stopwords = that.type.STOPWORDS || [];
 
             if (query.trim() !== '') {
                 $.each(that.matchers, function(i, matcher) {
@@ -434,6 +440,8 @@
 //include "element.js"
 
 //include "authorization.js"
+
+//include "geolocation.js"
 
 //include "enrich.js"
 

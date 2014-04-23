@@ -57,7 +57,7 @@ describe('Nothing selected callback', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(fixtures));
+        this.server.respond(helpers.responseFor(fixtures));
 
         helpers.hitEnter(this.input);
 
@@ -76,7 +76,7 @@ describe('Nothing selected callback', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(fixtures));
+        this.server.respond(helpers.responseFor(fixtures));
 
         helpers.fireBlur(this.input);
 

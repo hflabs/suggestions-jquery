@@ -3,22 +3,22 @@
          * Methods related to plugin's authorization on server
          */
 
-        var tokensValid = {};
+        var tokenRequests = {};
 
         var methods = {
 
             checkToken: function () {
                 var that = this,
                     token = $.trim(that.options.token),
-                    tokenValid = tokensValid[token],
-                    onTokenReady = function () {
-                        that.checkToken();
-                    },
-                    serviceUrl;
+                    tokenRequest = tokenRequests[token];
+
+                function onTokenReady() {
+                    that.checkToken();
+                }
 
                 if (token) {
-                    if (tokenValid && $.isFunction(tokenValid.promise)) {
-                        switch (tokenValid.state()) {
+                    if (tokenRequest && $.isFunction(tokenRequest.promise)) {
+                        switch (tokenRequest.state()) {
                             case 'resolved':
                                 that.enable();
                                 break;
@@ -26,18 +26,11 @@
                                 that.disable();
                                 break;
                             default:
-                                tokenValid.always(onTokenReady);
+                                tokenRequest.always(onTokenReady);
                         }
                     } else {
-                        serviceUrl = that.options.serviceUrl;
-                        if ($.isFunction(serviceUrl)) {
-                            serviceUrl = serviceUrl.call(that.element);
-                        }
-                        tokensValid[token] = $.ajax(
-                            $.extend(that.getAjaxParams(), {
-                                url: serviceUrl
-                            })
-                        ).always(onTokenReady);
+                        tokenRequests[token] = $.ajax(that.getAjaxParams('suggest'))
+                            .always(onTokenReady);
                     }
                 }
             }
@@ -45,7 +38,7 @@
         };
 
         Suggestions.resetTokens = function () {
-            tokensValid = {};
+            tokenRequests = {};
         };
 
         $.extend(Suggestions.prototype, methods);

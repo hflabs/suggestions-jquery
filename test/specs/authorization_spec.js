@@ -12,6 +12,7 @@ describe('Authorization features', function () {
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
+            type: 'NAME',
             token: token
         }).suggestions();
     });
@@ -29,12 +30,12 @@ describe('Authorization features', function () {
     });
 
     it('Should deactivate plugin if authorization failed', function () {
-        this.server.respond(serviceUrl, [401, {}, 'Not Authorized']);
+        this.server.respond([401, {}, 'Not Authorized']);
         expect(this.instance.disabled).toBeTruthy();
     });
 
     it('Should stay enabled if request succesed', function () {
-        this.server.respond(serviceUrl, [200, {}, '{}']);
+        this.server.respond([200, {}, '{}']);
         expect(this.instance.disabled).toBeFalsy();
     });
 
@@ -45,12 +46,14 @@ describe('Authorization features', function () {
             this.$input2 = $(this.input2).appendTo('body');
             this.instance2 = this.$input2.suggestions({
                 serviceUrl: serviceUrl,
+                type: 'NAME',
                 token: token
             }).suggestions();
         });
         
         afterEach(function(){
-            this.instance2.dispose()
+            this.instance2.dispose();
+            this.$input2.remove();
         });
             
         it('Should use the same authorization query', function() {
@@ -58,7 +61,7 @@ describe('Authorization features', function () {
         });
         
         it('Should be enabled/disabled altogether', function(){
-            this.server.respond(serviceUrl, [401, {}, 'Not Authorized']);
+            this.server.respond([401, {}, 'Not Authorized']);
             expect(this.instance.disabled).toEqual(true);
             expect(this.instance2.disabled).toEqual(true);
         });
@@ -85,7 +88,8 @@ describe('Authorization without token', function() {
 
     it('Should not send authorization request (no token)', function() {
         this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
 
         expect(this.server.requests.length).toEqual(0);
@@ -94,6 +98,7 @@ describe('Authorization without token', function() {
     it('Should not send authorization request (empty token)', function() {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
+            type: 'NAME',
             token: ''
         }).suggestions();
 

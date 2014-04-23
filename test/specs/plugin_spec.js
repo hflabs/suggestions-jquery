@@ -8,7 +8,8 @@ describe('Common features', function () {
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
         
         this.server = sinon.fakeServer.create();
@@ -35,7 +36,7 @@ describe('Common features', function () {
         this.input.value = 'Jam';
         this.instance.onValueChange();
 
-        this.server.respond(serviceUrl, helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
+        this.server.respond(helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
 
         expect(this.instance.visible).toBe(true);
         expect(this.instance.currentValue).toEqual('Jam');
@@ -51,7 +52,7 @@ describe('Common features', function () {
         this.instance.setOptions(options);
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         this.instance.select(0);
 
         expect(options.onSelect.calls.count()).toEqual(1);
@@ -61,7 +62,7 @@ describe('Common features', function () {
     it('Should convert suggestions format', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Alex','Ammy','Anny']));
+        this.server.respond(helpers.responseFor(['Alex','Ammy','Anny']));
         expect(this.instance.suggestions[0]).toEqual({value:'Alex', data:null});
         expect(this.instance.suggestions[1]).toEqual({value:'Ammy', data:null});
         expect(this.instance.suggestions[2]).toEqual({value:'Anny', data:null});
@@ -93,24 +94,10 @@ describe('Common features', function () {
         });
     });
 
-    it('Should construct serviceUrl via callback function.', function () {
-        this.instance.setOptions({
-            ignoreParams: true,
-            serviceUrl: function (query) {
-                return '/dynamic-url/' + (query && encodeURIComponent(query).replace(/%20/g, "+") || '');
-            }
-        });
-
-        this.input.value = 'Hello World';
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].url).toBe('/dynamic-url/Hello+World');
-    });
-
     it('Should set width to be greater than zero', function () {
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
+        this.server.respond(helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
         expect(this.instance.$container.width()).toBeGreaterThan(0);
     });
 
@@ -123,7 +110,7 @@ describe('Common features', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
+        this.server.respond(helpers.responseFor([{ value: 'Jamaica', data: 'B' }]));
 
         expect(options.beforeRender.calls.count()).toEqual(1);
         expect(options.beforeRender).toHaveBeenCalledWith(this.instance.$container);
@@ -136,7 +123,7 @@ describe('Common features', function () {
         this.instance.onValueChange();
 
         expect(this.server.requests.length).toEqual(1);
-        this.server.respond(serviceUrl, helpers.responseFor([]));
+        this.server.respond(helpers.responseFor([]));
 
         this.input.value = 'Jama';
         this.instance.onValueChange();
@@ -153,7 +140,7 @@ describe('Common features', function () {
         this.input.value = 'japa';
         this.instance.onValueChange();
 
-        this.server.respond(serviceUrl, helpers.responseFor(['Japaneese lives in Japan and love non-japaneese']));
+        this.server.respond(helpers.responseFor(['Japaneese lives in Japan and love non-japaneese']));
 
         var $item = this.instance.$container.children('.suggestions-suggestion');
             
@@ -164,7 +151,7 @@ describe('Common features', function () {
     it('Should display default hint message above suggestions', function(){
         this.input.value = 'jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica']));
+        this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
             
@@ -180,7 +167,7 @@ describe('Common features', function () {
 
         this.input.value = 'jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica']));
+        this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
             
@@ -195,7 +182,7 @@ describe('Common features', function () {
 
         this.input.value = 'jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(['Jamaica']));
+        this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
             

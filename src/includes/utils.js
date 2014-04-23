@@ -135,9 +135,12 @@
                 return index;
             },
             fieldsNotEmpty: function(obj, fields){
+                if (!$.isPlainObject(obj)) {
+                    return false;
+                }
                 var result = true;
                 $.each(fields, function (i, field) {
-                    return result = !!obj[field];
+                    return result = !!(obj[field]);
                 });
                 return result;
             }

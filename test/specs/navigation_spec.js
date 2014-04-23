@@ -11,7 +11,8 @@ describe('Keyboard navigation', function () {
     beforeEach(function(){
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });
@@ -26,7 +27,7 @@ describe('Keyboard navigation', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         helpers.keydown(this.input, 40);
 
         expect(this.instance.selectedIndex).toBe(0);
@@ -38,7 +39,7 @@ describe('Keyboard navigation', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         helpers.keydown(this.input, 38);
 
         expect(this.instance.selectedIndex).toBe(2);
@@ -50,7 +51,7 @@ describe('Keyboard navigation', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         this.instance.selectedIndex = 2;
         helpers.keydown(this.input, 40);
 

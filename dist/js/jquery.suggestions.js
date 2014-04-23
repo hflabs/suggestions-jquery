@@ -27,26 +27,7 @@
             UP: 38,
             DOWN: 40
         },
-        types = {
-            'NAME': {
-                completeChecker: function(suggestion){
-                    var that = this,
-                        params = that.options.params,
-                        fields = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
-                            return part.toLowerCase();
-                        });
-                    return utils.fieldsNotEmpty(suggestion.data, fields);
-                }
-            },
-            'ADDRESS': {
-                STOPWORDS: ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер',  'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш'],
-                completeChecker: function(suggestion){
-                    var fields = ['house'];
-                    return utils.fieldsNotEmpty(suggestion.data, fields) &&
-                        (!('qc_complete' in suggestion.data) || suggestion.data.qc_complete !== 5);
-                }
-            }
-        },
+        types = {},
         initializeHooks = [],
         disposeHooks = [],
         setOptionsHooks = [],
@@ -193,15 +174,76 @@
                 return index;
             },
             fieldsNotEmpty: function(obj, fields){
+                if (!$.isPlainObject(obj)) {
+                    return false;
+                }
                 var result = true;
                 $.each(fields, function (i, field) {
-                    return result = !!obj[field];
+                    return result = !!(obj[field]);
                 });
                 return result;
             }
         };
     }());
 
+
+    (function () {
+
+        types['NAME'] = {
+            STOPWORDS: [],
+            isDataComplete: function (data) {
+                var that = this,
+                    params = that.options.params,
+                    fields = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
+                        return part.toLowerCase();
+                    });
+                return utils.fieldsNotEmpty(data, fields);
+            },
+            composeValue: function (data) {
+                return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
+            }
+        };
+
+        types['ADDRESS'] = {
+            STOPWORDS: ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш'],
+            geoEnabled: true,
+            isDataComplete: function (data) {
+                var fields = ['house'];
+                return utils.fieldsNotEmpty(data, fields) &&
+                    (!('qc_complete' in data) || data.qc_complete !== 5);
+            },
+            composeValue: function (data) {
+                return utils.compact([
+                    utils.compact([data.region_type, data.region]).join(' '),
+                    utils.compact([data.area_type, data.area]).join(' '),
+                    utils.compact([data.city_type, data.city]).join(' '),
+                    utils.compact([data.settlement_type, data.settlement]).join(' '),
+                    utils.compact([data.street_type, data.street]).join(' '),
+                    utils.compact([data.house_type, data.house]).join(' '),
+                    utils.compact([data.block_type, data.block]).join(' '),
+                    utils.compact([data.flat_type, data.flat]).join(' ')
+                ]).join(', ');
+            }
+        };
+    }());
+
+    var serviceMethods = {
+        'suggest': {
+            defaultParams: {
+                type: utils.getDefaultType(),
+                dataType: 'json',
+                contentType: utils.getDefaultContentType()
+            },
+            addTypeInUrl: true
+        },
+        'detectAddressByIp': {
+            defaultParams: {
+                type: 'GET',
+                dataType: 'json'
+            },
+            addTypeInUrl: false
+        }
+    };
 
     function Suggestions(el, options) {
         var that = this,
@@ -221,7 +263,6 @@
                 deferRequestBy: 0,
                 params: {},
                 paramName: 'query',
-                ignoreParams: false,
                 formatResult: Suggestions.formatResult,
                 delimiter: null,
                 noCache: false,
@@ -260,6 +301,7 @@
         that.selection = null;
         that.$viewport = $(window);
         that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
+        that.type = null;
 
         // Initialize and set options:
         that.initialize();
@@ -343,6 +385,11 @@
 
             $.extend(that.options, suppliedOptions);
 
+            that.type = types[that.options.type];
+            if (!that.type) {
+                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
+            }
+
             that.applyHooks(setOptionsHooks);
         },
 
@@ -402,16 +449,23 @@
 
         // Querying related methods
 
-        getAjaxParams: function () {
+        getAjaxParams: function (method) {
             var that = this,
-                params,
-                token = $.trim(that.options.token);
+                token = $.trim(that.options.token),
+                serviceUrl = that.options.serviceUrl,
+                serviceMethod = serviceMethods[method],
+                params = $.extend({}, serviceMethod.defaultParams);
 
-            params = {
-                type: utils.getDefaultType(),
-                dataType: 'json',
-                contentType: utils.getDefaultContentType()
-            };
+            if (!/\/$/.test(serviceUrl)) {
+                serviceUrl += '/';
+            }
+            serviceUrl += method;
+            if (serviceMethod.addTypeInUrl) {
+                serviceUrl += '/' + that.options.type.toLowerCase();
+            }
+
+            params.url = serviceUrl;
+
             if (token) {
                 params.headers = {
                     'Authorization': 'Token ' + token
@@ -434,18 +488,16 @@
         constructRequestParams: function(q){
             var that = this,
                 options = that.options,
-                params = null;
-
-            if (!options.ignoreParams) {
                 params = $.extend({}, options.params);
-                $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
-                    $.extend(params, hookParams);
-                });
-                params[options.paramName] = q;
-                if ($.isNumeric(options.count) && options.count > 0) {
-                    params.count = options.count;
-                }
+
+            $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
+                $.extend(params, hookParams);
+            });
+            params[options.paramName] = q;
+            if ($.isNumeric(options.count) && options.count > 0) {
+                params.count = options.count;
             }
+
             return params;
         },
 
@@ -457,9 +509,6 @@
                 params = that.constructRequestParams(q),
                 cacheKey;
 
-            if ($.isFunction(serviceUrl)) {
-                serviceUrl = serviceUrl.call(that.element, q);
-            }
             cacheKey = serviceUrl + '?' + $.param(params || {});
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
@@ -471,8 +520,7 @@
                 utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                 that.showPreloader();
                 that.currentRequest = $.ajax(
-                        $.extend(that.getAjaxParams(), {
-                            url: serviceUrl,
+                        $.extend(that.getAjaxParams('suggest'), {
                             data: utils.serialize(params)
                         })
                     ).always(function () {
@@ -569,8 +617,7 @@
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1,
-                typeInfo = types[that.options.type],
-                stopwords = typeInfo && typeInfo.STOPWORDS || [];
+                stopwords = that.type.STOPWORDS || [];
 
             if (query.trim() !== '') {
                 $.each(that.matchers, function(i, matcher) {
@@ -772,22 +819,22 @@
          * Methods related to plugin's authorization on server
          */
 
-        var tokensValid = {};
+        var tokenRequests = {};
 
         var methods = {
 
             checkToken: function () {
                 var that = this,
                     token = $.trim(that.options.token),
-                    tokenValid = tokensValid[token],
-                    onTokenReady = function () {
-                        that.checkToken();
-                    },
-                    serviceUrl;
+                    tokenRequest = tokenRequests[token];
+
+                function onTokenReady() {
+                    that.checkToken();
+                }
 
                 if (token) {
-                    if (tokenValid && $.isFunction(tokenValid.promise)) {
-                        switch (tokenValid.state()) {
+                    if (tokenRequest && $.isFunction(tokenRequest.promise)) {
+                        switch (tokenRequest.state()) {
                             case 'resolved':
                                 that.enable();
                                 break;
@@ -795,18 +842,11 @@
                                 that.disable();
                                 break;
                             default:
-                                tokenValid.always(onTokenReady);
+                                tokenRequest.always(onTokenReady);
                         }
                     } else {
-                        serviceUrl = that.options.serviceUrl;
-                        if ($.isFunction(serviceUrl)) {
-                            serviceUrl = serviceUrl.call(that.element);
-                        }
-                        tokensValid[token] = $.ajax(
-                            $.extend(that.getAjaxParams(), {
-                                url: serviceUrl
-                            })
-                        ).always(onTokenReady);
+                        tokenRequests[token] = $.ajax(that.getAjaxParams('suggest'))
+                            .always(onTokenReady);
                     }
                 }
             }
@@ -814,12 +854,48 @@
         };
 
         Suggestions.resetTokens = function () {
-            tokensValid = {};
+            tokenRequests = {};
         };
 
         $.extend(Suggestions.prototype, methods);
 
         setOptionsHooks.push(methods.checkToken);
+
+    }());
+
+    (function() {
+
+        var locationRequest;
+
+        var methods = {
+
+            checkLocation: function () {
+                var that = this;
+
+                if (!that.type.geoEnabled || that.options.constraints != null) {
+                    return;
+                }
+
+                if (!locationRequest) {
+                    locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
+                }
+
+                locationRequest.done(function (resp) {
+                    var restrictions = resp && resp.location && resp.location.data;
+                    if (restrictions) {
+                        that.setupConstraints({
+                            deletable: true,
+                            restrictions: restrictions
+                        });
+                    }
+                });
+            }
+
+        };
+
+        $.extend(Suggestions.prototype, methods);
+
+        setOptionsHooks.push(methods.checkLocation);
 
     }());
 
@@ -891,19 +967,6 @@
                         return result;
                     };
                 });
-
-                var valueComposer = {
-                    'NAME': function (data) {
-                        return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-                    },
-                    'ADDRESS': function (data) {
-                        return utils.compact([data.region, data.area, data.city, data.settlement, data.street,
-                            utils.compact([data.house_type, data.house]).join(' '),
-                            utils.compact([data.block_type, data.block]).join(' '),
-                            utils.compact([data.flat_type, data.flat]).join(' ')
-                        ]).join(', ');
-                    }
-                };
 
                 function startRequest(query) {
                     var that = this,
@@ -1004,7 +1067,7 @@
                                 data = data && data[0] && data[0][0];
                                 if (data) {
                                     delete data.source;
-                                    value = valueComposer[that.options.type](data);
+                                    value = that.type.composeValue(data);
                                     if (value) {
                                         $.each(fieldParsers, function (field, parser) {
                                             if (field in data) {
@@ -1448,13 +1511,18 @@
                 });
             },
 
-            setupConstraints: function () {
+            setupConstraints: function (defaultConstraint) {
                 var that = this,
                     constraints = that.options.constraints;
 
-                if (!constraints) {
+                if (constraints === false) {
                     return;
                 }
+
+                if (!constraints && !(constraints = defaultConstraint)) {
+                    return;
+                }
+
                 that._constraintsUpdating = true;
                 $.each(that.constraints, $.proxy(that.removeConstraint, that));
                 $.each($.makeArray(constraints), function (i, constraint) {
@@ -1465,18 +1533,14 @@
             },
 
             formatConstraint: function (constraint) {
+                var that = this;
+
                 if (constraint && constraint.restrictions) {
                     constraint.restrictions = $.makeArray(constraint.restrictions);
                     if (!constraint.label) {
-                        var labels = [];
-                        $.each(constraint.restrictions, function(i, restriction){
-                            $.each(['kladr_id', 'okato', 'postal_code', 'region', 'area', 'city', 'settlement'], function (i, field) {
-                                if (restriction[field]) {
-                                    labels.push(restriction[field]);
-                                }
-                            });
-                        });
-                        constraint.label = labels.join(', ');
+                        constraint.label = $.map(constraint.restrictions, function(restriction){
+                            return that.type.composeValue(restriction);
+                        }).join(', ');
                     }
                     return constraint;
                 }
@@ -1551,13 +1615,6 @@
 
         var methods = {
 
-            selectCompleteChecker: function() {
-                var that = this,
-                    typeInfo = types[that.options.type];
-
-                that.completeChecker = typeInfo && typeInfo.completeChecker;
-            },
-
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex;
@@ -1597,7 +1654,7 @@
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
-                        var assumeDataComplete = that.completeChecker ? that.completeChecker(enrichedSuggestion) : true;
+                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
 
                         if (that.options.type && assumeDataComplete) {
                             continueSelecting = false;
@@ -1664,8 +1721,6 @@
         };
 
         $.extend(Suggestions.prototype, methods);
-
-        setOptionsHooks.push(methods.selectCompleteChecker);
 
         assignSuggestionsHooks.push(methods.trySelectOnSpace)
 

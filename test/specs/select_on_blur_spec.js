@@ -6,7 +6,8 @@ describe('Select on blur', function () {
     beforeEach(function(){
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
-            serviceUrl: serviceUrl
+            serviceUrl: serviceUrl,
+            type: 'NAME'
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });
@@ -32,7 +33,7 @@ describe('Select on blur', function () {
 
         this.input.value = 'Albania';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         helpers.fireBlur(this.input);
 
@@ -55,7 +56,7 @@ describe('Select on blur', function () {
 
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
 
         this.instance.selectedIndex = 2;
         helpers.fireBlur(this.input);
@@ -78,7 +79,7 @@ describe('Select on blur', function () {
 
         this.input.value = 'Jam';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         this.input.blur();
 
         expect(options.onSelect).not.toHaveBeenCalled();
@@ -96,7 +97,7 @@ describe('Select on blur', function () {
 
         this.input.value = 'Alg';
         this.instance.onValueChange();
-        this.server.respond(serviceUrl, helpers.responseFor(suggestions));
+        this.server.respond(helpers.responseFor(suggestions));
         this.input.blur();
 
         expect(options.onSelect).not.toHaveBeenCalled();

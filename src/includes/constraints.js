@@ -35,13 +35,18 @@
                 });
             },
 
-            setupConstraints: function () {
+            setupConstraints: function (defaultConstraint) {
                 var that = this,
                     constraints = that.options.constraints;
 
-                if (!constraints) {
+                if (constraints === false) {
                     return;
                 }
+
+                if (!constraints && !(constraints = defaultConstraint)) {
+                    return;
+                }
+
                 that._constraintsUpdating = true;
                 $.each(that.constraints, $.proxy(that.removeConstraint, that));
                 $.each($.makeArray(constraints), function (i, constraint) {
@@ -52,18 +57,14 @@
             },
 
             formatConstraint: function (constraint) {
+                var that = this;
+
                 if (constraint && constraint.restrictions) {
                     constraint.restrictions = $.makeArray(constraint.restrictions);
                     if (!constraint.label) {
-                        var labels = [];
-                        $.each(constraint.restrictions, function(i, restriction){
-                            $.each(['kladr_id', 'okato', 'postal_code', 'region', 'area', 'city', 'settlement'], function (i, field) {
-                                if (restriction[field]) {
-                                    labels.push(restriction[field]);
-                                }
-                            });
-                        });
-                        constraint.label = labels.join(', ');
+                        constraint.label = $.map(constraint.restrictions, function(restriction){
+                            return that.type.composeValue(restriction);
+                        }).join(', ');
                     }
                     return constraint;
                 }
