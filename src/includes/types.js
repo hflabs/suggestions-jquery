@@ -12,7 +12,8 @@
             },
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-            }
+            },
+            urlSuffix: 'fio'
         };
 
         types['ADDRESS'] = {
@@ -34,6 +35,7 @@
                     utils.compact([data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' ')
                 ]).join(', ');
-            }
+            },
+            urlSuffix: 'address'
         };
     }());

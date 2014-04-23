@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.2
+ * DaData.ru Suggestions jQuery plugin, version 4.4.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -201,7 +201,8 @@
             },
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-            }
+            },
+            urlSuffix: 'fio'
         };
 
         types['ADDRESS'] = {
@@ -223,7 +224,8 @@
                     utils.compact([data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' ')
                 ]).join(', ');
-            }
+            },
+            urlSuffix: 'address'
         };
     }());
 
@@ -461,7 +463,7 @@
             }
             serviceUrl += method;
             if (serviceMethod.addTypeInUrl) {
-                serviceUrl += '/' + that.options.type.toLowerCase();
+                serviceUrl += '/' + that.type.urlSuffix;
             }
 
             params.url = serviceUrl;

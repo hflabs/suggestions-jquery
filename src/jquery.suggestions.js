@@ -268,7 +268,7 @@
             }
             serviceUrl += method;
             if (serviceMethod.addTypeInUrl) {
-                serviceUrl += '/' + that.options.type.toLowerCase();
+                serviceUrl += '/' + that.type.urlSuffix;
             }
 
             params.url = serviceUrl;
