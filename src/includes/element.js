@@ -27,7 +27,7 @@
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({noSpace: true});
+                that.selectCurrentValue({ trim: true, noSpace: true });
                 utils.abortRequests(that.currentRequest);
             },
 
@@ -80,7 +80,7 @@
                         break;
 
                     case keys.RETURN:
-                        that.selectCurrentValue();
+                        that.selectCurrentValue({ trim: true });
                         break;
 
                     case keys.SPACE:

@@ -661,7 +661,7 @@
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({noSpace: true});
+                that.selectCurrentValue({ trim: true, noSpace: true });
                 utils.abortRequests(that.currentRequest);
             },
 
@@ -714,7 +714,7 @@
                         break;
 
                     case keys.RETURN:
-                        that.selectCurrentValue();
+                        that.selectCurrentValue({ trim: true });
                         break;
 
                     case keys.SPACE:
@@ -996,7 +996,7 @@
                 }
 
                 function shouldOverrideField(field, data) {
-                    return !(field in data) || field === 'house';
+                    return !(field in data) || field === 'house' || (field === 'okato' && !data[field]);
                 }
 
                 return {
@@ -1619,10 +1619,14 @@
 
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
-                    index = that.selectedIndex;
+                    index = that.selectedIndex,
+                    trim = selectionOptions && selectionOptions.trim;
 
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
+                    if (trim) {
+                        value = value.trim();
+                    }
                     index = that.findSuggestionIndex(value);
                 }
                 that.select(index, selectionOptions);
@@ -1643,7 +1647,7 @@
 
                 // if no suggestion to select
                 if (!suggestion) {
-                    if (!continueSelecting) {
+                    if (!continueSelecting && !that.selection) {
                         that.triggerOnSelectNothing();
                     }
                     onSelectionCompleted();

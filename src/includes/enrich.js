@@ -93,7 +93,7 @@
                 }
 
                 function shouldOverrideField(field, data) {
-                    return !(field in data) || field === 'house';
+                    return !(field in data) || field === 'house' || (field === 'okato' && !data[field]);
                 }
 
                 return {
