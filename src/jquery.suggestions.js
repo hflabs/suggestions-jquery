@@ -409,7 +409,8 @@
                 hint: Suggestions.defaultHint,
                 useDadata: true,
                 type: null,
-                count: Suggestions.defaultCount
+                count: Suggestions.defaultCount,
+                $helpers: null
             };
 
         // Shared variables:
@@ -513,7 +514,7 @@
             // This whole handler is needed to prevent blur event on textbox
             // when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
             // See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
-            $container.on('mousedown' + eventNS, suggestionSelector, function (event) {
+            that.$wrapper.add(that.options.$helpers).on('mousedown' + eventNS, function (event) {
                 // prevent moving focus out of the text field
                 event.preventDefault();
 
@@ -531,8 +532,15 @@
                 if (!$(event.target).closest(".ui-menu-item").length) {
                     that._delay(function () {
                         $(document).one("mousedown", function (event) {
-                            if (event.target !== that.element &&
-                                event.target !== that.suggestionsContainer && !$.contains(that.suggestionsContainer, event.target)) {
+                            var $elements = that.el
+                                    .add(that.$wrapper)
+                                    .add(that.options.$helpers);
+                            
+                            $elements = $elements.filter(function(){
+                                return this === event.target || $.contains(this, event.target);
+                            });
+                            
+                            if (!$elements.length) {
                                 that.hide();
                             }
                         });
@@ -1445,6 +1453,17 @@
 
             var instance = this;
             return setTimeout(handlerProxy, delay || 0);
+        },
+        
+        setSuggestion: function(suggestion){
+            var that = this;
+            
+            if ($.isPlainObject(suggestion) && suggestion.value) {
+                that.currentValue = suggestion.value;
+                that.el.val(suggestion.value);
+                that.selection = suggestion;
+                utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
+            }
         }
     };
 
