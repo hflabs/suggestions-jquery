@@ -5,6 +5,16 @@
 
         var methods = {
 
+            proceedQuery: function (query) {
+                var that = this;
+
+                if (query.length >= that.options.minChars) {
+                    that.getSuggestions(query);
+                } else {
+                    that.hide();
+                }
+            },
+
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,

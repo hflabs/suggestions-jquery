@@ -22,7 +22,7 @@
             isDataComplete: function (data) {
                 var fields = ['house'];
                 return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== 5);
+                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
             composeValue: function (data) {
                 return utils.compact([

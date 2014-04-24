@@ -24,7 +24,6 @@
                     $container.width(options.width);
                 }
 
-                $container.on('mousedown' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMousedown, that));
                 $container.on('mouseover' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMouseover, that));
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
                 $container.on('mouseout' + eventNS, $.proxy(that.onSuggestionsMouseout, that));
@@ -43,38 +42,6 @@
             },
 
             // Dropdown event handlers
-
-            /** This whole handler is needed to prevent blur event on textbox
-             * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
-             * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
-             */
-            onSuggestionMousedown: function (event) {
-                var that = this;
-
-                // prevent moving focus out of the text field
-                event.preventDefault();
-
-                // IE doesn't prevent moving focus even with event.preventDefault()
-                // so we set a flag to know when we should ignore the blur event
-                that.cancelBlur = true;
-                utils.delay(function () {
-                    delete that.cancelBlur;
-                });
-
-                // clicking on the scrollbar causes focus to shift to the body
-                // but we can't detect a mouseup or a click immediately afterward
-                // so we have to track the next mousedown and close the menu if
-                // the user clicks somewhere outside of the autocomplete
-                if (!$(event.target).closest(".ui-menu-item").length) {
-                    utils.delay(function () {
-                        $(document).one("mousedown", function (event) {
-                            if (event.target !== that.element && !$.contains(that.$wrapper[0], event.target)) {
-                                that.hide();
-                            }
-                        });
-                    });
-                }
-            },
 
             /**
              * Listen for mouse over event on suggestions list:

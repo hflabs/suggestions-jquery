@@ -35,7 +35,17 @@
         requestParamsHooks = [],
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
-        dataAttrKey = 'suggestions';
+        dataAttrKey = 'suggestions',
+        QC_COMPLETE = {
+            OK: 0,
+            NO_REGION: 1,
+            NO_CITY: 2,
+            NO_STREET: 3,
+            NO_HOUSE: 4,
+            NO_FLAT: 5,
+            BAD: 6,
+            FOREIGN: 7
+        };
 
     var utils = (function () {
         var uniqueId = 0;
@@ -211,7 +221,7 @@
             isDataComplete: function (data) {
                 var fields = ['house'];
                 return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== 5);
+                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
             composeValue: function (data) {
                 return utils.compact([
@@ -277,7 +287,8 @@
                 useDadata: true,
                 type: null,
                 count: Suggestions.defaultCount,
-                constraints: null
+                constraints: null,
+                $helpers: null
             };
 
         // Shared variables:
@@ -365,10 +376,52 @@
 
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
             that.el.after(that.$wrapper);
+
+            that.$wrapper.add(that.options.$helpers).on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
         },
 
         removeWrapper: function () {
             this.$wrapper.remove();
+        },
+
+        /** This whole handler is needed to prevent blur event on textbox
+         * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
+         * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
+         */
+        onMousedown: function (event) {
+            var that = this;
+
+            // prevent moving focus out of the text field
+            event.preventDefault();
+
+            // IE doesn't prevent moving focus even with event.preventDefault()
+            // so we set a flag to know when we should ignore the blur event
+            that.cancelBlur = true;
+            utils.delay(function () {
+                delete that.cancelBlur;
+            });
+
+            // clicking on the scrollbar causes focus to shift to the body
+            // but we can't detect a mouseup or a click immediately afterward
+            // so we have to track the next mousedown and close the menu if
+            // the user clicks somewhere outside of the autocomplete
+            if (!$(event.target).closest(".ui-menu-item").length) {
+                utils.delay(function () {
+                    $(document).one("mousedown", function (event) {
+                        var $elements = that.el
+                            .add(that.$wrapper)
+                            .add(that.options.$helpers);
+
+                        $elements = $elements.filter(function(){
+                            return this === event.target || $.contains(this, event.target);
+                        });
+
+                        if (!$elements.length) {
+                            that.hide();
+                        }
+                    });
+                });
+            }
         },
 
         bindWindowEvents: function () {
@@ -447,6 +500,17 @@
 
         enable: function () {
             this.disabled = false;
+        },
+
+        setSuggestion: function(suggestion){
+            var that = this;
+
+            if ($.isPlainObject(suggestion) && suggestion.value) {
+                that.currentValue = suggestion.value;
+                that.el.val(suggestion.value);
+                that.selection = suggestion;
+                utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
+            }
         },
 
         // Querying related methods
@@ -667,11 +731,10 @@
 
             onElementFocus: function () {
                 var that = this;
+
                 if (!that.cancelFocus) {
                     that.fixPosition();
-                    if (that.options.minChars <= that.el.val().length) {
-                        that.onValueChange();
-                    }
+                    that.proceedQuery(that.getQuery(that.el.val()));
                 }
                 that.cancelFocus = false;
             },
@@ -782,11 +845,7 @@
                 that.currentValue = value;
                 that.selectedIndex = -1;
 
-                if (query.length < options.minChars) {
-                    that.hide();
-                } else {
-                    that.getSuggestions(query);
-                }
+                that.proceedQuery(query);
             },
 
             isCursorAtEnd: function () {
@@ -1141,7 +1200,6 @@
                     $container.width(options.width);
                 }
 
-                $container.on('mousedown' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMousedown, that));
                 $container.on('mouseover' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMouseover, that));
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
                 $container.on('mouseout' + eventNS, $.proxy(that.onSuggestionsMouseout, that));
@@ -1160,38 +1218,6 @@
             },
 
             // Dropdown event handlers
-
-            /** This whole handler is needed to prevent blur event on textbox
-             * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
-             * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
-             */
-            onSuggestionMousedown: function (event) {
-                var that = this;
-
-                // prevent moving focus out of the text field
-                event.preventDefault();
-
-                // IE doesn't prevent moving focus even with event.preventDefault()
-                // so we set a flag to know when we should ignore the blur event
-                that.cancelBlur = true;
-                utils.delay(function () {
-                    delete that.cancelBlur;
-                });
-
-                // clicking on the scrollbar causes focus to shift to the body
-                // but we can't detect a mouseup or a click immediately afterward
-                // so we have to track the next mousedown and close the menu if
-                // the user clicks somewhere outside of the autocomplete
-                if (!$(event.target).closest(".ui-menu-item").length) {
-                    utils.delay(function () {
-                        $(document).one("mousedown", function (event) {
-                            if (event.target !== that.element && !$.contains(that.$wrapper[0], event.target)) {
-                                that.hide();
-                            }
-                        });
-                    });
-                }
-            },
 
             /**
              * Listen for mouse over event on suggestions list:
@@ -1616,6 +1642,16 @@
          */
 
         var methods = {
+
+            proceedQuery: function (query) {
+                var that = this;
+
+                if (query.length >= that.options.minChars) {
+                    that.getSuggestions(query);
+                } else {
+                    that.hide();
+                }
+            },
 
             selectCurrentValue: function (selectionOptions) {
                 var that = this,

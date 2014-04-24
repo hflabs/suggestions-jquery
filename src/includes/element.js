@@ -33,11 +33,10 @@
 
             onElementFocus: function () {
                 var that = this;
+
                 if (!that.cancelFocus) {
                     that.fixPosition();
-                    if (that.options.minChars <= that.el.val().length) {
-                        that.onValueChange();
-                    }
+                    that.proceedQuery(that.getQuery(that.el.val()));
                 }
                 that.cancelFocus = false;
             },
@@ -148,11 +147,7 @@
                 that.currentValue = value;
                 that.selectedIndex = -1;
 
-                if (query.length < options.minChars) {
-                    that.hide();
-                } else {
-                    that.getSuggestions(query);
-                }
+                that.proceedQuery(query);
             },
 
             isCursorAtEnd: function () {
