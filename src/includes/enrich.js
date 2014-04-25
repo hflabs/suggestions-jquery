@@ -4,7 +4,7 @@
          */
 
         var dadataConfig = {
-            url: 'https://dadata.ru/api/v1/clean',
+            url: 'https://dadata.ru/api/v2/clean',
             timeout: 1000
         };
 
@@ -31,41 +31,6 @@
                             value == 'Ж' ? 'FEMALE' : 'UNKNOWN'
                     }
                 };
-
-                /**
-                 * Each of these fields in dadata's answer combines two fields of standard suggestion object
-                 */
-                $.each(['region', 'area', 'city', 'settlement', 'street'], function (i, field) {
-                    function typeGoesFirst(addressPart) {
-                        if (field === 'city' || field === 'settlement' || field === 'street') {
-                            return true;
-                        } else {
-                            var typeRE = /^(г|Респ|тер|у)/i;
-                            return typeRE.test(addressPart);
-                        }
-                    }
-
-                    fieldParsers[field] = function (value) {
-                        var addressPartType,
-                            addressPartValue,
-                            result = {};
-                        if (value) {
-                            var addressParts = value.split(' ');
-                            if (typeGoesFirst(value)) {
-                                addressPartType = addressParts.shift();
-                            } else {
-                                addressPartType = addressParts.pop();
-                            }
-                            addressPartValue = addressParts.join(' ');
-                        } else {
-                            addressPartType = null;
-                            addressPartValue = value;
-                        }
-                        result[field + '_type'] = addressPartType;
-                        result[field] = addressPartValue;
-                        return result;
-                    };
-                });
 
                 function startRequest(query) {
                     var that = this,
