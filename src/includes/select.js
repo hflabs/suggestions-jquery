@@ -23,7 +23,7 @@
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
                     if (trim) {
-                        value = value.trim();
+                        value = $.trim(value);
                     }
                     index = that.findSuggestionIndex(value);
                 }

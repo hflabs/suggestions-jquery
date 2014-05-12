@@ -40,21 +40,23 @@
                             data: [
                                 [ query ]
                             ]
-                        };
-
-                    that.currentEnrichRequest = $.ajax(dadataConfig.url, {
-                        type: 'POST',
-                        headers: {
-                            'Authorization': 'Token ' + token
                         },
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        data: JSON.stringify(data),
-                        timeout: dadataConfig.timeout
-                    }).always(function(){
+                        request = $.ajax(dadataConfig.url, {
+                            type: 'POST',
+                            headers: {
+                                'Authorization': 'Token ' + token
+                            },
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify(data),
+                            timeout: dadataConfig.timeout
+                        });
+
+                    that.currentEnrichRequest = request;
+                    request.always(function(){
                         that.currentEnrichRequest = null;
                     });
-                    return that.currentEnrichRequest;
+                    return request;
                 }
 
                 function shouldOverrideField(field, data) {
@@ -164,9 +166,9 @@
                     token = $.trim(that.options.token);
 
                 if (that.options.useDadata && type && types[type] && token) {
-                    that.enrichService = enrichServices.dadata;
+                    that.enrichService = enrichServices['dadata'];
                 } else {
-                    that.enrichService = enrichServices.default;
+                    that.enrichService = enrichServices['default'];
                 }
             }
         };

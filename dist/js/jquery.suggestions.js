@@ -586,22 +586,22 @@
                 utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                 that.showPreloader();
                 that.currentRequest = $.ajax(
-                        $.extend(that.getAjaxParams('suggest'), {
-                            data: utils.serialize(params)
+                    $.extend(that.getAjaxParams('suggest'), {
+                        data: utils.serialize(params)
+                    }));
+                that.currentRequest.always(function () {
+                    that.currentRequest = null;
+                }).done(function (response) {
+                    that.enrichService.enrichResponse.call(that, response, q)
+                        .done(function (enrichedResponse) {
+                            that.processResponse(enrichedResponse, q, cacheKey);
+                            options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
+                            that.hidePreloader();
                         })
-                    ).always(function () {
-                        that.currentRequest = null;
-                    }).done(function (response) {
-                        that.enrichService.enrichResponse.call(that, response, q)
-                            .done(function (enrichedResponse) {
-                                that.processResponse(enrichedResponse, q, cacheKey);
-                                options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
-                                that.hidePreloader();
-                            })
-                    }).fail(function (jqXHR, textStatus, errorThrown) {
-                        options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                        that.hidePreloader();
-                    });
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
+                    that.hidePreloader();
+                });
             }
         },
 
@@ -685,7 +685,7 @@
                 index = -1,
                 stopwords = that.type.STOPWORDS || [];
 
-            if (query.trim() !== '') {
+            if ($.trim(query) !== '') {
                 $.each(that.matchers, function(i, matcher) {
                     index = matcher(query, that.suggestions, stopwords);
                     return index === -1;
@@ -1002,21 +1002,23 @@
                             data: [
                                 [ query ]
                             ]
-                        };
-
-                    that.currentEnrichRequest = $.ajax(dadataConfig.url, {
-                        type: 'POST',
-                        headers: {
-                            'Authorization': 'Token ' + token
                         },
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        data: JSON.stringify(data),
-                        timeout: dadataConfig.timeout
-                    }).always(function(){
+                        request = $.ajax(dadataConfig.url, {
+                            type: 'POST',
+                            headers: {
+                                'Authorization': 'Token ' + token
+                            },
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify(data),
+                            timeout: dadataConfig.timeout
+                        });
+
+                    that.currentEnrichRequest = request;
+                    request.always(function(){
                         that.currentEnrichRequest = null;
                     });
-                    return that.currentEnrichRequest;
+                    return request;
                 }
 
                 function shouldOverrideField(field, data) {
@@ -1126,9 +1128,9 @@
                     token = $.trim(that.options.token);
 
                 if (that.options.useDadata && type && types[type] && token) {
-                    that.enrichService = enrichServices.dadata;
+                    that.enrichService = enrichServices['dadata'];
                 } else {
-                    that.enrichService = enrichServices.default;
+                    that.enrichService = enrichServices['default'];
                 }
             }
         };
@@ -1626,7 +1628,7 @@
                 if (index === -1) {
                     var value = that.getQuery(that.el.val());
                     if (trim) {
-                        value = value.trim();
+                        value = $.trim(value);
                     }
                     index = that.findSuggestionIndex(value);
                 }

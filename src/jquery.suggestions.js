@@ -391,22 +391,22 @@
                 utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                 that.showPreloader();
                 that.currentRequest = $.ajax(
-                        $.extend(that.getAjaxParams('suggest'), {
-                            data: utils.serialize(params)
+                    $.extend(that.getAjaxParams('suggest'), {
+                        data: utils.serialize(params)
+                    }));
+                that.currentRequest.always(function () {
+                    that.currentRequest = null;
+                }).done(function (response) {
+                    that.enrichService.enrichResponse.call(that, response, q)
+                        .done(function (enrichedResponse) {
+                            that.processResponse(enrichedResponse, q, cacheKey);
+                            options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
+                            that.hidePreloader();
                         })
-                    ).always(function () {
-                        that.currentRequest = null;
-                    }).done(function (response) {
-                        that.enrichService.enrichResponse.call(that, response, q)
-                            .done(function (enrichedResponse) {
-                                that.processResponse(enrichedResponse, q, cacheKey);
-                                options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
-                                that.hidePreloader();
-                            })
-                    }).fail(function (jqXHR, textStatus, errorThrown) {
-                        options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                        that.hidePreloader();
-                    });
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
+                    that.hidePreloader();
+                });
             }
         },
 
@@ -490,7 +490,7 @@
                 index = -1,
                 stopwords = that.type.STOPWORDS || [];
 
-            if (query.trim() !== '') {
+            if ($.trim(query) !== '') {
                 $.each(that.matchers, function(i, matcher) {
                     index = matcher(query, that.suggestions, stopwords);
                     return index === -1;
