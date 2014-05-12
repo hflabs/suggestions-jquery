@@ -252,20 +252,23 @@
                     data: [
                         [ query ]
                     ]
-                };
-            that.currentEnrichRequest = $.ajax(dadataConfig.url, {
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Token ' + token
                 },
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify(data),
-                timeout: dadataConfig.timeout
-            }).always(function(){
+                request = $.ajax(dadataConfig.url, {
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Token ' + token
+                    },
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    timeout: dadataConfig.timeout
+                });
+
+            that.currentEnrichRequest = request;
+            request.always(function(){
                 that.currentEnrichRequest = null;
             });
-            return that.currentEnrichRequest;
+            return request;
         }
 
         function shouldOverrideField(field, data) {
@@ -437,7 +440,7 @@
         that.triggeredSelectOnLastKey = false;
         that.triggeringSelectOnSpace = false;
         that.skipOnFocus = false;
-        that.enrichService = enrichServices.default;
+        that.enrichService = enrichServices['default'];
         that.dropdownDisabled = false;
         that.expectedComponents = [];
         that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
@@ -713,9 +716,9 @@
                 type = that.options.type,
                 token = $.trim(that.options.token);
             if (that.options.useDadata && type && types.indexOf(type) >= 0 && token) {
-                that.enrichService = enrichServices.dadata;
+                that.enrichService = enrichServices['dadata'];
             } else {
-                that.enrichService = enrichServices.default;
+                that.enrichService = enrichServices['default'];
             }
         },
 
@@ -940,7 +943,8 @@
             var that = this,
                 index = -1,
                 stopwords = STOPWORDS[that.options.type];
-            if (query.trim() !== '') {
+
+            if ($.trim(query) !== '') {
                 $.each(that.matchers, function(i, matcher) {
                     if (index === -1) {
                         index = matcher.call(that, query, that.suggestions, stopwords);
@@ -1018,12 +1022,12 @@
                     }
                     utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
                     that.showPreloader();
-                    that.currentRequest = $.ajax(
+                    (that.currentRequest = $.ajax(
                             $.extend(that.getAjaxParams(), {
                                 url: serviceUrl,
                                 data: utils.serialize(params)
                             })
-                        )
+                        ))
                         .always(function(){
                             that.currentRequest = null;
                         }).done(function (data) {
@@ -1265,7 +1269,7 @@
             if (index === -1) {
                 var value = that.getQuery(that.el.val());
                 if (options.trim) {
-                    value = value.trim();
+                    value = $.trim(value);
                 }
                 index = that.findSuggestionIndex(value);
             }
