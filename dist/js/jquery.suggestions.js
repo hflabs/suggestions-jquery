@@ -698,11 +698,12 @@
                     if ($.isFunction(serviceUrl)) {
                         serviceUrl = serviceUrl.call(that.element);
                     }
-                    tokensValid[token] = $.ajax(
+                    (tokensValid[token] = $.ajax(
                         $.extend(that.getAjaxParams(), {
                             url: serviceUrl
                         })
-                    ).always(onTokenReady);
+                    ))
+                        .always(onTokenReady);
                 }
             }
         },
