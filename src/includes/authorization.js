@@ -29,7 +29,7 @@
                                 tokenRequest.always(onTokenReady);
                         }
                     } else {
-                        tokenRequests[token] = $.ajax(that.getAjaxParams('suggest'))
+                        (tokenRequests[token] = $.ajax(that.getAjaxParams('suggest')))
                             .always(onTokenReady);
                     }
                 }
