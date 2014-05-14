@@ -335,13 +335,25 @@
                 serviceUrl += '/' + that.type.urlSuffix;
             }
 
-            params.url = serviceUrl;
+            if (!$.support.cors) {
+                // for XDomainRequest fix service access protocol
+                serviceUrl = serviceUrl.replace(/^https?:/, location.protocol);
+            }
 
             if (token) {
-                params.headers = {
-                    'Authorization': 'Token ' + token
+                if ($.support.cors) {
+                    // for XMLHttpRequest put token in header
+                    params.headers = {
+                        'Authorization': 'Token ' + token
+                    }
+                } else {
+                    // for XDomainRequest put token into URL
+                    serviceUrl += (/\?/.test(serviceUrl) ? '&' : '?') + 'token=' + token;
                 }
             }
+
+            params.url = serviceUrl;
+
             return params;
         },
 
