@@ -232,7 +232,8 @@
                     utils.compact([data.street_type, data.street]).join(' '),
                     utils.compact([data.house_type, data.house]).join(' '),
                     utils.compact([data.block_type, data.block]).join(' '),
-                    utils.compact([data.flat_type, data.flat]).join(' ')
+                    utils.compact([data.flat_type, data.flat]).join(' '),
+                    data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
             },
             urlSuffix: 'address'
