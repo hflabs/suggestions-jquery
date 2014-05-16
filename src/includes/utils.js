@@ -10,6 +10,12 @@
             getDefaultContentType: function () {
                 return ($.support.cors ? 'application/json' : 'application/x-www-form-urlencoded');
             },
+            fixURLProtocol: function(url){
+                return $.support.cors ? url : url.replace(/^https?:/, location.protocol);
+            },
+            addUrlParams: function (url, params) {
+                return url + (/\?/.test(url) ? '&' : '?') + $.param(params);
+            },
             serialize: function (data) {
                 if ($.support.cors) {
                     return JSON.stringify(data);

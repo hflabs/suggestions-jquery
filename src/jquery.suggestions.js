@@ -335,10 +335,7 @@
                 serviceUrl += '/' + that.type.urlSuffix;
             }
 
-            if (!$.support.cors) {
-                // for XDomainRequest fix service access protocol
-                serviceUrl = serviceUrl.replace(/^https?:/, location.protocol);
-            }
+            serviceUrl = utils.fixURLProtocol(serviceUrl);
 
             if (token) {
                 if ($.support.cors) {
@@ -348,7 +345,9 @@
                     }
                 } else {
                     // for XDomainRequest put token into URL
-                    serviceUrl += (/\?/.test(serviceUrl) ? '&' : '?') + 'token=' + token;
+                    serviceUrl = utils.addUrlParams(serviceUrl, {
+                        'token': token
+                    });
                 }
             }
 

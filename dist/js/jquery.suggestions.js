@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.3
+ * DaData.ru Suggestions jQuery plugin, version 4.4.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -58,6 +58,12 @@
             },
             getDefaultContentType: function () {
                 return ($.support.cors ? 'application/json' : 'application/x-www-form-urlencoded');
+            },
+            fixURLProtocol: function(url){
+                return $.support.cors ? url : url.replace(/^https?:/, location.protocol);
+            },
+            addUrlParams: function (url, params) {
+                return url + (/\?/.test(url) ? '&' : '?') + $.param(params);
             },
             serialize: function (data) {
                 if ($.support.cors) {
@@ -531,10 +537,7 @@
                 serviceUrl += '/' + that.type.urlSuffix;
             }
 
-            if (!$.support.cors) {
-                // for XDomainRequest fix service access protocol
-                serviceUrl = serviceUrl.replace(/^https?:/, location.protocol);
-            }
+            serviceUrl = utils.fixURLProtocol(serviceUrl);
 
             if (token) {
                 if ($.support.cors) {
@@ -544,7 +547,9 @@
                     }
                 } else {
                     // for XDomainRequest put token into URL
-                    serviceUrl += (/\?/.test(serviceUrl) ? '&' : '?') + 'token=' + token;
+                    serviceUrl = utils.addUrlParams(serviceUrl, {
+                        'token': token
+                    });
                 }
             }
 
@@ -1016,22 +1021,33 @@
                                 [ query ]
                             ]
                         },
-                        request = $.ajax(dadataConfig.url, {
+                        url = dadataConfig.url,
+                        params = {
                             type: 'POST',
-                            headers: {
-                                'Authorization': 'Token ' + token
-                            },
                             contentType: 'application/json',
                             dataType: 'json',
                             data: JSON.stringify(data),
                             timeout: dadataConfig.timeout
-                        });
+                        };
 
-                    that.currentEnrichRequest = request;
-                    request.always(function(){
+                    url = utils.fixURLProtocol(url);
+
+                    if ($.support.cors) {
+                        // for XMLHttpRequest put token in header
+                        params.headers = {
+                            'Authorization': 'Token ' + token
+                        }
+                    } else {
+                        // for XDomainRequest put token into URL
+                        url = utils.addUrlParams(url, {
+                            'token': token
+                        });
+                    }
+
+                    that.currentEnrichRequest = $.ajax(url, params);
+                    return that.currentEnrichRequest.always(function(){
                         that.currentEnrichRequest = null;
                     });
-                    return request;
                 }
 
                 function shouldOverrideField(field, data) {

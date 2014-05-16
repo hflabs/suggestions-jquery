@@ -41,22 +41,33 @@
                                 [ query ]
                             ]
                         },
-                        request = $.ajax(dadataConfig.url, {
+                        url = dadataConfig.url,
+                        params = {
                             type: 'POST',
-                            headers: {
-                                'Authorization': 'Token ' + token
-                            },
                             contentType: 'application/json',
                             dataType: 'json',
                             data: JSON.stringify(data),
                             timeout: dadataConfig.timeout
-                        });
+                        };
 
-                    that.currentEnrichRequest = request;
-                    request.always(function(){
+                    url = utils.fixURLProtocol(url);
+
+                    if ($.support.cors) {
+                        // for XMLHttpRequest put token in header
+                        params.headers = {
+                            'Authorization': 'Token ' + token
+                        }
+                    } else {
+                        // for XDomainRequest put token into URL
+                        url = utils.addUrlParams(url, {
+                            'token': token
+                        });
+                    }
+
+                    that.currentEnrichRequest = $.ajax(url, params);
+                    return that.currentEnrichRequest.always(function(){
                         that.currentEnrichRequest = null;
                     });
-                    return request;
                 }
 
                 function shouldOverrideField(field, data) {
