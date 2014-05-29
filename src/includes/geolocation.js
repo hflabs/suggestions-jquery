@@ -18,14 +18,21 @@
                 locationRequest.done(function (resp) {
                     var addr = resp && resp.location && resp.location.data;
                     if (addr && addr.kladr_id) {
-                        var constraint = that.formatConstraint({
-                            deletable: true,
-                            restrictions: addr
-                        });
-                        constraint.restrictions = [ { kladr_id: addr.kladr_id } ];
-                        that.setupConstraints(constraint);
+                        that.enableGeolocation(addr);
                     }
                 });
+            },
+
+            enableGeolocation: function(address) {
+                var that = this,
+                    constraint = that.formatConstraint({
+                        deletable: true,
+                        restrictions: address
+                    });
+                constraint.restrictions = [ { kladr_id: address.kladr_id } ];
+                that.setupConstraints(constraint);
+                // strip restricted value from suggestion value when geolocation is on
+                that.options.restrict_value = true;
             }
 
         };

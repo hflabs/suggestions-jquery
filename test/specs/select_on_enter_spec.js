@@ -103,7 +103,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith({value: 'Albania', data: 'Al'});
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'})
+        );
     });
 
     it('Should trigger when suggestion is selected manually', function () {
@@ -122,7 +124,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'Andorra', data: 'An' });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'Andorra', data: 'An' })
+        );
     });
 
     it('Should NOT trigger on partial match', function () {
@@ -178,7 +182,7 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            { value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 }
+            helpers.appendUnrestrictedValue({ value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 })
         );
     });
 
@@ -197,7 +201,7 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            { value: 'г Москва, г Зеленоград', data: 0 }
+            helpers.appendUnrestrictedValue({ value: 'г Москва, г Зеленоград', data: 0 })
         );
     });
 
@@ -216,7 +220,7 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            { value: 'Россия, обл Новосибирская', data: 0 }
+            helpers.appendUnrestrictedValue({ value: 'Россия, обл Новосибирская', data: 0 })
         );
     });
 
@@ -269,7 +273,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
+            helpers.appendUnrestrictedValue(
+                { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
+            )
         );
     });
 

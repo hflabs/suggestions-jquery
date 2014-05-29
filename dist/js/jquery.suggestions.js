@@ -295,6 +295,7 @@
                 type: null,
                 count: Suggestions.defaultCount,
                 constraints: null,
+                restrict_value: false,
                 $helpers: null
             };
 
@@ -609,7 +610,7 @@
                 that.currentRequest.always(function () {
                     that.currentRequest = null;
                 }).done(function (response) {
-                    that.enrichService.enrichResponse.call(that, response, q)
+                    that.enrichService.enrichResponse.call(that, response, that.getUnrestrictedValue(q), that.restrictValues)
                         .done(function (enrichedResponse) {
                             that.processResponse(enrichedResponse, q, cacheKey);
                             options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
@@ -654,6 +655,7 @@
             }
 
             response.suggestions = that.verifySuggestionsFormat(response.suggestions);
+            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -695,6 +697,70 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
+        },
+
+        shouldRestrictValues: function() {
+            var that = this;
+            // treat suggestions value as restricted only if there is one constraint
+            // and restrict_value is true
+            return that.options.restrict_value
+                && that.constraints
+                && Object.keys(that.constraints).length == 1;
+        },
+
+        /**
+         * Strips restricted part from suggestion value.
+         * Used for Dadata suggestions.
+         */
+        restrictValues: function(suggestions) {
+            var that = this;
+            if (!that.shouldRestrictValues()) {
+                return;
+            }
+            var label = that.getConstraintLabel();
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.value =  suggestion.value.replace(label + ', ', '');
+            });
+        },
+
+        /**
+         * Fills suggestion.unrestricted_value property
+         */
+        setUnrestrictedValues: function(suggestions) {
+            var that = this,
+                shouldRestrict = that.shouldRestrictValues(),
+                label = that.getConstraintLabel();
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+            });
+        },
+
+        /**
+         * Returns label of the first constraint (if any), empty string otherwise
+         * @returns {String}
+         */
+        getConstraintLabel: function() {
+            var that = this;
+            if (!that.constraints) {
+                return '';
+            }
+            var constraints_ids = Object.keys(that.constraints);
+            if (constraints_ids.length == 0) {
+                return '';
+            }
+            return that.constraints[constraints_ids[0]].label;
+        },
+
+        /**
+         * Returns suggestion value concatenated with restricted part.
+         * Used for Dadata suggestions
+         * @returns {string}
+         */
+        getUnrestrictedValue: function(value) {
+            var that = this;
+            return that.shouldRestrictValues()
+                ? that.getConstraintLabel() + ', ' + value
+                : value;
         },
 
         findSuggestionIndex: function (query) {
@@ -961,14 +1027,21 @@
                 locationRequest.done(function (resp) {
                     var addr = resp && resp.location && resp.location.data;
                     if (addr && addr.kladr_id) {
-                        var constraint = that.formatConstraint({
-                            deletable: true,
-                            restrictions: addr
-                        });
-                        constraint.restrictions = [ { kladr_id: addr.kladr_id } ];
-                        that.setupConstraints(constraint);
+                        that.enableGeolocation(addr);
                     }
                 });
+            },
+
+            enableGeolocation: function(address) {
+                var that = this,
+                    constraint = that.formatConstraint({
+                        deletable: true,
+                        restrictions: address
+                    });
+                constraint.restrictions = [ { kladr_id: address.kladr_id } ];
+                that.setupConstraints(constraint);
+                // strip restricted value from suggestion value when geolocation is on
+                that.options.restrict_value = true;
             }
 
         };
@@ -994,7 +1067,7 @@
                 enrichSuggestion: function (suggestion) {
                     return $.Deferred().resolve(suggestion);
                 },
-                enrichResponse: function (response, query) {
+                enrichResponse: function (response, query, fnProcess) {
                     return $.Deferred().resolve(response);
                 }
             },
@@ -1067,7 +1140,7 @@
 
                         that.showPreloader();
                         that.disableDropdown();
-                        startRequest.call(that, suggestion.value)
+                        startRequest.call(that, suggestion.unrestricted_value)
                             .always(function () {
                                 that.hidePreloader();
                                 that.enableDropdown();
@@ -1109,7 +1182,7 @@
                             });
                         return resolver;
                     },
-                    enrichResponse: function (response, query) {
+                    enrichResponse: function (response, query, fnProcess) {
                         var that = this,
                             suggestions = response.suggestions || [],
                             resolver = $.Deferred();
@@ -1138,6 +1211,9 @@
                                                 data: data
                                             }
                                         ];
+                                        if (fnProcess) {
+                                            fnProcess.call(that, response.suggestions);
+                                        }
                                     }
                                 }
                                 resolver.resolve(response);
@@ -1615,6 +1691,7 @@
                 });
                 if (restrictions.length) {
                     params.restrictions = restrictions;
+                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
             }

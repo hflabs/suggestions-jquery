@@ -93,6 +93,7 @@
                 type: null,
                 count: Suggestions.defaultCount,
                 constraints: null,
+                restrict_value: false,
                 $helpers: null
             };
 
@@ -407,7 +408,7 @@
                 that.currentRequest.always(function () {
                     that.currentRequest = null;
                 }).done(function (response) {
-                    that.enrichService.enrichResponse.call(that, response, q)
+                    that.enrichService.enrichResponse.call(that, response, that.getUnrestrictedValue(q), that.restrictValues)
                         .done(function (enrichedResponse) {
                             that.processResponse(enrichedResponse, q, cacheKey);
                             options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
@@ -452,6 +453,7 @@
             }
 
             response.suggestions = that.verifySuggestionsFormat(response.suggestions);
+            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -493,6 +495,70 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
+        },
+
+        shouldRestrictValues: function() {
+            var that = this;
+            // treat suggestions value as restricted only if there is one constraint
+            // and restrict_value is true
+            return that.options.restrict_value
+                && that.constraints
+                && Object.keys(that.constraints).length == 1;
+        },
+
+        /**
+         * Strips restricted part from suggestion value.
+         * Used for Dadata suggestions.
+         */
+        restrictValues: function(suggestions) {
+            var that = this;
+            if (!that.shouldRestrictValues()) {
+                return;
+            }
+            var label = that.getConstraintLabel();
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.value =  suggestion.value.replace(label + ', ', '');
+            });
+        },
+
+        /**
+         * Fills suggestion.unrestricted_value property
+         */
+        setUnrestrictedValues: function(suggestions) {
+            var that = this,
+                shouldRestrict = that.shouldRestrictValues(),
+                label = that.getConstraintLabel();
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+            });
+        },
+
+        /**
+         * Returns label of the first constraint (if any), empty string otherwise
+         * @returns {String}
+         */
+        getConstraintLabel: function() {
+            var that = this;
+            if (!that.constraints) {
+                return '';
+            }
+            var constraints_ids = Object.keys(that.constraints);
+            if (constraints_ids.length == 0) {
+                return '';
+            }
+            return that.constraints[constraints_ids[0]].label;
+        },
+
+        /**
+         * Returns suggestion value concatenated with restricted part.
+         * Used for Dadata suggestions
+         * @returns {string}
+         */
+        getUnrestrictedValue: function(value) {
+            var that = this;
+            return that.shouldRestrictValues()
+                ? that.getConstraintLabel() + ', ' + value
+                : value;
         },
 
         findSuggestionIndex: function (query) {

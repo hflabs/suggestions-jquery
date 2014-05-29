@@ -20,6 +20,10 @@ this.helpers = (function () {
         },
         fireBlur: function(el) {
             $(el).trigger($.Event('blur'))
+        },
+        appendUnrestrictedValue: function(suggestion) {
+            suggestion['unrestricted_value'] = suggestion.value;
+            return suggestion;
         }
     };
     return helpers;
