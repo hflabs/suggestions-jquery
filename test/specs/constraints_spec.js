@@ -207,6 +207,32 @@ describe('Address constraints', function () {
         expect($items.find('.suggestions-remove').length).toEqual(1);
     });
 
+    it('Should remove restriction on cross sign click', function () {
+        jQuery.fx.off = true;
+        this.instance.setOptions({
+            constraints: {
+                restrictions: {
+                    city:'Москва'
+                },
+                deletable: true
+            }
+        });
+
+        var $items = this.instance.$constraints.children('li'),
+            $cross = $items.find('.suggestions-remove');
+        expect($items.length).toEqual(1);
+
+        // remove label
+        $cross.click();
+        expect(this.instance.$constraints.children('li').length).toEqual(0);
+
+        // ensure constraint is also removed
+        this.input.value = 'A';
+        this.instance.onValueChange();
+        expect(this.server.requests[0].requestBody).not.toContain('"restrictions"');
+        jQuery.fx.off = false;
+    });
+
     it('Should use geolocation request if no constraints specified', function () {
         this.instance.setOptions({
             constraints: null
@@ -216,7 +242,8 @@ describe('Address constraints', function () {
         this.server.respond([200, {'Content-type':'application/json'}, JSON.stringify({
             location: {
                 data: {
-                    region: 'москва'
+                    region: 'москва',
+                    kladr_id: '7700000000000'
                 },
                 value: '1.2.3.4'
             }
@@ -225,7 +252,7 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[1].requestBody).toContain('"restrictions":[{"region":"москва"}]');
+        expect(this.server.requests[1].requestBody).toContain('"restrictions":[{"kladr_id":"7700000000000"}]');
     });
 
 });

@@ -542,9 +542,8 @@
             if (token) {
                 if ($.support.cors) {
                     // for XMLHttpRequest put token in header
-                    params.headers = {
-                        'Authorization': 'Token ' + token
-                    }
+                    params.headers = params.headers || {};
+                    params.headers['Authorization'] = 'Token ' + token;
                 } else {
                     // for XDomainRequest put token into URL
                     serviceUrl = utils.addUrlParams(serviceUrl, {
@@ -960,12 +959,14 @@
                 }
 
                 locationRequest.done(function (resp) {
-                    var restrictions = resp && resp.location && resp.location.data;
-                    if (restrictions) {
-                        that.setupConstraints({
+                    var addr = resp && resp.location && resp.location.data;
+                    if (addr && addr.kladr_id) {
+                        var constraint = that.formatConstraint({
                             deletable: true,
-                            restrictions: restrictions
+                            restrictions: addr
                         });
+                        constraint.restrictions = [ { kladr_id: addr.kladr_id } ];
+                        that.setupConstraints(constraint);
                     }
                 });
             }
