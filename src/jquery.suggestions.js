@@ -340,9 +340,8 @@
             if (token) {
                 if ($.support.cors) {
                     // for XMLHttpRequest put token in header
-                    params.headers = {
-                        'Authorization': 'Token ' + token
-                    }
+                    params.headers = params.headers || {};
+                    params.headers['Authorization'] = 'Token ' + token;
                 } else {
                     // for XDomainRequest put token into URL
                     serviceUrl = utils.addUrlParams(serviceUrl, {
