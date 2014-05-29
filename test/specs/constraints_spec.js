@@ -45,7 +45,7 @@ describe('Address constraints', function () {
     it('Should not have `restrictions` parameter in request if bad-formatted constraints specified', function () {
         this.instance.setOptions({
             constraints: {
-                city:'Москва'
+                region:'Москва'
             }
         });
 
@@ -59,7 +59,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    city:'Москва'
+                    region:'Москва'
                 }
             }
         });
@@ -67,7 +67,7 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"city":"Москва"}]');
+        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"region":"Москва"}]');
     });
 
     it('Should have `restrictions` parameter in request if constraints specified as array of objects', function () {
@@ -75,7 +75,7 @@ describe('Address constraints', function () {
             constraints: [
                 {
                     restrictions: {
-                        city:'Москва'
+                        region:'Москва'
                     }
                 },
                 {
@@ -89,7 +89,7 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"city":"Москва"},{"kladr_id":"6500000000000"}]');
+        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"region":"Москва"},{"kladr_id":"6500000000000"}]');
     });
 
     it('Should have `restrictions` parameter in request if constraints and their restrictions specified as arrays', function () {
@@ -135,7 +135,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    city:'Москва'
+                    region:'Москва'
                 }
             }
         });
@@ -151,7 +151,7 @@ describe('Address constraints', function () {
                         region: 'Москва'
                     },
                     {
-                        city: 'Санкт-петербург'
+                        region: 'Санкт-петербург'
                     }
                 ]
             }
@@ -182,7 +182,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    city:'Москва'
+                    region:'Москва'
                 }
             }
         });
@@ -196,7 +196,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    city:'Москва'
+                    region:'Москва'
                 },
                 deletable: true
             }
@@ -212,7 +212,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    city:'Москва'
+                    region:'Москва'
                 },
                 deletable: true
             }
@@ -253,6 +253,59 @@ describe('Address constraints', function () {
         this.instance.onValueChange();
 
         expect(this.server.requests[1].requestBody).toContain('"restrictions":[{"kladr_id":"7700000000000"}]');
+    });
+
+    it('Should set unrestricted suggestion value', function() {
+        this.instance.setOptions({
+            constraints: {
+                label: 'обл Ростовская, г Ростов-на-Дону',
+                restrictions: {
+                    region: 'Ростовская',
+                    city: 'Ростов-на-Дону'
+                }
+            },
+            restrict_value: true
+        });
+        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
+
+        this.input.value = 'Буквенная 20';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+        expect(this.instance.suggestions[0]).toEqual({
+            value: 'ул Буквенная, д 20',
+            unrestricted_value: 'обл Ростовская, г Ростов-на-Дону, ул Буквенная, д 20',
+            data: null
+        });
+    });
+
+    it('Should not set unrestricted suggestion value on multiple constraints', function() {
+        this.instance.setOptions({
+            constraints: [
+                {
+                    label: 'обл Ростовская, г Ростов-на-Дону',
+                    restrictions: {
+                        region: 'Ростовская',
+                        city: 'Ростов-на-Дону'
+                    }
+                },
+                {
+                    restrictions: {
+                        region: 'Москва'
+                    }
+                }
+            ],
+            restrict_value: true
+        });
+        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
+
+        this.input.value = 'Буквенная 20';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+        expect(this.instance.suggestions[0]).toEqual({
+            value: 'ул Буквенная, д 20',
+            unrestricted_value: 'ул Буквенная, д 20',
+            data: null
+        });
     });
 
 });

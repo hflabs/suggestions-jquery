@@ -35,7 +35,9 @@ describe('Select on Space', function () {
         helpers.keydown(this.input, 32);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(suggestions[0]);
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(suggestions[0])
+        );
     });
 
     it('Should trigger when nothing is selected but there is exact match', function () {
@@ -55,7 +57,9 @@ describe('Select on Space', function () {
         helpers.keydown(this.input, 32); // code of space
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(suggestions[0]);
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(suggestions[0])
+        );
     });
 
     it('Should NOT trigger when triggerSelectOnSpace = false', function () {

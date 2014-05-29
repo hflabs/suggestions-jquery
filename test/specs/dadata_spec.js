@@ -146,7 +146,9 @@ describe('DaData API', function () {
             this.server.respond();
 
             expect(options.onSelect.calls.count()).toEqual(1);
-            expect(options.onSelect).toHaveBeenCalledWith({value: 'Adam', data: {name: 'Adam', qc: 1}});
+            expect(options.onSelect).toHaveBeenCalledWith(
+                helpers.appendUnrestrictedValue({value: 'Adam', data: {name: 'Adam', qc: 1}})
+            );
         });
 
         it('Should pass enriched suggestion for guaranteed response', function () {
@@ -172,7 +174,9 @@ describe('DaData API', function () {
             delete expectation.data.source;
 
             expect(options.onSelect.calls.count()).toEqual(1);
-            expect(options.onSelect).toHaveBeenCalledWith(expectation);
+            expect(options.onSelect).toHaveBeenCalledWith(
+                helpers.appendUnrestrictedValue(expectation)
+            );
         });
 
         it('Should pass original suggestion if ajax request failed', function () {
@@ -187,7 +191,9 @@ describe('DaData API', function () {
             this.server.respond();
 
             expect(options.onSelect.calls.count()).toEqual(1);
-            expect(options.onSelect).toHaveBeenCalledWith({value: 'Anny', data: {}});
+            expect(options.onSelect).toHaveBeenCalledWith(
+                helpers.appendUnrestrictedValue({value: 'Anny', data: {}})
+            );
         });
 
         it('Should lock dropdown list while request is pending', function () {

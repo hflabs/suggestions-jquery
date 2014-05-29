@@ -114,6 +114,7 @@
                 });
                 if (restrictions.length) {
                     params.restrictions = restrictions;
+                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
             }

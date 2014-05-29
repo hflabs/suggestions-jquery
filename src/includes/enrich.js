@@ -13,7 +13,7 @@
                 enrichSuggestion: function (suggestion) {
                     return $.Deferred().resolve(suggestion);
                 },
-                enrichResponse: function (response, query) {
+                enrichResponse: function (response, query, fnProcess) {
                     return $.Deferred().resolve(response);
                 }
             },
@@ -86,7 +86,7 @@
 
                         that.showPreloader();
                         that.disableDropdown();
-                        startRequest.call(that, suggestion.value)
+                        startRequest.call(that, suggestion.unrestricted_value)
                             .always(function () {
                                 that.hidePreloader();
                                 that.enableDropdown();
@@ -128,7 +128,7 @@
                             });
                         return resolver;
                     },
-                    enrichResponse: function (response, query) {
+                    enrichResponse: function (response, query, fnProcess) {
                         var that = this,
                             suggestions = response.suggestions || [],
                             resolver = $.Deferred();
@@ -157,6 +157,9 @@
                                                 data: data
                                             }
                                         ];
+                                        if (fnProcess) {
+                                            fnProcess.call(that, response.suggestions);
+                                        }
                                     }
                                 }
                                 resolver.resolve(response);
