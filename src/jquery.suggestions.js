@@ -149,6 +149,8 @@
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
+            this.el.addClass('suggestions-input')
+                .css('box-sizing', 'border-box');
 
             that.uniqueId = utils.uniqueId('i');
 

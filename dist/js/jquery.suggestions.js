@@ -351,6 +351,8 @@
 
             // Remove autocomplete attribute to prevent native suggestions:
             that.element.setAttribute('autocomplete', 'off');
+            this.el.addClass('suggestions-input')
+                .css('box-sizing', 'border-box');
 
             that.uniqueId = utils.uniqueId('i');
 
@@ -1745,7 +1747,7 @@
 
             /**
              * Selects a suggestion at specified index
-             * @param index Index of a suggestion. Can be -1
+             * @param index
              * @param selectionOptions  Contains flags:
              *          `continueSelecting` prevents hiding after selection,
              *          `noSpace` - prevents adding space at the end of current value
