@@ -517,7 +517,7 @@
             }
             var label = that.getConstraintLabel();
             $.each(suggestions, function(i, suggestion) {
-                suggestion.value =  suggestion.value.replace(label + ', ', '');
+                suggestion.value = suggestion.value.replace(label + ', ', '');
             });
         },
 
@@ -531,22 +531,6 @@
             $.each(suggestions, function(i, suggestion) {
                 suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
             });
-        },
-
-        /**
-         * Returns label of the first constraint (if any), empty string otherwise
-         * @returns {String}
-         */
-        getConstraintLabel: function() {
-            var that = this;
-            if (!that.constraints) {
-                return '';
-            }
-            var constraints_ids = Object.keys(that.constraints);
-            if (constraints_ids.length == 0) {
-                return '';
-            }
-            return that.constraints[constraints_ids[0]].label;
         },
 
         /**
