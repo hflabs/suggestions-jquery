@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.4
+ * DaData.ru Suggestions jQuery plugin, version 4.4.5
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -719,7 +719,7 @@
             }
             var label = that.getConstraintLabel();
             $.each(suggestions, function(i, suggestion) {
-                suggestion.value =  suggestion.value.replace(label + ', ', '');
+                suggestion.value = suggestion.value.replace(label + ', ', '');
             });
         },
 
@@ -733,22 +733,6 @@
             $.each(suggestions, function(i, suggestion) {
                 suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
             });
-        },
-
-        /**
-         * Returns label of the first constraint (if any), empty string otherwise
-         * @returns {String}
-         */
-        getConstraintLabel: function() {
-            var that = this;
-            if (!that.constraints) {
-                return '';
-            }
-            var constraints_ids = Object.keys(that.constraints);
-            if (constraints_ids.length == 0) {
-                return '';
-            }
-            return that.constraints[constraints_ids[0]].label;
         },
 
         /**
@@ -1607,6 +1591,12 @@
                 var that = this,
                     $item = $(e.target).closest('li'),
                     id = $item.attr('data-constraint-id');
+
+                // Delete constraint data before animation to let correct requests to be sent while fading
+                delete that.constraints[id];
+                // Request for new suggestions
+                that.proceedQuery(that.getQuery(that.el.val()));
+
                 $item.fadeOut('fast', function () {
                     that.removeConstraint(id);
                 });
@@ -1694,6 +1684,17 @@
                     params.restrict_value = that.options.restrict_value;
                 }
                 return params;
+            },
+
+            /**
+             * Returns label of the first constraint (if any), empty string otherwise
+             * @returns {String}
+             */
+            getConstraintLabel: function() {
+                var that = this,
+                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
+
+                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
@@ -1744,7 +1745,7 @@
 
             /**
              * Selects a suggestion at specified index
-             * @param index
+             * @param index Index of a suggestion. Can be -1
              * @param selectionOptions  Contains flags:
              *          `continueSelecting` prevents hiding after selection,
              *          `noSpace` - prevents adding space at the end of current value

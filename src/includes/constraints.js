@@ -30,6 +30,12 @@
                 var that = this,
                     $item = $(e.target).closest('li'),
                     id = $item.attr('data-constraint-id');
+
+                // Delete constraint data before animation to let correct requests to be sent while fading
+                delete that.constraints[id];
+                // Request for new suggestions
+                that.proceedQuery(that.getQuery(that.el.val()));
+
                 $item.fadeOut('fast', function () {
                     that.removeConstraint(id);
                 });
@@ -117,6 +123,17 @@
                     params.restrict_value = that.options.restrict_value;
                 }
                 return params;
+            },
+
+            /**
+             * Returns label of the first constraint (if any), empty string otherwise
+             * @returns {String}
+             */
+            getConstraintLabel: function() {
+                var that = this,
+                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
+
+                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
