@@ -520,7 +520,13 @@
             }
             var label = that.getConstraintLabel();
             $.each(suggestions, function(i, suggestion) {
-                suggestion.value = suggestion.value.replace(label + ', ', '');
+                var restriction = label + ', ';
+                var restrictionIdx = suggestion.value.indexOf(restriction);
+                // remove everything from the beginning to the first restriction label match
+                // including the label itself
+                if (restrictionIdx !== -1) {
+                    suggestion.value = suggestion.value.substring(restrictionIdx + restriction.length);
+                }
             });
         },
 
