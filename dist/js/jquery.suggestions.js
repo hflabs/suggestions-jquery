@@ -809,14 +809,13 @@
             },
 
             onElementKeyDown: function (e) {
-                var that = this,
-                    index;
-
-                that._lastPressedKeyCode = e.which;
+                var that = this;
 
                 if (that.disabled) {
                     return;
                 }
+
+                that._waitingForTriggerSelectOnSpace = false;
 
                 if (!that.visible) {
                     switch (e.which) {
@@ -828,6 +827,8 @@
                         case keys.RETURN:
                             that.triggerOnSelectNothing();
                             break;
+                        case keys.SPACE:
+                            that._waitingForTriggerSelectOnSpace = true;
                     }
                     return;
                 }
@@ -851,9 +852,13 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            index = that.selectCurrentValue({continueSelecting: true, noSpace: true});
-                            that._waitingForTriggerSelectOnSpace = index !== -1;
-                            that.cancelKeyUp = index !== -1
+                            var selected = that.selectCurrentValue({continueSelecting: true, noSpace: true}) !== -1;
+
+                            // set this flag to seek and select matched suggestion when server responds
+                            that._waitingForTriggerSelectOnSpace = !selected;
+
+                            // set this flag to prevent enrich request interruption during onKeyUp and onValueChange
+                            that.cancelKeyUp = selected;
                         }
                         return;
                     case keys.UP:
@@ -1730,6 +1735,11 @@
                 }
             },
 
+            /**
+             * Selects current or first matched suggestion
+             * @param selectionOptions
+             * @returns {number} index of found suggestion
+             */
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,
@@ -1743,11 +1753,12 @@
                     index = that.findSuggestionIndex(value);
                 }
                 that.select(index, selectionOptions);
+                return index;
             },
 
             /**
              * Selects a suggestion at specified index
-             * @param index
+             * @param index index of suggestion to select. Can be -1
              * @param selectionOptions  Contains flags:
              *          `continueSelecting` prevents hiding after selection,
              *          `noSpace` - prevents adding space at the end of current value
@@ -1775,7 +1786,7 @@
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
 
-                        if (that.options.type && assumeDataComplete) {
+                        if (assumeDataComplete) {
                             continueSelecting = false;
                         }
 
@@ -1826,10 +1837,9 @@
 
                 if (that.options.triggerSelectOnSpace &&
                     that._waitingForTriggerSelectOnSpace &&
-                    that._lastPressedKeyCode == keys.SPACE &&
                     rLastSpace.test(value)
                     ) {
-                    index = that.findSuggestionIndex(value.replace(rLastSpace, ''));
+                    index = that.findSuggestionIndex($.trim(value));
                     if (index !== -1) {
                         that._waitingForTriggerSelectOnSpace = false;
                         that.select(index, {continueSelecting: true});

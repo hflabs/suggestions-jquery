@@ -42,14 +42,13 @@
             },
 
             onElementKeyDown: function (e) {
-                var that = this,
-                    index;
-
-                that._lastPressedKeyCode = e.which;
+                var that = this;
 
                 if (that.disabled) {
                     return;
                 }
+
+                that._waitingForTriggerSelectOnSpace = false;
 
                 if (!that.visible) {
                     switch (e.which) {
@@ -61,6 +60,8 @@
                         case keys.RETURN:
                             that.triggerOnSelectNothing();
                             break;
+                        case keys.SPACE:
+                            that._waitingForTriggerSelectOnSpace = true;
                     }
                     return;
                 }
@@ -84,9 +85,13 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            index = that.selectCurrentValue({continueSelecting: true, noSpace: true});
-                            that._waitingForTriggerSelectOnSpace = index !== -1;
-                            that.cancelKeyUp = index !== -1
+                            var selected = that.selectCurrentValue({continueSelecting: true, noSpace: true}) !== -1;
+
+                            // set this flag to seek and select matched suggestion when server responds
+                            that._waitingForTriggerSelectOnSpace = !selected;
+
+                            // set this flag to prevent enrich request interruption during onKeyUp and onValueChange
+                            that.cancelKeyUp = selected;
                         }
                         return;
                     case keys.UP:
