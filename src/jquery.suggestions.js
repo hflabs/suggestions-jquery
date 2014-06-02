@@ -165,7 +165,8 @@
         dispose: function () {
             var that = this;
             that.applyHooks(disposeHooks);
-            that.el.removeData(dataAttrKey);
+            that.el.removeData(dataAttrKey)
+                .removeClass('suggestions-input');
             that.unbindWindowEvents();
             that.removeWrapper();
         },
