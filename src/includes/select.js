@@ -15,6 +15,11 @@
                 }
             },
 
+            /**
+             * Selects current or first matched suggestion
+             * @param selectionOptions
+             * @returns {number} index of found suggestion
+             */
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,
@@ -28,11 +33,12 @@
                     index = that.findSuggestionIndex(value);
                 }
                 that.select(index, selectionOptions);
+                return index;
             },
 
             /**
              * Selects a suggestion at specified index
-             * @param index
+             * @param index index of suggestion to select. Can be -1
              * @param selectionOptions  Contains flags:
              *          `continueSelecting` prevents hiding after selection,
              *          `noSpace` - prevents adding space at the end of current value
@@ -60,7 +66,7 @@
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
 
-                        if (that.options.type && assumeDataComplete) {
+                        if (assumeDataComplete) {
                             continueSelecting = false;
                         }
 
@@ -111,10 +117,9 @@
 
                 if (that.options.triggerSelectOnSpace &&
                     that._waitingForTriggerSelectOnSpace &&
-                    that._lastPressedKeyCode == keys.SPACE &&
                     rLastSpace.test(value)
                     ) {
-                    index = that.findSuggestionIndex(value.replace(rLastSpace, ''));
+                    index = that.findSuggestionIndex($.trim(value));
                     if (index !== -1) {
                         that._waitingForTriggerSelectOnSpace = false;
                         that.select(index, {continueSelecting: true});
