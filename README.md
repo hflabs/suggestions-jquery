@@ -88,7 +88,7 @@ Html:
 
 При инициализации плагин создает дополнительные HTML-элементы. Пример приведен ниже.
 
-    <input type="text" name="fio" id="suggestions"/>
+    <input type="text" name="fio" id="suggestions" class="suggestions-input"/>
     <div class="suggestions-wrapper">
         <i class="suggestions-preloader"></i>
         <div class="suggestions-suggestions">
@@ -106,6 +106,8 @@ Html:
     .suggestions-suggestions strong { font-weight: normal; color: #3399FF; }
     .suggestions-hint { color: #777; padding: 2px 5px; }
 
+Следует иметь в виду, что предустановленный стиль `suggestions-input` задает ширину input элемента равную "100%". Чтобы она перекрывалась нужным значением, размещайте ссылку на `suggestions.css` до ссылок на другие css-файлы, либо используйте более специфичные селекторы.
+    
 ##Формат ответа
 
 Сервер должен передавать следующий объект в формате JSON:
