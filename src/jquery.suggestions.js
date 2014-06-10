@@ -251,6 +251,7 @@
 
             that.type = types[that.options.type];
             if (!that.type) {
+                that.disable();
                 throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
             }
 

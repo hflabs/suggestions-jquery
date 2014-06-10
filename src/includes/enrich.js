@@ -180,7 +180,7 @@
                     token = $.trim(that.options.token);
 
                 if (that.options.useDadata && type && types[type] && token) {
-                    that.enrichService = enrichServices['dadata'];
+                    that.enrichService = enrichServices[types[type].enrichServiceName || 'dadata'];
                 } else {
                     that.enrichService = enrichServices['default'];
                 }

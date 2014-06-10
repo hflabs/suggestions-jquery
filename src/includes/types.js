@@ -39,4 +39,15 @@
             },
             urlSuffix: 'address'
         };
+
+        types['PARTY'] = {
+            STOPWORDS: [],
+            isDataComplete: function (data) {
+                return false;
+            },
+            // composeValue not needed
+            enrichServiceName: 'default',
+            urlSuffix: 'party'
+        };
+
     }());
