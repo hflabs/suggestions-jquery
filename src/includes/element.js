@@ -36,7 +36,7 @@
 
                 if (!that.cancelFocus) {
                     that.fixPosition();
-                    that.proceedQuery(that.getQuery(that.el.val()));
+                    that.update();
                 }
                 that.cancelFocus = false;
             },
@@ -140,8 +140,7 @@
             onValueChange: function () {
                 var that = this,
                     options = that.options,
-                    value = that.el.val(),
-                    query = that.getQuery(value);
+                    value = that.el.val();
 
                 if (that.selection) {
                     (options.onInvalidateSelection || $.noop).call(that.element, that.selection);
@@ -152,7 +151,7 @@
                 that.currentValue = value;
                 that.selectedIndex = -1;
 
-                that.proceedQuery(query);
+                that.update();
             },
 
             isCursorAtEnd: function () {

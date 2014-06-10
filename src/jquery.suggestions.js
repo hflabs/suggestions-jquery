@@ -312,6 +312,18 @@
             this.disabled = false;
         },
 
+        update: function () {
+            var that = this,
+                value = that.el.val(),
+                query = that.getQuery(value);
+
+            if (query.length >= that.options.minChars) {
+                that.getSuggestions(query);
+            } else {
+                that.hide();
+            }
+        },
+
         setSuggestion: function(suggestion){
             var that = this;
 
@@ -371,15 +383,17 @@
             return $.trim(parts[parts.length - 1]);
         },
 
-        constructRequestParams: function(q){
+        constructRequestParams: function(query){
             var that = this,
                 options = that.options,
-                params = $.extend({}, options.params);
+                params = $.isFunction(options.params)
+                    ? options.params.call(that.element, query)
+                    : $.extend({}, options.params);
 
             $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
                 $.extend(params, hookParams);
             });
-            params[options.paramName] = q;
+            params[options.paramName] = query;
             if ($.isNumeric(options.count) && options.count > 0) {
                 params.count = options.count;
             }

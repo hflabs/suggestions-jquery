@@ -5,16 +5,6 @@
 
         var methods = {
 
-            proceedQuery: function (query) {
-                var that = this;
-
-                if (query.length >= that.options.minChars) {
-                    that.getSuggestions(query);
-                } else {
-                    that.hide();
-                }
-            },
-
             /**
              * Selects current or first matched suggestion
              * @param selectionOptions
@@ -58,7 +48,7 @@
                     return;
                 }
 
-                // Set input's value to prevent onValueChange handler
+                // Set input's value to prevent onChange
                 that.currentValue = that.getValue(suggestion.value);
                 that.el.val(that.currentValue);
 

@@ -81,6 +81,32 @@ describe('Common features', function () {
         expect(this.server.requests[0].requestBody).toContain('"custom":"Jam"');
     });
 
+    it('Should include params option into request', function () {
+        this.instance.setOptions({
+            params: {
+                a: 1
+            }
+        });
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('{"a":1,');
+    });
+
+    it('Should include params option into request when it is a function', function () {
+        this.instance.setOptions({
+            params: function(){
+                return {a:2};
+            }
+        });
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('{"a":2,');
+    });
+
     it('Should destroy suggestions instance', function () {
         var $div = $(document.createElement('div'));
 

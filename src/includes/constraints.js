@@ -34,7 +34,7 @@
                 // Delete constraint data before animation to let correct requests to be sent while fading
                 delete that.constraints[id];
                 // Request for new suggestions
-                that.proceedQuery(that.getQuery(that.el.val()));
+                that.update();
 
                 $item.fadeOut('fast', function () {
                     that.removeConstraint(id);
