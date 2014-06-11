@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.6
+ * DaData.ru Suggestions jQuery plugin, version 4.4.7
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -1007,6 +1007,11 @@
 
     (function() {
 
+        // Disable this feature when GET method used. See SUG-202
+        if (utils.getDefaultType() == 'GET') {
+            return;
+        }
+
         var locationRequest;
 
         var methods = {
@@ -1577,6 +1582,11 @@
         /**
          * Methods related to CONSTRAINTS component
          */
+
+        // Disable this feature when GET method used. See SUG-202
+        if (utils.getDefaultType() == 'GET') {
+            return;
+        }
 
         var methods = {
 

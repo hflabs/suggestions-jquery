@@ -1,5 +1,10 @@
     (function() {
 
+        // Disable this feature when GET method used. See SUG-202
+        if (utils.getDefaultType() == 'GET') {
+            return;
+        }
+
         var locationRequest;
 
         var methods = {
