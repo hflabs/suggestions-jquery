@@ -1032,6 +1032,11 @@
 
     (function() {
 
+        // Disable this feature when GET method used. See SUG-202
+        if (utils.getDefaultType() == 'GET') {
+            return;
+        }
+
         var locationRequest;
 
         var methods = {
@@ -1602,6 +1607,11 @@
         /**
          * Methods related to CONSTRAINTS component
          */
+
+        // Disable this feature when GET method used. See SUG-202
+        if (utils.getDefaultType() == 'GET') {
+            return;
+        }
 
         var methods = {
 
