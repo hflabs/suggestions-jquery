@@ -152,6 +152,11 @@
                     if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
                         return false;
                     }
+                    // if there is suggestion that contains query as its part
+                    // than we should ignore all other matches, even full ones
+                    if (suggestedValue.indexOf(normalizedQuery) > 0) {
+                        return false;
+                    }
                     if (normalizedQuery === utils.normalize(suggestedValue, stopwords)) {
                         matches.push(i);
                     }
