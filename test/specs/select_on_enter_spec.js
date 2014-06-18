@@ -186,7 +186,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should trigger when normalized query equals single suggestion from list (not same parent), part 1', function () {
+    it('Should trigger when normalized query equals single suggestion from list (not same parent)', function () {
         var options = {
                 onSelect: function(){}
             };
@@ -205,7 +205,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should trigger when normalized query equals single suggestion from list (not same parent), part 2', function () {
+    it('Should NOT trigger when normalized query equals single suggestion from list (not same parent) AND is contained in other suggestion at the same time', function () {
         var options = {
                 onSelect: function(){}
             };
@@ -219,9 +219,7 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'Россия, обл Новосибирская', data: 0 })
-        );
+        expect(options.onSelect).not.toHaveBeenCalled();
     });
 
     it('Should NOT trigger when normalized query encloses suggestion from list', function () {

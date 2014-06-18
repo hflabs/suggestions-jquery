@@ -1,0 +1,295 @@
+2014/04/25 20:02:03 INFO  - jmeter.util.JMeterUtils: Setting Locale to en_US 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Loading user properties from: /Users/antonzh/programs/jmeter/bin/user.properties 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Loading system properties from: /Users/antonzh/programs/jmeter/bin/system.properties 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Copyright (c) 1998-2014 The Apache Software Foundation 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Version 2.11 r1554548 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: java.version=1.7.0_45 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: java.vm.name=Java HotSpot(TM) 64-Bit Server VM 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: os.name=Mac OS X 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: os.arch=x86_64 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: os.version=10.8.5 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: file.encoding=UTF-8 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Default Locale=English (United States) 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: JMeter  Locale=English (United States) 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: JMeterHome=/Users/antonzh/programs/jmeter 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: user.dir  =/Users/antonzh/projects/suggestions-jquery 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: PWD       =/Users/antonzh/projects/suggestions-jquery 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: IP: 192.168.0.129 Name: Antons-Mac-mini.local FullName: 192.168.0.129 
+2014/04/25 20:02:03 INFO  - jmeter.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties 
+2014/04/25 20:02:05 INFO  - jmeter.engine.util.CompoundVariable: Note: Function class names must contain the string: '.functions.' 
+2014/04/25 20:02:05 INFO  - jmeter.engine.util.CompoundVariable: Note: Function class names must not contain the string: '.gui.' 
+2014/04/25 20:02:05 INFO  - jmeter.gui.action.LookAndFeelCommand: Using look and feel: com.apple.laf.AquaLookAndFeel [Mac OS X, System] 
+2014/04/25 20:02:06 INFO  - jmeter.gui.util.MenuFactory: Skipping kg.apc.jmeter.config.VariablesFromCSVFile 
+2014/04/25 20:02:07 INFO  - jmeter.util.BSFTestElement: Registering JMeter version of JavaScript engine as work-round for BSF-22 
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Cannot find .className property for htmlParser, using default 
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Parser for text/html is  
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Parser for application/xhtml+xml is  
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Parser for application/xml is  
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Parser for text/xml is  
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.sampler.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser 
+2014/04/25 20:02:07 INFO  - jmeter.gui.util.MenuFactory: Skipping org.apache.jmeter.protocol.http.control.gui.WebServiceSamplerGui 
+2014/04/25 20:02:07 INFO  - jmeter.gui.util.MenuFactory: Skipping org.apache.jmeter.protocol.http.modifier.gui.ParamModifierGui 
+2014/04/25 20:02:07 INFO  - jorphan.exec.KeyToolUtils: keytool found at 'keytool' 
+2014/04/25 20:02:07 INFO  - jmeter.protocol.http.proxy.ProxyControl: HTTP(S) Test Script Recorder SSL Proxy will use keys that support embedded 3rd party resources in file /Users/antonzh/programs/jmeter/bin/proxyserver.jks 
+2014/04/25 20:02:08 INFO  - jmeter.samplers.SampleResult: Note: Sample TimeStamps are START times 
+2014/04/25 20:02:08 INFO  - jmeter.samplers.SampleResult: sampleresult.default.encoding is set to ISO-8859-1 
+2014/04/25 20:02:08 INFO  - jmeter.samplers.SampleResult: sampleresult.useNanoTime=true 
+2014/04/25 20:02:08 INFO  - jmeter.samplers.SampleResult: sampleresult.nanoThreadSleep=5000 
+2014/04/25 20:05:51 ERROR - jmeter.JMeter: Uncaught exception:  java.lang.ArrayIndexOutOfBoundsException: -5
+	at org.apache.jorphan.gui.MenuScroller.refreshMenu(MenuScroller.java:552)
+	at org.apache.jorphan.gui.MenuScroller.access$300(MenuScroller.java:55)
+	at org.apache.jorphan.gui.MenuScroller$MouseScrollListener.mouseWheelMoved(MenuScroller.java:578)
+	at java.awt.Component.processMouseWheelEvent(Component.java:6593)
+	at java.awt.Component.processEvent(Component.java:6277)
+	at java.awt.Container.processEvent(Container.java:2229)
+	at java.awt.Component.dispatchEventImpl(Component.java:4861)
+	at java.awt.Container.dispatchEventToSelf(Container.java:2311)
+	at java.awt.Component.dispatchMouseWheelToAncestor(Component.java:5014)
+	at java.awt.Component.dispatchEventImpl(Component.java:4745)
+	at java.awt.Container.dispatchEventImpl(Container.java:2287)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4832)
+	at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4521)
+	at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4422)
+	at java.awt.Container.dispatchEventImpl(Container.java:2273)
+	at java.awt.Window.dispatchEventImpl(Window.java:2719)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:735)
+	at java.awt.EventQueue.access$200(EventQueue.java:103)
+	at java.awt.EventQueue$3.run(EventQueue.java:694)
+	at java.awt.EventQueue$3.run(EventQueue.java:692)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:87)
+	at java.awt.EventQueue$4.run(EventQueue.java:708)
+	at java.awt.EventQueue$4.run(EventQueue.java:706)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.awt.EventQueue.dispatchEvent(EventQueue.java:705)
+	at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:242)
+	at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:161)
+	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:150)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:146)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:138)
+	at java.awt.EventDispatchThread.run(EventDispatchThread.java:91)
+
+2014/04/25 20:05:51 ERROR - jmeter.JMeter: Uncaught exception:  java.lang.ArrayIndexOutOfBoundsException: -5
+	at org.apache.jorphan.gui.MenuScroller.refreshMenu(MenuScroller.java:552)
+	at org.apache.jorphan.gui.MenuScroller.access$300(MenuScroller.java:55)
+	at org.apache.jorphan.gui.MenuScroller$MouseScrollListener.mouseWheelMoved(MenuScroller.java:578)
+	at java.awt.Component.processMouseWheelEvent(Component.java:6593)
+	at java.awt.Component.processEvent(Component.java:6277)
+	at java.awt.Container.processEvent(Container.java:2229)
+	at java.awt.Component.dispatchEventImpl(Component.java:4861)
+	at java.awt.Container.dispatchEventImpl(Container.java:2287)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4832)
+	at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4521)
+	at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4422)
+	at java.awt.Container.dispatchEventImpl(Container.java:2273)
+	at java.awt.Window.dispatchEventImpl(Window.java:2719)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:735)
+	at java.awt.EventQueue.access$200(EventQueue.java:103)
+	at java.awt.EventQueue$3.run(EventQueue.java:694)
+	at java.awt.EventQueue$3.run(EventQueue.java:692)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:87)
+	at java.awt.EventQueue$4.run(EventQueue.java:708)
+	at java.awt.EventQueue$4.run(EventQueue.java:706)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.awt.EventQueue.dispatchEvent(EventQueue.java:705)
+	at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:242)
+	at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:161)
+	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:150)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:146)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:138)
+	at java.awt.EventDispatchThread.run(EventDispatchThread.java:91)
+
+2014/04/25 20:05:51 ERROR - jmeter.JMeter: Uncaught exception:  java.lang.ArrayIndexOutOfBoundsException: -5
+	at org.apache.jorphan.gui.MenuScroller.refreshMenu(MenuScroller.java:552)
+	at org.apache.jorphan.gui.MenuScroller.access$300(MenuScroller.java:55)
+	at org.apache.jorphan.gui.MenuScroller$MouseScrollListener.mouseWheelMoved(MenuScroller.java:578)
+	at java.awt.Component.processMouseWheelEvent(Component.java:6593)
+	at java.awt.Component.processEvent(Component.java:6277)
+	at java.awt.Container.processEvent(Container.java:2229)
+	at java.awt.Component.dispatchEventImpl(Component.java:4861)
+	at java.awt.Container.dispatchEventImpl(Container.java:2287)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4832)
+	at java.awt.LightweightDispatcher.processMouseEvent(Container.java:4521)
+	at java.awt.LightweightDispatcher.dispatchEvent(Container.java:4422)
+	at java.awt.Container.dispatchEventImpl(Container.java:2273)
+	at java.awt.Window.dispatchEventImpl(Window.java:2719)
+	at java.awt.Component.dispatchEvent(Component.java:4687)
+	at java.awt.EventQueue.dispatchEventImpl(EventQueue.java:735)
+	at java.awt.EventQueue.access$200(EventQueue.java:103)
+	at java.awt.EventQueue$3.run(EventQueue.java:694)
+	at java.awt.EventQueue$3.run(EventQueue.java:692)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:87)
+	at java.awt.EventQueue$4.run(EventQueue.java:708)
+	at java.awt.EventQueue$4.run(EventQueue.java:706)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.security.ProtectionDomain$1.doIntersectionPrivilege(ProtectionDomain.java:76)
+	at java.awt.EventQueue.dispatchEvent(EventQueue.java:705)
+	at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:242)
+	at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:161)
+	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:150)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:146)
+	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:138)
+	at java.awt.EventDispatchThread.run(EventDispatchThread.java:91)
+
+2014/04/25 20:06:06 INFO  - jmeter.engine.StandardJMeterEngine: Listeners will be started after enabling running version 
+2014/04/25 20:06:06 INFO  - jmeter.engine.StandardJMeterEngine: To revert to the earlier behaviour, define jmeterengine.startlistenerslater=false 
+2014/04/25 20:06:06 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:06:07 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:06:07 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:06:07 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:06:07 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:06:07 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:06:07 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:06:07 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:06:07 INFO  - jmeter.threads.JMeterThread: jmeterthread.startearlier=true (see jmeter.properties) 
+2014/04/25 20:06:07 INFO  - jmeter.threads.JMeterThread: Running PostProcessors in forward order 
+2014/04/25 20:06:07 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:06:07 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:06:07 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:06:07 INFO  - jmeter.protocol.http.sampler.HTTPHCAbstractImpl: Local host = Antons-Mac-mini.local 
+2014/04/25 20:06:07 INFO  - jmeter.protocol.http.sampler.HTTPHC4Impl: HTTP request retry count = 0 
+2014/04/25 20:06:07 INFO  - jmeter.protocol.http.sampler.HTTPHC4Impl: Setting up HTTPS TrustAll scheme 
+2014/04/25 20:06:07 INFO  - jmeter.util.JsseSSLManager: Using default SSL protocol: TLS 
+2014/04/25 20:06:07 INFO  - jmeter.util.JsseSSLManager: SSL session context: per-thread 
+2014/04/25 20:06:07 INFO  - jmeter.util.SSLManager: JmeterKeyStore Location:  type JKS 
+2014/04/25 20:06:07 INFO  - jmeter.util.SSLManager: KeyStore created OK 
+2014/04/25 20:06:07 WARN  - jmeter.util.SSLManager: Keystore file not found, loading empty keystore 
+2014/04/25 20:06:08 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:06:08 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:06:08 INFO  - jmeter.services.FileServer: Default base='/Users/antonzh/projects/suggestions-jquery' 
+2014/04/25 20:06:08 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:06:32 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:06:32 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:06:32 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:06:32 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:06:32 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:06:32 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:06:32 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:06:32 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:06:32 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:06:32 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:06:33 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:06:33 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:06:33 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:06:49 INFO  - jmeter.services.FileServer: Set new base='/Users/antonzh/projects' 
+2014/04/25 20:06:49 INFO  - jmeter.save.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2 
+2014/04/25 20:06:49 INFO  - jmeter.save.SaveService: Using SaveService properties file encoding UTF-8 
+2014/04/25 20:06:49 INFO  - jmeter.save.SaveService: Using SaveService properties version 2.6 
+2014/04/25 20:06:49 INFO  - jmeter.save.SaveService: Using SaveService properties file version 1554411 
+2014/04/25 20:06:49 INFO  - jmeter.save.SaveService: All converter versions present and correct 
+2014/04/25 20:06:49 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:06:49 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:06:49 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:06:50 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:06:50 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:06:50 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:06:50 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:06:50 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:06:50 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:06:50 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:06:50 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:06:50 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:06:50 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:06:53 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:06:53 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:06:53 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:06:53 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:06:53 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:06:53 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:06:53 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:06:53 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:08:22 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:08:22 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:08:22 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:08:22 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:08:22 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:08:22 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:08:22 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:08:22 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:08:22 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:08:22 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:08:22 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:08:23 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:08:23 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:08:23 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:08:23 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:08:23 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:08:23 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:08:35 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:08:35 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:08:35 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:08:35 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:08:35 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:08:35 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:08:35 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:08:35 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:08:35 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:08:35 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:08:35 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:08:35 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:08:35 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:08:35 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:08:35 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:09:09 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:09:09 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:09:09 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:09:10 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Running the test! 
+2014/04/25 20:09:10 INFO  - jmeter.samplers.SampleEvent: List of sample_variables: [] 
+2014/04/25 20:09:10 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:09:10 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:09:10 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(true,*local*) 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Starting 1 threads for group Thread Group. 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Thread will continue on error 
+2014/04/25 20:09:10 INFO  - jmeter.threads.ThreadGroup: Starting thread group number 1 threads 1 ramp-up 1 perThread 1000.0 delayedStart=false 
+2014/04/25 20:09:10 INFO  - jmeter.threads.ThreadGroup: Started thread group number 1 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: All thread groups have been started 
+2014/04/25 20:09:10 INFO  - jmeter.threads.JMeterThread: Thread started: Thread Group 1-1 
+2014/04/25 20:09:10 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:09:10 INFO  - jmeter.threads.JMeterThread: Thread finished: Thread Group 1-1 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:09:10 INFO  - jmeter.engine.StandardJMeterEngine: Notifying test listeners of end of test 
+2014/04/25 20:09:10 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
+2014/04/25 20:09:10 INFO  - jmeter.gui.util.JMeterMenuBar: setRunning(false,*local*) 
