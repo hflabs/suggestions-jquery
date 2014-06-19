@@ -154,6 +154,20 @@
                     return result = !!(obj[field]);
                 });
                 return result;
+            },
+            /**
+             * Calculates hashCode for a string
+             * @param {String} s
+             * @returns {number}
+             */
+            checksum: function (s) {
+                var hash = 0;
+                for (var i = 0; i < s.length; i++) {
+                    var char = s.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return hash;
             }
         };
     }());

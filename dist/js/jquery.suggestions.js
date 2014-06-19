@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.5.1
+ * DaData.ru Suggestions jQuery plugin, version 4.5.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -203,6 +203,20 @@
                     return result = !!(obj[field]);
                 });
                 return result;
+            },
+            /**
+             * Calculates hashCode for a string
+             * @param {String} s
+             * @returns {number}
+             */
+            checksum: function (s) {
+                var hash = 0;
+                for (var i = 0; i < s.length; i++) {
+                    var char = s.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return hash;
             }
         };
     }());
@@ -1091,7 +1105,7 @@
          */
 
         var dadataConfig = {
-            url: 'https://dadata.ru/api/v2/clean',
+            url: 'https://dadata.ru/api/v2/clean-suggestion',
             timeout: 1000
         };
 
@@ -1135,19 +1149,22 @@
                             dataType: 'json',
                             data: JSON.stringify(data),
                             timeout: dadataConfig.timeout
-                        };
+                        },
+                        checksum = utils.checksum(query + ':' + token);
 
                     url = utils.fixURLProtocol(url);
 
                     if ($.support.cors) {
                         // for XMLHttpRequest put token in header
                         params.headers = {
-                            'Authorization': 'Token ' + token
+                            'Authorization': 'Token ' + token,
+                            'X-Checksum': checksum
                         }
                     } else {
                         // for XDomainRequest put token into URL
                         url = utils.addUrlParams(url, {
-                            'token': token
+                            'token': token,
+                            'checksum': checksum
                         });
                     }
 

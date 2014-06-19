@@ -4,7 +4,7 @@
          */
 
         var dadataConfig = {
-            url: 'https://dadata.ru/api/v2/clean',
+            url: 'https://dadata.ru/api/v2/clean-suggestion',
             timeout: 1000
         };
 
@@ -48,19 +48,22 @@
                             dataType: 'json',
                             data: JSON.stringify(data),
                             timeout: dadataConfig.timeout
-                        };
+                        },
+                        checksum = utils.checksum(query + ':' + token);
 
                     url = utils.fixURLProtocol(url);
 
                     if ($.support.cors) {
                         // for XMLHttpRequest put token in header
                         params.headers = {
-                            'Authorization': 'Token ' + token
+                            'Authorization': 'Token ' + token,
+                            'X-Checksum': checksum
                         }
                     } else {
                         // for XDomainRequest put token into URL
                         url = utils.addUrlParams(url, {
-                            'token': token
+                            'token': token,
+                            'checksum': checksum
                         });
                     }
 
