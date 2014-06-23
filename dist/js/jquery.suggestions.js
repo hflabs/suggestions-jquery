@@ -501,6 +501,7 @@
 
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
+            that.el.css('paddingRight', '');
             elLayout.paddingLeft = parseFloat(that.el.css('paddingLeft'));
             elLayout.paddingRight = parseFloat(that.el.css('paddingRight'));
 
@@ -519,6 +520,7 @@
             that.applyHooks(fixPositionHooks, origin, elLayout);
 
             that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
+            that.el.css('paddingRight', elLayout.paddingRight + 'px');
         },
 
         clearCache: function () {
@@ -1589,7 +1591,7 @@
 
                 that.preloader = {
                     $el: $preloader,
-                    visible: false,
+                    visibleCount: 0,
                     height: $preloader.height(),
                     width: $preloader.width()
                 };
@@ -1597,28 +1599,26 @@
 
             setPreloaderPosition: function(origin, elLayout){
                 var that = this,
-                    left = origin.left + elLayout.borderLeft + elLayout.innerWidth - that.preloader.width - elLayout.paddingRight;
-
-                if (that.preloader.visible) {
-                    left -= that.preloader.width;
-                }
+                    preloaderLeftSpacing = 4;
 
                 that.preloader.$el.css({
-                    left: left + 'px',
+                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.preloader.width - elLayout.paddingRight + 'px',
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.preloader.height) / 2) + 'px'
                 });
+
+                elLayout.paddingRight += that.preloader.width + preloaderLeftSpacing;
             },
 
             showPreloader: function () {
                 var that = this;
 
                 if (that.options.usePreloader) {
-                    that.preloader.visible = true;
-                    that.el.css('padding-right', parseFloat(that.el.css('padding-right')) + that.preloader.width + 'px');
-                    that.preloader.$el
-                        .stop(true)
-                        .delay(50)
-                        .animate({'opacity': 1}, 'fast');
+                    if (!that.preloader.visibleCount++) {
+                        that.preloader.$el
+                            .stop(true)
+                            .delay(50)
+                            .animate({'opacity': 1}, 'fast');
+                    }
                 }
             },
 
@@ -1626,11 +1626,11 @@
                 var that = this;
 
                 if (that.options.usePreloader) {
-                    that.preloader.visible = false;
-                    that.el.css('padding-right', parseFloat(that.el.css('padding-right')) - that.preloader.width + 'px');
-                    that.preloader.$el
-                        .stop(true)
-                        .animate({'opacity': 0}, 'fast');
+                    if (! --that.preloader.visibleCount) {
+                        that.preloader.$el
+                            .stop(true)
+                            .animate({'opacity': 0}, 'fast');
+                    }
                 }
             }
 

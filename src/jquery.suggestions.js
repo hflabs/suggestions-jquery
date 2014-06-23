@@ -269,6 +269,7 @@
 
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
+            that.el.css('paddingRight', '');
             elLayout.paddingLeft = parseFloat(that.el.css('paddingLeft'));
             elLayout.paddingRight = parseFloat(that.el.css('paddingRight'));
 
@@ -287,6 +288,7 @@
             that.applyHooks(fixPositionHooks, origin, elLayout);
 
             that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
+            that.el.css('paddingRight', elLayout.paddingRight + 'px');
         },
 
         clearCache: function () {
