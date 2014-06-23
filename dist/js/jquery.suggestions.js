@@ -102,6 +102,10 @@
                 });
             },
             getWords: function(str, stopwords) {
+                // Split numbers and letters written together
+                str = str.replace(/(\d+)([\wа-яА-Я]{2,})/g, '$1 $2')
+                    .replace(/([\wа-яА-Я]+)(\d+)/g, '$1 $2');
+
                 var words = this.compact(str.split(/[.,\s]+/g)),
                     lastWord = words.pop(),
                     goodWords = this.arrayMinus(words, stopwords);
