@@ -27,9 +27,10 @@ describe('Common features', function () {
 
     it('Should create all additional components', function(){
         var instance = this.instance;
-        $.each(['$wrapper','$container','$preloader','$constraints'], function(i,component){
+        $.each(['$wrapper','$container','$constraints'], function(i,component){
             expect(instance[component].length).toEqual(1);
         });
+        expect(instance.preloader.$el.length).toEqual(1);
     });
 
     it('Should get current value', function () {
