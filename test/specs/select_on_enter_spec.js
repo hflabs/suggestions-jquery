@@ -49,6 +49,14 @@ describe('Select on Enter', function () {
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 },
                 { value: 'Россия, респ Марий Эл, р-н Горномарийский, д Средний Околодок, ул Зеленая, д 36', data: 1 },
                 { value: 'Россия, обл Воронежская, р-н Лискинский, с Средний Икорец, ул Зеленая, д 36', data: 2 }
+            ],
+            'москва енисейская24': [
+                { value: 'г Москва, ул Енисейская, д 24', data: 0 },
+                { value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }
+            ],
+            'москва енисейская 24стр2': [
+                { value: 'г Москва, ул Енисейская, д 24', data: 0 },
+                { value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }
             ]
         };
 
@@ -321,6 +329,61 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = -1;
 
         this.input.value = 'средний зеленая 36';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should trigger on joint query match (case 1)', function () {
+        var options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'москва енисейская24';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24', data: 0 })
+        );
+    });
+
+    it('Should trigger on joint query match (case 2)', function () {
+        var options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'москва енисейская 24стр2';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 })
+        );
+    });
+
+    it('Should NOT trigger when joint query not matched', function () {
+        var options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'москва енисейская24г';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);
