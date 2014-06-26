@@ -138,17 +138,23 @@
                 if (options.hint && that.suggestions.length) {
                     html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
                 }
+                that.selectedIndex = -1;
                 // Build suggestions inner HTML:
                 $.each(that.suggestions, function (i, suggestion) {
+                    if (suggestion == that.selection) {
+                        that.selectedIndex = i;
+                    }
                     html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
 
                 // Select first value by default:
-                if (options.autoSelectFirst) {
+                if (options.autoSelectFirst && that.selectedIndex === -1) {
                     that.selectedIndex = 0;
-                    that.getSuggestionsItems().first().addClass(that.classes.selected);
+                }
+                if (that.selectedIndex !== -1) {
+                    that.getSuggestionsItems().eq(that.selectedIndex).addClass(that.classes.selected);
                 }
 
                 if ($.isFunction(beforeRender)) {
