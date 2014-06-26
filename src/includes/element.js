@@ -9,7 +9,8 @@
                 var that = this;
 
                 that.el.on('keydown' + eventNS, $.proxy(that.onElementKeyDown, that));
-                that.el.on('input' + eventNS, $.proxy(that.onElementKeyUp, that));
+                // IE is buggy, it doesn't trigger `input` on text deletion, so use following events
+                that.el.on(['keyup' + eventNS, 'cut' + eventNS, 'paste' + eventNS].join(' '), $.proxy(that.onElementKeyUp, that));
                 that.el.on('blur' + eventNS, $.proxy(that.onElementBlur, that));
                 that.el.on('focus' + eventNS, $.proxy(that.onElementFocus, that));
             },

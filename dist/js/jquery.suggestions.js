@@ -788,10 +788,10 @@
                 var that = this;
 
                 that.el.on('keydown' + eventNS, $.proxy(that.onElementKeyDown, that));
-                that.el.on('keyup' + eventNS, $.proxy(that.onElementKeyUp, that));
+                // IE is buggy, it doesn't trigger `input` on text deletion, so use following events
+                that.el.on(['keyup' + eventNS, 'cut' + eventNS, 'paste' + eventNS].join(' '), $.proxy(that.onElementKeyUp, that));
                 that.el.on('blur' + eventNS, $.proxy(that.onElementBlur, that));
                 that.el.on('focus' + eventNS, $.proxy(that.onElementFocus, that));
-                that.el.on('change' + eventNS, $.proxy(that.onElementKeyUp, that));
             },
 
             unbindElementEvents: function () {
@@ -960,6 +960,7 @@
         disposeHooks.push(methods.unbindElementEvents);
 
     }());
+
 
     (function(){
         /**
@@ -1395,17 +1396,23 @@
                 if (options.hint && that.suggestions.length) {
                     html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
                 }
+                that.selectedIndex = -1;
                 // Build suggestions inner HTML:
                 $.each(that.suggestions, function (i, suggestion) {
+                    if (suggestion == that.selection) {
+                        that.selectedIndex = i;
+                    }
                     html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
 
                 // Select first value by default:
-                if (options.autoSelectFirst) {
+                if (options.autoSelectFirst && that.selectedIndex === -1) {
                     that.selectedIndex = 0;
-                    that.getSuggestionsItems().first().addClass(that.classes.selected);
+                }
+                if (that.selectedIndex !== -1) {
+                    that.getSuggestionsItems().eq(that.selectedIndex).addClass(that.classes.selected);
                 }
 
                 if ($.isFunction(beforeRender)) {
@@ -1828,7 +1835,6 @@
                         that.getSuggestions(that.currentValue);
                     } else {
                         that.hide();
-                        that.suggestions = [];
                     }
                 }
 
@@ -1876,6 +1882,7 @@
         assignSuggestionsHooks.push(methods.trySelectOnSpace)
 
     }());
+
 
     // Create chainable jQuery plugin:
     $.fn.suggestions = function (options, args) {
