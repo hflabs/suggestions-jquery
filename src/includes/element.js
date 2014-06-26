@@ -9,10 +9,9 @@
                 var that = this;
 
                 that.el.on('keydown' + eventNS, $.proxy(that.onElementKeyDown, that));
-                that.el.on('keyup' + eventNS, $.proxy(that.onElementKeyUp, that));
+                that.el.on('input' + eventNS, $.proxy(that.onElementKeyUp, that));
                 that.el.on('blur' + eventNS, $.proxy(that.onElementBlur, that));
                 that.el.on('focus' + eventNS, $.proxy(that.onElementFocus, that));
-                that.el.on('change' + eventNS, $.proxy(that.onElementKeyUp, that));
             },
 
             unbindElementEvents: function () {

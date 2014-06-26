@@ -86,7 +86,6 @@
                         that.getSuggestions(that.currentValue);
                     } else {
                         that.hide();
-                        that.suggestions = [];
                     }
                 }
 
