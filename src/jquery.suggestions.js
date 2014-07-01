@@ -25,6 +25,7 @@
         disposeHooks = [],
         setOptionsHooks = [],
         fixPositionHooks = [],
+        resetPositionHooks = [],
         requestParamsHooks = [],
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
@@ -264,6 +265,7 @@
                 wrapperOffset,
                 origin;
 
+            that.applyHooks(resetPositionHooks);
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
             that.el.css('paddingRight', '');
@@ -285,7 +287,6 @@
             that.applyHooks(fixPositionHooks, origin, elLayout);
 
             that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
-            that.el.css('paddingRight', elLayout.paddingRight + 'px');
         },
 
         clearCache: function () {
