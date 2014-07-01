@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.5.2
+ * DaData.ru Suggestions jQuery plugin, version 4.6.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -221,6 +221,14 @@
                     hash = hash & hash; // Convert to 32bit integer
                 }
                 return hash;
+            },
+
+            formatTimestamp: function (timestamp) {
+                function doubleDigit(n) {
+                    return n < 10 ? '0' + n : n;
+                }
+                var d = new Date(timestamp);
+                return [doubleDigit(d.getDate()), doubleDigit(d.getMonth()+1), d.getFullYear()].join('.');
             }
         };
     }());
@@ -275,7 +283,20 @@
             },
             // composeValue not needed
             enrichServiceName: 'default',
-            urlSuffix: 'party'
+            urlSuffix: 'party',
+            formatResult: function (suggestion, currentValue) {
+                var that = this,
+                    value = that.formatResult(suggestion, currentValue);
+
+                if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
+                    value += ' <span class="' + that.classes.subtext + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
+                    if (suggestion.data.state.liquidation_date) {
+                        value += ' &ndash; ' + utils.formatTimestamp(suggestion.data.state.liquidation_date);
+                    }
+                    value += '</span>'
+                }
+                return value;
+            }
         };
 
     }());
@@ -316,7 +337,7 @@
                 deferRequestBy: 0,
                 params: {},
                 paramName: 'query',
-                formatResult: Suggestions.formatResult,
+                formatResult: null,
                 delimiter: null,
                 noCache: false,
                 containerClass: 'suggestions-suggestions',
@@ -351,6 +372,7 @@
             hint: 'suggestions-hint',
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
+            subtext: 'suggestions-subtext',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;
@@ -364,11 +386,6 @@
     }
 
     Suggestions.utils = utils;
-
-    Suggestions.formatResult = function (suggestion, currentValue) {
-        var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
-    };
 
     Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
 
@@ -1434,7 +1451,7 @@
 
                 var that = this,
                     options = that.options,
-                    formatResult = options.formatResult,
+                    formatResult = options.formatResult || that.type.formatResult || that.formatResult,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -1450,7 +1467,7 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion, trimmedValue) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -1469,6 +1486,11 @@
 
                 that.$container.show();
                 that.visible = true;
+            },
+
+            formatResult: function (suggestion, currentValue) {
+                var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+                return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 
             hide: function () {

@@ -172,6 +172,14 @@
                     hash = hash & hash; // Convert to 32bit integer
                 }
                 return hash;
+            },
+
+            formatTimestamp: function (timestamp) {
+                function doubleDigit(n) {
+                    return n < 10 ? '0' + n : n;
+                }
+                var d = new Date(timestamp);
+                return [doubleDigit(d.getDate()), doubleDigit(d.getMonth()+1), d.getFullYear()].join('.');
             }
         };
     }());

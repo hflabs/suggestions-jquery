@@ -84,3 +84,7 @@
 .suggestions-wrapper .suggestions-constraints li span {
   vertical-align: middle;
 }
+.suggestions-wrapper .suggestions-subtext {
+  color: #777777;
+  margin-left: 0.5em;
+}

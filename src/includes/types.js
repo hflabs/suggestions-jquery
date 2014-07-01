@@ -47,7 +47,20 @@
             },
             // composeValue not needed
             enrichServiceName: 'default',
-            urlSuffix: 'party'
+            urlSuffix: 'party',
+            formatResult: function (suggestion, currentValue) {
+                var that = this,
+                    value = that.formatResult(suggestion, currentValue);
+
+                if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
+                    value += ' <span class="' + that.classes.subtext + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
+                    if (suggestion.data.state.liquidation_date) {
+                        value += ' &ndash; ' + utils.formatTimestamp(suggestion.data.state.liquidation_date);
+                    }
+                    value += '</span>'
+                }
+                return value;
+            }
         };
 
     }());
