@@ -279,7 +279,7 @@
         types['PARTY'] = {
             STOPWORDS: [],
             isDataComplete: function (data) {
-                return false;
+                return true;
             },
             // composeValue not needed
             enrichServiceName: 'default',
@@ -289,11 +289,17 @@
                     value = that.formatResult(suggestion, currentValue);
 
                 if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
-                    value += ' <span class="' + that.classes.subtext + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
+                    value += '<span class="' + that.classes.subtext_inline + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
                     if (suggestion.data.state.liquidation_date) {
                         value += ' &ndash; ' + utils.formatTimestamp(suggestion.data.state.liquidation_date);
                     }
                     value += '</span>'
+                }
+                if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
+                    value += '<div class="' + that.classes.subtext + '">' +
+                        suggestion.data.address.value
+                            .replace(/^\d{6}( РОССИЯ)?, /i, '') +
+                        '</div>';
                 }
                 return value;
             }
@@ -373,6 +379,7 @@
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
+            subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;
@@ -1489,7 +1496,7 @@
             },
 
             formatResult: function (suggestion, currentValue) {
-                var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+                var pattern = '(^|[^\\wа-яА-ЯёЁ\\-])(' + utils.escapeRegExChars(currentValue) + ')';
                 return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 

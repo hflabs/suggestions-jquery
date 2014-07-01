@@ -116,6 +116,7 @@
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
+            subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;

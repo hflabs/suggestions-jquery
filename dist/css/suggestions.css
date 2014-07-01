@@ -38,7 +38,7 @@
   color: #3399FF;
 }
 .suggestions-wrapper .suggestions-suggestion {
-  padding: 2px 5px;
+  padding: 4px 4px;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -47,7 +47,7 @@
 }
 .suggestions-wrapper .suggestions-hint {
   color: #777;
-  padding: 2px 5px;
+  padding: 4px 4px;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -86,5 +86,7 @@
 }
 .suggestions-wrapper .suggestions-subtext {
   color: #777777;
+}
+.suggestions-wrapper .suggestions-subtext_inline {
   margin-left: 0.5em;
 }

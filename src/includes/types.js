@@ -43,7 +43,7 @@
         types['PARTY'] = {
             STOPWORDS: [],
             isDataComplete: function (data) {
-                return false;
+                return true;
             },
             // composeValue not needed
             enrichServiceName: 'default',
@@ -53,11 +53,17 @@
                     value = that.formatResult(suggestion, currentValue);
 
                 if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
-                    value += ' <span class="' + that.classes.subtext + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
+                    value += '<span class="' + that.classes.subtext_inline + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
                     if (suggestion.data.state.liquidation_date) {
                         value += ' &ndash; ' + utils.formatTimestamp(suggestion.data.state.liquidation_date);
                     }
                     value += '</span>'
+                }
+                if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
+                    value += '<div class="' + that.classes.subtext + '">' +
+                        suggestion.data.address.value
+                            .replace(/^\d{6}( РОССИЯ)?, /i, '') +
+                        '</div>';
                 }
                 return value;
             }

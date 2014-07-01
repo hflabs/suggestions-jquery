@@ -166,7 +166,7 @@
             },
 
             formatResult: function (suggestion, currentValue) {
-                var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+                var pattern = '(^|[^\\wа-яА-ЯёЁ\\-])(' + utils.escapeRegExChars(currentValue) + ')';
                 return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 
