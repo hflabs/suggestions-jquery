@@ -32,6 +32,7 @@
         disposeHooks = [],
         setOptionsHooks = [],
         fixPositionHooks = [],
+        resetPositionHooks = [],
         requestParamsHooks = [],
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
@@ -503,6 +504,7 @@
                 wrapperOffset,
                 origin;
 
+            that.applyHooks(resetPositionHooks);
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
             that.el.css('paddingRight', '');
@@ -524,7 +526,6 @@
             that.applyHooks(fixPositionHooks, origin, elLayout);
 
             that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
-            that.el.css('paddingRight', elLayout.paddingRight + 'px');
         },
 
         clearCache: function () {
@@ -1593,6 +1594,10 @@
          * Methods related to PRELOADER component
          */
 
+        var QUEUE_NAME = 'preloader',
+            BEFORE_SHOW_PRELOADER = 50,
+            BEFORE_RESTORE_PADDING = 1000;
+
         var methods = {
 
             createPreloader: function () {
@@ -1604,20 +1609,20 @@
                     $el: $preloader,
                     visibleCount: 0,
                     height: $preloader.height(),
-                    width: $preloader.width()
+                    width: $preloader.width(),
+                    initialPadding: null
                 };
             },
 
             setPreloaderPosition: function(origin, elLayout){
-                var that = this,
-                    preloaderLeftSpacing = 4;
+                var that = this;
 
                 that.preloader.$el.css({
                     left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.preloader.width - elLayout.paddingRight + 'px',
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.preloader.height) / 2) + 'px'
                 });
 
-                elLayout.paddingRight += that.preloader.width + preloaderLeftSpacing;
+                that.preloader.initialPadding = elLayout.paddingRight;
             },
 
             showPreloader: function () {
@@ -1626,8 +1631,12 @@
                 if (that.options.usePreloader) {
                     if (!that.preloader.visibleCount++) {
                         that.preloader.$el
-                            .stop(true)
-                            .delay(50)
+                            .stop(true, true)
+                            .delay(BEFORE_SHOW_PRELOADER)
+                            .queue(function () {
+                                that.showPreloaderBackground();
+                                $(this).dequeue();
+                            })
                             .animate({'opacity': 1}, 'fast');
                     }
                 }
@@ -1640,9 +1649,40 @@
                     if (! --that.preloader.visibleCount) {
                         that.preloader.$el
                             .stop(true)
-                            .animate({'opacity': 0}, 'fast');
+                            .animate({'opacity': 0}, {
+                                duration: 'fast',
+                                complete: function () {
+                                    that.hidePreloaderBackground();
+                                }
+                            });
                     }
                 }
+            },
+
+            showPreloaderBackground: function () {
+                var that = this,
+                    preloaderLeftSpacing = 4;
+
+                that.el.stop(QUEUE_NAME, true)
+                    .animate({'padding-right': that.preloader.initialPadding + that.preloader.width + preloaderLeftSpacing}, {
+                        duration: 'fast',
+                        queue: QUEUE_NAME
+                    }).dequeue(QUEUE_NAME);
+            },
+
+            hidePreloaderBackground: function () {
+                var that = this;
+
+                that.el.stop(QUEUE_NAME, true, true)
+                    .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                    .animate({'padding-right': that.preloader.initialPadding}, {
+                        duration: 'fast',
+                        queue: QUEUE_NAME
+                    }).dequeue(QUEUE_NAME);
+            },
+
+            stopPreloaderBackground: function () {
+                this.el.stop(QUEUE_NAME, true);
             }
 
         };
@@ -1653,6 +1693,7 @@
 
         fixPositionHooks.push(methods.setPreloaderPosition);
 
+        resetPositionHooks.push(methods.stopPreloaderBackground);
     }());
 
     (function(){
