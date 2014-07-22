@@ -78,7 +78,7 @@
                 width: 'auto',
                 zIndex: 9999,
                 maxHeight: 300,
-                deferRequestBy: 0,
+                deferRequestBy: 100,
                 params: {},
                 paramName: 'query',
                 formatResult: null,
