@@ -37,13 +37,6 @@
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
             },
-            abortRequests: function(){
-                $.each(arguments, function(i, request){
-                    if (request) {
-                        request.abort();
-                    }
-                })
-            },
             /**
              * Returns array1 minus array2
              */

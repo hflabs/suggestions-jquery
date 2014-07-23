@@ -26,7 +26,7 @@
             },
             composeValue: function (data) {
                 return utils.compact([
-                    utils.compact([data.region_type, data.region]).join(' '),
+                    utils.compact([data.region, data.region_type]).join(' '),
                     utils.compact([data.area_type, data.area]).join(' '),
                     utils.compact([data.city_type, data.city]).join(' '),
                     utils.compact([data.settlement_type, data.settlement]).join(' '),
