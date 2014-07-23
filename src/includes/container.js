@@ -128,7 +128,7 @@
 
                 var that = this,
                     options = that.options,
-                    formatResult = options.formatResult,
+                    formatResult = options.formatResult || that.type.formatResult || that.formatResult,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -144,7 +144,7 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion, trimmedValue) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -163,6 +163,11 @@
 
                 that.$container.show();
                 that.visible = true;
+            },
+
+            formatResult: function (suggestion, currentValue) {
+                var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+                return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 
             hide: function () {

@@ -216,7 +216,22 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio'
+            urlSuffix: 'fio',
+            formatResult: function (suggestion, currentValue) {
+                var words = currentValue.split(/\s+/g),
+                    value = suggestion.value;
+
+                // replace whole words
+                $.each(words, function(i, word){
+                    value = value.replace(new RegExp('(^|\\s+)(' + utils.escapeRegExChars(word) + ')(\\s+|$)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+
+                // replace words' parts
+                $.each(words.reverse(), function(i, word){
+                    value = value.replace(new RegExp('(^|\\s+)(' + utils.escapeRegExChars(word) + ')(\\S+)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+                return value;
+            }
         };
 
         types['ADDRESS'] = {
@@ -280,7 +295,7 @@
                 deferRequestBy: 0,
                 params: {},
                 paramName: 'query',
-                formatResult: Suggestions.formatResult,
+                formatResult: null,
                 delimiter: null,
                 noCache: false,
                 containerClass: 'suggestions-suggestions',
@@ -327,11 +342,6 @@
     }
 
     Suggestions.utils = utils;
-
-    Suggestions.formatResult = function (suggestion, currentValue) {
-        var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
-    };
 
     Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
 
@@ -1230,7 +1240,7 @@
 
                 var that = this,
                     options = that.options,
-                    formatResult = options.formatResult,
+                    formatResult = options.formatResult || that.type.formatResult || that.formatResult,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -1246,7 +1256,7 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult(suggestion, trimmedValue) + '</div>');
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion, trimmedValue) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -1265,6 +1275,11 @@
 
                 that.$container.show();
                 that.visible = true;
+            },
+
+            formatResult: function (suggestion, currentValue) {
+                var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
+                return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 
             hide: function () {
