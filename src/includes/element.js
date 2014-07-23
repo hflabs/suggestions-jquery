@@ -28,7 +28,7 @@
                     return;
                 }
                 that.selectCurrentValue({ trim: true, noSpace: true });
-                utils.abortRequests(that.currentRequest);
+                that.abortRequest();
             },
 
             onElementFocus: function () {
@@ -70,7 +70,7 @@
                     case keys.ESC:
                         that.el.val(that.currentValue);
                         that.hide();
-                        utils.abortRequests(that.currentRequest);
+                        that.abortRequest();
                         break;
 
                     case keys.TAB:

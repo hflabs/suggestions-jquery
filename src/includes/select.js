@@ -5,6 +5,16 @@
 
         var methods = {
 
+            proceedQuery: function (query) {
+                var that = this;
+
+                if (query.length >= that.options.minChars) {
+                    that.updateSuggestions(query);
+                } else {
+                    that.hide();
+                }
+            },
+
             /**
              * Selects current or first matched suggestion
              * @param selectionOptions
@@ -73,7 +83,7 @@
                 function onSelectionCompleted() {
                     if (continueSelecting) {
                         that.selectedIndex = -1;
-                        that.getSuggestions(that.currentValue);
+                        that.updateSuggestions(that.currentValue);
                     } else {
                         that.hide();
                     }
