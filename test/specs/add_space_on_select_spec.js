@@ -204,25 +204,22 @@ describe('Adding space on selecting', function () {
             this.instance.selectedIndex = 0;
             helpers.hitEnter(this.input);
 
-            // dadata.ru answers
+            // enriched answers
             expect(this.server.requests.length).toEqual(1);
-            this.server.respond($.Suggestions.dadataConfig.url, [200, {
-                'Content-type': 'application/json'
-            }, JSON.stringify(
-                {
-                    data: [[{
-                        country: 'Россия',
-                        city: 'Москва',
-                        city_type: 'г',
-                        street: 'Арбат',
-                        street_type: 'ул',
-                        house: '10',
-                        house_type: 'дом',
-                        qc: 0,
-                        qc_complete: 5 // means flat expected
-                    }]]
+            this.server.respond(helpers.responseFor([{
+                value: 'Россия, г Москва, ул Арбат, дом 10',
+                data: {
+                    country: 'Россия',
+                    city: 'Москва',
+                    city_type: 'г',
+                    street: 'Арбат',
+                    street_type: 'ул',
+                    house: '10',
+                    house_type: 'дом',
+                    qc: 0,
+                    qc_complete: 5 // means flat expected
                 }
-            )]);
+            }]));
 
             expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10 ');
         });

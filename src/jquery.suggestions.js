@@ -107,7 +107,6 @@
         that.intervalId = 0;
         that.cachedResponse = {};
         that.currentRequest = null;
-        that.currentEnrichRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
         that.options = $.extend({}, defaults, options);
@@ -303,7 +302,7 @@
         disable: function () {
             var that = this;
             that.disabled = true;
-            utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
+            that.abortRequest();
             that.hide();
         },
 
@@ -318,13 +317,13 @@
                 that.currentValue = suggestion.value;
                 that.el.val(suggestion.value);
                 that.selection = suggestion;
-                utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
+                that.abortRequest();
             }
         },
 
         // Querying related methods
 
-        getAjaxParams: function (method) {
+        getAjaxParams: function (method, custom) {
             var that = this,
                 token = $.trim(that.options.token),
                 serviceUrl = that.options.serviceUrl,
@@ -356,7 +355,7 @@
 
             params.url = serviceUrl;
 
-            return params;
+            return $.extend(params, custom);
         },
 
         getQuery: function (value) {
@@ -370,7 +369,7 @@
             return $.trim(parts[parts.length - 1]);
         },
 
-        constructRequestParams: function(q){
+        constructRequestParams: function(query, customParams){
             var that = this,
                 options = that.options,
                 params = $.extend({}, options.params);
@@ -378,50 +377,67 @@
             $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
                 $.extend(params, hookParams);
             });
-            params[options.paramName] = q;
+            params[options.paramName] = query;
             if ($.isNumeric(options.count) && options.count > 0) {
                 params.count = options.count;
             }
 
-            return params;
+            return $.extend(params, customParams);
         },
 
-        getSuggestions: function (q) {
+        updateSuggestions: function (query) {
+            var that = this;
+
+            that.getSuggestions(query)
+                .done(function(suggestions){
+                    that.assignSuggestions(suggestions, query);
+                })
+        },
+
+        /**
+         * Get suggestions from cache or from server
+         * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
+         */
+        getSuggestions: function (query, customParams) {
             var response,
                 that = this,
                 options = that.options,
                 serviceUrl = options.serviceUrl,
-                params = that.constructRequestParams(q),
-                cacheKey;
+                params = that.constructRequestParams(query, customParams),
+                cacheKey = serviceUrl + '?' + $.param(params || {}),
+                resolver = $.Deferred();
 
-            cacheKey = serviceUrl + '?' + $.param(params || {});
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
-                that.assignSuggestions(response.suggestions, q);
-            } else if (!that.isBadQuery(q)) {
-                if (options.onSearchStart.call(that.element, params) === false) {
-                    return;
-                }
-                utils.abortRequests(that.currentRequest, that.currentEnrichRequest);
-                that.showPreloader();
-                that.currentRequest = $.ajax(
-                    $.extend(that.getAjaxParams('suggest'), {
-                        data: utils.serialize(params)
-                    }));
-                that.currentRequest.always(function () {
-                    that.currentRequest = null;
-                }).done(function (response) {
-                    that.enrichService.enrichResponse.call(that, response, that.getUnrestrictedValue(q), that.restrictValues)
-                        .done(function (enrichedResponse) {
-                            that.processResponse(enrichedResponse, q, cacheKey);
-                            options.onSearchComplete.call(that.element, q, enrichedResponse.suggestions);
+                resolver.resolve(response.suggestions);
+            } else {
+                if (that.isBadQuery(query)) {
+                    resolver.reject();
+                } else {
+                    if (options.onSearchStart.call(that.element, params) === false) {
+                        resolver.reject();
+                    } else {
+                        that.abortRequest();
+                        that.showPreloader();
+                        that.currentRequest = $.ajax(that.getAjaxParams('suggest', { data: utils.serialize(params) }));
+                        that.currentRequest.always(function () {
+                            that.currentRequest = null;
                             that.hidePreloader();
-                        })
-                }).fail(function (jqXHR, textStatus, errorThrown) {
-                    options.onSearchError.call(that.element, q, jqXHR, textStatus, errorThrown);
-                    that.hidePreloader();
-                });
+                        }).done(function (response) {
+                            if (that.processResponse(response, query, cacheKey)) {
+                                resolver.resolve(response.suggestions);
+                            } else {
+                                resolver.reject();
+                            }
+                            options.onSearchComplete.call(that.element, query, response.suggestions);
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            resolver.reject();
+                            options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
+                        });
+                    }
+                }
             }
+            return resolver;
         },
 
         isBadQuery: function (q) {
@@ -436,26 +452,27 @@
             return result;
         },
 
-        verifySuggestionsFormat: function (suggestions) {
-            // If suggestions is string array, convert them to supported format:
-            if (suggestions.length && typeof suggestions[0] === 'string') {
-                return $.map(suggestions, function (value) {
-                    return { value: value, data: null };
-                });
-            }
+        abortRequest: function () {
+            var that = this;
 
-            return suggestions;
+            if (that.currentRequest) {
+                that.currentRequest.abort();
+            }
         },
 
+        /**
+         * Checks response format and data, puts it in cache
+         * @return {Boolean} response contains acceptable data
+         */
         processResponse: function (response, originalQuery, cacheKey) {
             var that = this,
                 options = that.options;
 
             if (!response || !$.isArray(response.suggestions)) {
-                return;
+                return false;
             }
 
-            response.suggestions = that.verifySuggestionsFormat(response.suggestions);
+            that.verifySuggestionsFormat(response.suggestions)
             that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
@@ -468,10 +485,18 @@
 
             // Return if originalQuery is not matching current query:
             if (originalQuery !== that.getQuery(that.currentValue)) {
-                return;
+                return false;
             }
 
-            that.assignSuggestions(response.suggestions, originalQuery);
+            return true;
+        },
+
+        verifySuggestionsFormat: function (suggestions) {
+            if (typeof suggestions[0] === 'string') {
+                $.each(suggestions, function(i, value){
+                    suggestions[i] = { value: value, data: null };
+                });
+            }
         },
 
         assignSuggestions: function(suggestions, query) {
@@ -510,27 +535,6 @@
         },
 
         /**
-         * Strips restricted part from suggestion value.
-         * Used for Dadata suggestions.
-         */
-        restrictValues: function(suggestions) {
-            var that = this;
-            if (!that.shouldRestrictValues()) {
-                return;
-            }
-            var label = that.getConstraintLabel();
-            $.each(suggestions, function(i, suggestion) {
-                var restriction = label + ', ';
-                var restrictionIdx = suggestion.value.indexOf(restriction);
-                // remove everything from the beginning to the first restriction label match
-                // including the label itself
-                if (restrictionIdx !== -1) {
-                    suggestion.value = suggestion.value.substring(restrictionIdx + restriction.length);
-                }
-            });
-        },
-
-        /**
          * Fills suggestion.unrestricted_value property
          */
         setUnrestrictedValues: function(suggestions) {
@@ -540,18 +544,6 @@
             $.each(suggestions, function(i, suggestion) {
                 suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
             });
-        },
-
-        /**
-         * Returns suggestion value concatenated with restricted part.
-         * Used for Dadata suggestions
-         * @returns {string}
-         */
-        getUnrestrictedValue: function(value) {
-            var that = this;
-            return that.shouldRestrictValues()
-                ? that.getConstraintLabel() + ', ' + value
-                : value;
         },
 
         findSuggestionIndex: function (query) {
