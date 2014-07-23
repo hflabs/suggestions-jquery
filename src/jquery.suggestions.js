@@ -81,7 +81,7 @@
                 deferRequestBy: 0,
                 params: {},
                 paramName: 'query',
-                formatResult: Suggestions.formatResult,
+                formatResult: null,
                 delimiter: null,
                 noCache: false,
                 containerClass: 'suggestions-suggestions',
@@ -128,11 +128,6 @@
     }
 
     Suggestions.utils = utils;
-
-    Suggestions.formatResult = function (suggestion, currentValue) {
-        var pattern = '(^|\\s+)(' + utils.escapeRegExChars(currentValue) + ')';
-        return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
-    };
 
     Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
 

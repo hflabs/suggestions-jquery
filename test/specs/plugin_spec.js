@@ -165,18 +165,6 @@ describe('Common features', function () {
         expect(this.server.requests.length).toEqual(1);
     });
 
-    it('Should highlight search phrase', function () {
-        this.input.value = 'japa';
-        this.instance.onValueChange();
-
-        this.server.respond(helpers.responseFor(['Japaneese lives in Japan and love non-japaneese']));
-
-        var $item = this.instance.$container.children('.suggestions-suggestion');
-            
-        expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
-    });
-    
     it('Should display default hint message above suggestions', function(){
         this.input.value = 'jam';
         this.instance.onValueChange();

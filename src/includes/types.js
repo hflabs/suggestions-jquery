@@ -13,7 +13,22 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio'
+            urlSuffix: 'fio',
+            formatResult: function (suggestion, currentValue) {
+                var words = currentValue.split(/\s+/g),
+                    value = suggestion.value;
+
+                // replace whole words
+                $.each(words, function(i, word){
+                    value = value.replace(new RegExp('(^|\\s+)(' + utils.escapeRegExChars(word) + ')(\\s+|$)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+
+                // replace words' parts
+                $.each(words.reverse(), function(i, word){
+                    value = value.replace(new RegExp('(^|\\s+)(' + utils.escapeRegExChars(word) + ')(\\S+)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+                return value;
+            }
         };
 
         types['ADDRESS'] = {
