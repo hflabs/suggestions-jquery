@@ -46,7 +46,9 @@
             NO_FLAT: 5,
             BAD: 6,
             FOREIGN: 7
-        };
+        },
+        rWordBreak = '[\\s\"]+',
+        rWordPart = '[^\\s\"]+';
 
     var utils = (function () {
         var uniqueId = 0;
@@ -243,7 +245,22 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio'
+            urlSuffix: 'fio',
+            formatResult: function (suggestion, currentValue) {
+                var words = currentValue.split(/\s+/g),
+                    value = suggestion.value;
+
+                // replace whole words
+                $.each(words, function(i, word){
+                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordBreak + '|$)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+
+                // replace words' parts
+                $.each(words.reverse(), function(i, word){
+                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordPart + ')', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+                return value;
+            }
         };
 
         types['ADDRESS'] = {
@@ -1338,7 +1355,7 @@
             },
 
             formatResult: function (suggestion, currentValue) {
-                var pattern = '(^|[^\\wа-яА-ЯёЁ\\-])(' + utils.escapeRegExChars(currentValue) + ')';
+                var pattern = '(^|' + rWordBreak + ')(' + utils.escapeRegExChars(currentValue) + ')';
                 return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
             },
 

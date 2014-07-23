@@ -39,7 +39,9 @@
             NO_FLAT: 5,
             BAD: 6,
             FOREIGN: 7
-        };
+        },
+        rWordBreak = '[\\s\"]+',
+        rWordPart = '[^\\s\"]+';
 
 //include "utils.js"
 
