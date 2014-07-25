@@ -144,7 +144,7 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion, trimmedValue) + '</div>');
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion.value, trimmedValue, suggestion) + '</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -165,9 +165,19 @@
                 that.visible = true;
             },
 
-            formatResult: function (suggestion, currentValue) {
-                var pattern = '(^|' + rWordBreak + ')(' + utils.escapeRegExChars(currentValue) + ')';
-                return suggestion.value.replace(new RegExp(pattern, 'gi'), '$1<strong>$2<\/strong>');
+            formatResult: function (value, currentValue, suggestion) {
+                var words = currentValue.split(/\s+/g);
+
+                // replace whole words
+                $.each(words, function(i, word){
+                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordBreak + '|$)', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+
+                // replace words' parts
+                $.each(words.reverse(), function(i, word){
+                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordPart + ')', 'gi'), '$1<strong>$2<\/strong>$3');
+                });
+                return value;
             },
 
             hide: function () {

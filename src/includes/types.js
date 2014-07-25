@@ -13,22 +13,7 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio',
-            formatResult: function (suggestion, currentValue) {
-                var words = currentValue.split(/\s+/g),
-                    value = suggestion.value;
-
-                // replace whole words
-                $.each(words, function(i, word){
-                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordBreak + '|$)', 'gi'), '$1<strong>$2<\/strong>$3');
-                });
-
-                // replace words' parts
-                $.each(words.reverse(), function(i, word){
-                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordPart + ')', 'gi'), '$1<strong>$2<\/strong>$3');
-                });
-                return value;
-            }
+            urlSuffix: 'fio'
         };
 
         types['ADDRESS'] = {
@@ -63,9 +48,9 @@
             // composeValue not needed
             enrichServiceName: 'default',
             urlSuffix: 'party',
-            formatResult: function (suggestion, currentValue) {
+            formatResult: function (value, currentValue, suggestion) {
                 var that = this,
-                    value = that.formatResult(suggestion, currentValue);
+                    value = that.formatResult(value, currentValue, suggestion);
 
                 if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
                     value += '<span class="' + that.classes.subtext_inline + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
@@ -75,9 +60,11 @@
                     value += '</span>'
                 }
                 if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
+                    var address = suggestion.data.address.value
+                        .replace(/^\d{6}( РОССИЯ)?, /i, '');
+
                     value += '<div class="' + that.classes.subtext + '">' +
-                        suggestion.data.address.value
-                            .replace(/^\d{6}( РОССИЯ)?, /i, '') +
+                         that.formatResult(address, currentValue, suggestion) +
                         '</div>';
                 }
                 return value;

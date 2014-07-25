@@ -24,12 +24,12 @@ describe('Highlight suggestions', function () {
         this.input.value = 'japa';
         this.instance.onValueChange();
 
-        this.server.respond(helpers.responseFor(['Japaneese lives in Japan and love non-japaneese']));
+        this.server.respond(helpers.responseFor(['Japaneese lives in Japan and love nonjapaneese']));
 
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love non-japaneese');
+        expect($item.html()).toEqual('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love nonjapaneese');
     });
 
     it('Should highlight search phrase in quotes', function () {
@@ -50,7 +50,7 @@ describe('Highlight suggestions', function () {
     it('Should highlight names regardless of parts order', function () {
         this.instance.setOptions({
             params: {
-                psrts: ['NAME', 'PATRONYMIC', 'SURNAME']
+                parts: ['NAME', 'PATRONYMIC', 'SURNAME']
             }
         });
         this.input.value = 'Петр Иванович Пе';
@@ -64,6 +64,31 @@ describe('Highlight suggestions', function () {
 
         expect($item.length).toEqual(1);
         expect($item.html()).toEqual('<strong>Пе<\/strong>тров <strong>Петр<\/strong> <strong>Иванович</strong>');
+    });
+
+    it('Should highlight address in parties', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'КРА';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ООО "Красава"',
+                data: {
+                    address: {
+                        value: '350056 РОССИЯ, КРАСНОДАРСКИЙ КРАЙ, Г КРАСНОДАР, П ИНДУСТРИАЛЬНЫЙ, УЛ СВЕТЛАЯ, Д 3',
+                        data: null
+                    }
+                }
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toContain('<strong>КРА</strong>СНОДАРСКИЙ <strong>КРА</strong>Й, Г <strong>КРА</strong>СНОДАР, П ИНДУСТРИАЛЬНЫЙ, УЛ СВЕТЛАЯ, Д 3');
     });
 
 });

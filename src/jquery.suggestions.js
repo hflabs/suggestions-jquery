@@ -40,8 +40,8 @@
             BAD: 6,
             FOREIGN: 7
         },
-        rWordBreak = '[\\s\"]+',
-        rWordPart = '[^\\s\"]+';
+        rWordBreak = '[\\s\"-]+',
+        rWordPart = '[^\\s\"-]+';
 
 //include "utils.js"
 
