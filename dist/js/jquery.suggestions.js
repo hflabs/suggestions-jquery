@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.4.8
+ * DaData.ru Suggestions jQuery plugin, version 4.4.9
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -1040,9 +1040,9 @@
                 var that = this,
                     constraint = that.formatConstraint({
                         deletable: true,
-                        restrictions: address
+                        locations: address
                     });
-                constraint.restrictions = [ { kladr_id: address.kladr_id } ];
+                constraint.locations = [ { kladr_id: address.kladr_id } ];
                 that.setupConstraints(constraint);
                 // strip restricted value from suggestion value when geolocation is on
                 that.options.restrict_value = true;
@@ -1516,11 +1516,11 @@
             formatConstraint: function (constraint) {
                 var that = this;
 
-                if (constraint && constraint.restrictions) {
-                    constraint.restrictions = $.makeArray(constraint.restrictions);
+                if (constraint && (constraint.locations || constraint.restrictions)) {
+                    constraint.locations = $.makeArray(constraint.locations || constraint.restrictions);
                     if (!constraint.label) {
-                        constraint.label = $.map(constraint.restrictions, function(restriction){
-                            return that.type.composeValue(restriction);
+                        constraint.label = $.map(constraint.locations, function(location){
+                            return that.type.composeValue(location);
                         }).join(', ');
                     }
                     return constraint;
@@ -1563,14 +1563,14 @@
 
             constructConstraintsParams: function () {
                 var that = this,
-                    restrictions = [],
+                    locations = [],
                     params = {};
 
                 $.each(that.constraints, function(id, constraint){
-                    restrictions = restrictions.concat(constraint.restrictions);
+                    locations = locations.concat(constraint.locations);
                 });
-                if (restrictions.length) {
-                    params.restrictions = restrictions;
+                if (locations.length) {
+                    params.locations = locations;
                     params.restrict_value = that.options.restrict_value;
                 }
                 return params;

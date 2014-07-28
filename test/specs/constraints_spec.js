@@ -23,15 +23,15 @@ describe('Address constraints', function () {
         this.server.restore();
     });
 
-    it('Should not have `restrictions` parameter in request by default', function () {
+    it('Should not have `locations` parameter in request by default', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
         expect(this.server.requests.length).toEqual(1);
-        expect(this.server.requests[0].requestBody).not.toContain('restrictions');
+        expect(this.server.requests[0].requestBody).not.toContain('locations');
     });
 
-    it('Should not have `restrictions` parameter in request if empty constraints specified', function () {
+    it('Should not have `locations` parameter in request if empty constraints specified', function () {
         this.instance.setOptions({
             constraints: {}
         });
@@ -39,10 +39,10 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).not.toContain('restrictions');
+        expect(this.server.requests[0].requestBody).not.toContain('locations');
     });
 
-    it('Should not have `restrictions` parameter in request if bad-formatted constraints specified', function () {
+    it('Should not have `locations` parameter in request if bad-formatted constraints specified', function () {
         this.instance.setOptions({
             constraints: {
                 region:'Москва'
@@ -52,10 +52,25 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).not.toContain('restrictions');
+        expect(this.server.requests[0].requestBody).not.toContain('locations');
     });
 
-    it('Should have `restrictions` parameter in request if constraints specified as single object', function () {
+    it('Should have `locations` parameter in request if constraints specified as single object', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    region:'Москва'
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"Москва"}]');
+    });
+
+    it('Should have `locations` parameter in request if constraints specified as single object named `restrictions`', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
@@ -67,19 +82,19 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"region":"Москва"}]');
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"Москва"}]');
     });
 
-    it('Should have `restrictions` parameter in request if constraints specified as array of objects', function () {
+    it('Should have `locations` parameter in request if constraints specified as array of objects', function () {
         this.instance.setOptions({
             constraints: [
                 {
-                    restrictions: {
+                    locations: {
                         region:'Москва'
                     }
                 },
                 {
-                    restrictions: {
+                    locations: {
                         kladr_id:'6500000000000'
                     }
                 }
@@ -89,11 +104,11 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"restrictions":[{"region":"Москва"},{"kladr_id":"6500000000000"}]');
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"Москва"},{"kladr_id":"6500000000000"}]');
     });
 
-    it('Should have `restrictions` parameter in request if constraints and their restrictions specified as arrays', function () {
-        var restrictions = [
+    it('Should have `locations` parameter in request if constraints and their locations specified as arrays', function () {
+        var locations = [
             [
                 {'region': 'адыгея'},
                 {'region': 'астраханская'},
@@ -116,11 +131,11 @@ describe('Address constraints', function () {
             constraints: [
                 {
                     label: 'ЮФО',
-                    restrictions: restrictions[0]
+                    locations: locations[0]
                 },
                 {
                     label: 'УФО',
-                    restrictions: restrictions[1]
+                    locations: locations[1]
                 }
             ]
         });
@@ -128,13 +143,13 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"restrictions":' + JSON.stringify(restrictions[0].concat(restrictions[1])));
+        expect(this.server.requests[0].requestBody).toContain('"locations":' + JSON.stringify(locations[0].concat(locations[1])));
     });
 
-    it('Should show label for added constraint, which is build from restrictions', function () {
+    it('Should show label for added constraint, which is build from locations', function () {
         this.instance.setOptions({
             constraints: {
-                restrictions: {
+                locations: {
                     region:'Москва'
                 }
             }
@@ -146,7 +161,7 @@ describe('Address constraints', function () {
 
         this.instance.setOptions({
             constraints: {
-                restrictions: [
+                locations: [
                     {
                         region: 'Москва'
                     },
@@ -166,7 +181,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 label: 'Берск (НСО)',       // текст метки, который будет выведен пользователю
-                restrictions: {              // параметры, которые будут переданы на сервер
+                locations: {              // параметры, которые будут переданы на сервер
                     'region': 'новосибирская',
                     'city': 'бердск'
                 }
@@ -181,7 +196,7 @@ describe('Address constraints', function () {
     it('Should not show any cross sign if `deletable` option is omitted', function () {
         this.instance.setOptions({
             constraints: {
-                restrictions: {
+                locations: {
                     region:'Москва'
                 }
             }
@@ -195,7 +210,7 @@ describe('Address constraints', function () {
     it('Should show cross sign if `deletable` option is truthy', function () {
         this.instance.setOptions({
             constraints: {
-                restrictions: {
+                locations: {
                     region:'Москва'
                 },
                 deletable: true
@@ -211,7 +226,7 @@ describe('Address constraints', function () {
         jQuery.fx.off = true;
         this.instance.setOptions({
             constraints: {
-                restrictions: {
+                locations: {
                     region:'Москва'
                 },
                 deletable: true
@@ -229,7 +244,7 @@ describe('Address constraints', function () {
         // ensure constraint is also removed
         this.input.value = 'A';
         this.instance.onValueChange();
-        expect(this.server.requests[0].requestBody).not.toContain('"restrictions"');
+        expect(this.server.requests[0].requestBody).not.toContain('"locations"');
         jQuery.fx.off = false;
     });
 
@@ -252,14 +267,14 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[1].requestBody).toContain('"restrictions":[{"kladr_id":"7700000000000"}]');
+        expect(this.server.requests[1].requestBody).toContain('"locations":[{"kladr_id":"7700000000000"}]');
     });
 
     it('Should set unrestricted suggestion value', function() {
         this.instance.setOptions({
             constraints: {
                 label: 'обл Ростовская, г Ростов-на-Дону',
-                restrictions: {
+                locations: {
                     region: 'Ростовская',
                     city: 'Ростов-на-Дону'
                 }
@@ -283,13 +298,13 @@ describe('Address constraints', function () {
             constraints: [
                 {
                     label: 'обл Ростовская, г Ростов-на-Дону',
-                    restrictions: {
+                    locations: {
                         region: 'Ростовская',
                         city: 'Ростов-на-Дону'
                     }
                 },
                 {
-                    restrictions: {
+                    locations: {
                         region: 'Москва'
                     }
                 }
