@@ -1,5 +1,5 @@
 {
-    "version": "4.6.3",
+    "version": "4.6.4",
     "name": "suggestions-jquery",
     "description": "DaData.ru Suggestions jQuery plugin",
     "homepage": "https://github.com/hflabs/suggestions-jquery",
@@ -18,7 +18,8 @@
         "grunt-contrib-jasmine": ">= 0.2",
         "grunt-contrib-concat": "~ 0.3",
         "grunt-contrib-less": ">= 0.10",
-        "grunt-includes": "*"
+        "grunt-includes": "*",
+        "grunt-sed": "*"
     },
     "scripts": {
         "test": "grunt test"

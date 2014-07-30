@@ -137,6 +137,8 @@
 
     Suggestions.defaultCount = 10;
 
+    Suggestions.version = '%VERSION%';
+
     $.Suggestions = Suggestions;
 
     Suggestions.prototype = {
@@ -343,7 +345,8 @@
                 token = $.trim(that.options.token),
                 serviceUrl = that.options.serviceUrl,
                 serviceMethod = serviceMethods[method],
-                params = $.extend({}, serviceMethod.defaultParams);
+                params = $.extend({}, serviceMethod.defaultParams),
+                headers = {};
 
             if (!/\/$/.test(serviceUrl)) {
                 serviceUrl += '/';
@@ -355,17 +358,20 @@
 
             serviceUrl = utils.fixURLProtocol(serviceUrl);
 
-            if (token) {
-                if ($.support.cors) {
-                    // for XMLHttpRequest put token in header
-                    params.headers = params.headers || {};
-                    params.headers['Authorization'] = 'Token ' + token;
-                } else {
-                    // for XDomainRequest put token into URL
-                    serviceUrl = utils.addUrlParams(serviceUrl, {
-                        'token': token
-                    });
+            if ($.support.cors) {
+                // for XMLHttpRequest put token in header
+                if (token) {
+                    headers['Authorization'] = 'Token ' + token;
                 }
+                headers['X-Version'] = Suggestions.version;
+                params.headers = $.extend(params.headers || {}, headers);
+            } else {
+                // for XDomainRequest put token into URL
+                if (token) {
+                    headers['token'] = token;
+                }
+                headers['version'] = Suggestions.version;
+                serviceUrl = utils.addUrlParams(serviceUrl, headers);
             }
 
             params.url = serviceUrl;

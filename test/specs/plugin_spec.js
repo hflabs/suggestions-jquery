@@ -206,4 +206,11 @@ describe('Common features', function () {
         expect($hint.length).toEqual(0);
     });
 
+    it('Should include version info in requests', function(){
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestHeaders['X-Version']).toMatch(/\d+\.\d+\.\d+/);
+    });
+
 });

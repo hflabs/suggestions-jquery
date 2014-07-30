@@ -72,6 +72,15 @@ module.exports = function(grunt){
                 dest: 'dist/css/',
                 ext: '.css'
             }
+        },
+
+        sed: {
+            version: {
+                path: ['dist/js/'],
+                pattern: '%VERSION%',
+                recursive: true,
+                replacement: '<%= pkg.version %>'
+            }
         }
     });
 
@@ -79,8 +88,9 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-includes');
+    grunt.loadNpmTasks('grunt-sed');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
-    grunt.registerTask('build', ['less', 'includes', 'uglify:jsmin', 'test']);
+    grunt.registerTask('build', ['less', 'includes', 'uglify:jsmin', 'sed:version', 'test']);
     grunt.registerTask('default', ['build']);
 };
