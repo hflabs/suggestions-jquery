@@ -7,7 +7,8 @@ describe('Select on Space', function () {
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME'
+            type: 'NAME',
+            deferRequestBy: 0
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });
@@ -82,5 +83,21 @@ describe('Select on Space', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
+    it('Should keep SPACE if selecting has been caused by space', function () {
+        var suggestions = [{ value: 'name', data: {name: 'name', surname: 'surname', patronymic: 'patronymic'} }],
+            options = { onSelect: $.noop };
+
+        spyOn(options, 'onSelect');
+        this.instance.setOptions(options);
+        this.instance.setSuggestion(suggestions[0]);
+
+        helpers.keydown(this.input, 32);
+        this.input.value += ' ';
+        helpers.keyup(this.input, 32);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        expect(options.onSelect.calls.count()).toEqual(1);
+        expect(this.input.value).toEqual('name ');
+    });
 
 });

@@ -6,6 +6,11 @@ this.helpers = (function () {
             event.keyCode = event.which = keyCode;
             $(el).trigger(event);
         },
+        keyup: function(el, keyCode) {
+            var event = $.Event('keyup');
+            event.keyCode = event.which = keyCode;
+            $(el).trigger(event);
+        },
         responseFor: function(suggestions) {
             return [
                 200,

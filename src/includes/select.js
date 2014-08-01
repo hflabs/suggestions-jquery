@@ -47,7 +47,8 @@
                 var that = this,
                     suggestion = that.suggestions[index],
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace;
+                    noSpace = selectionOptions && selectionOptions.noSpace,
+                    addSpace = selectionOptions && selectionOptions.addSpace;
 
                 // if no suggestion to select
                 if (!suggestion) {
@@ -70,7 +71,7 @@
                             continueSelecting = false;
                         }
 
-                        if (!noSpace && !assumeDataComplete) {
+                        if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                             that.el.val(that.currentValue);
                         }
@@ -121,7 +122,7 @@
                     index = that.findSuggestionIndex($.trim(value));
                     if (index !== -1) {
                         that._waitingForTriggerSelectOnSpace = false;
-                        that.select(index, {continueSelecting: true});
+                        that.select(index, {continueSelecting: true, addSpace: true});
                     }
                 }
             }
