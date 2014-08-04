@@ -699,7 +699,7 @@
                 if (that.isBadQuery(query)) {
                     resolver.reject();
                 } else {
-                    if (options.onSearchStart.call(that.element, params) === false) {
+                    if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
                         resolver.reject();
                     } else {
                         that.abortRequest();
