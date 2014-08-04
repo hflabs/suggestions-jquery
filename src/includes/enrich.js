@@ -18,7 +18,7 @@
                         }
 
                         that.disableDropdown();
-                        that.getSuggestions(suggestion.value, { count: 1 })
+                        that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
                             .always(function () {
                                 that.enableDropdown();
                             })

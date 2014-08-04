@@ -419,16 +419,20 @@
 
         /**
          * Get suggestions from cache or from server
+         * @param {String} query
+         * @param {Object} customParams parameters specified here will be passed to request body
+         * @param {Object} requestOptions if contains noCallbacks flag, request completance callbacks will not be invoked
          * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
          */
-        getSuggestions: function (query, customParams) {
+        getSuggestions: function (query, customParams, requestOptions) {
             var response,
                 that = this,
                 options = that.options,
                 serviceUrl = options.serviceUrl,
                 params = that.constructRequestParams(query, customParams),
                 cacheKey = serviceUrl + '?' + $.param(params || {}),
-                resolver = $.Deferred();
+                resolver = $.Deferred(),
+                noCallbacks = requestOptions && requestOptions.noCallbacks;
 
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
@@ -452,10 +456,14 @@
                             } else {
                                 resolver.reject();
                             }
-                            options.onSearchComplete.call(that.element, query, response.suggestions);
+                            if (!noCallbacks) {
+                                options.onSearchComplete.call(that.element, query, response.suggestions);
+                            }
                         }).fail(function (jqXHR, textStatus, errorThrown) {
                             resolver.reject();
-                            options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
+                            if (!noCallbacks) {
+                                options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
+                            }
                         });
                     }
                 }
