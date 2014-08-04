@@ -367,7 +367,9 @@
         constructRequestParams: function(query, customParams){
             var that = this,
                 options = that.options,
-                params = $.extend({}, options.params);
+                params = $.isFunction(options.params)
+                    ? options.params.call(that.element, query)
+                    : $.extend({}, options.params);
 
             $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
                 $.extend(params, hookParams);
