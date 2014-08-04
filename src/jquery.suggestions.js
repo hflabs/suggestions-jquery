@@ -415,7 +415,7 @@
                 if (that.isBadQuery(query)) {
                     resolver.reject();
                 } else {
-                    if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
+                    if (options.onSearchStart.call(that.element, params) === false) {
                         resolver.reject();
                     } else {
                         that.abortRequest();
