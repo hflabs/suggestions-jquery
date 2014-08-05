@@ -48,6 +48,9 @@
             }
         };
 
+        // for backward compatibility
+        Suggestions.dadataConfig = {};
+
         setOptionsHooks.push(methods.selectEnrichService);
 
     }());
