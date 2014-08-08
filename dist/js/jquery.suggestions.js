@@ -1052,7 +1052,13 @@
                         deletable: true,
                         locations: address
                     });
-                constraint.locations = [ { kladr_id: address.kladr_id } ];
+                constraint.locations = [ {
+                    region: address.region,
+                    area: address.area,
+                    city: address.city,
+                    settlement: address.settlement,
+                    kladr_id: address.kladr_id
+                } ];
                 that.setupConstraints(constraint);
                 // strip restricted value from suggestion value when geolocation is on
                 that.options.restrict_value = true;
