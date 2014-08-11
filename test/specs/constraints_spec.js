@@ -267,7 +267,7 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[1].requestBody).toContain('"locations":[{"kladr_id":"7700000000000"}]');
+        expect(this.server.requests[1].requestBody).toContain('"locations":[{"region":"москва","kladr_id":"7700000000000"}]');
     });
 
     it('Should set unrestricted suggestion value', function() {
