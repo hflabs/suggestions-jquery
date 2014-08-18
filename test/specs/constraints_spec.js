@@ -2,7 +2,7 @@
 describe('Address constraints', function () {
     'use strict';
 
-    var serviceUrl = '/some/url'
+    var serviceUrl = '/some/url';
 
     beforeEach(function(){
         this.server = sinon.fakeServer.create();
@@ -13,7 +13,7 @@ describe('Address constraints', function () {
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
             useDadata: false,
-            constraints: false
+            geoLocation: false
         }).suggestions();
     });
 
@@ -246,81 +246,6 @@ describe('Address constraints', function () {
         this.instance.onValueChange();
         expect(this.server.requests[0].requestBody).not.toContain('"locations"');
         jQuery.fx.off = false;
-    });
-
-    it('Should use geolocation request if no constraints specified', function () {
-        this.instance.setOptions({
-            constraints: null
-        });
-
-        expect(this.server.requests[0].url).toContain('detectAddressByIp');
-        this.server.respond([200, {'Content-type':'application/json'}, JSON.stringify({
-            location: {
-                data: {
-                    region: 'москва',
-                    kladr_id: '7700000000000'
-                },
-                value: '1.2.3.4'
-            }
-        })]);
-
-        this.input.value = 'A';
-        this.instance.onValueChange();
-
-        expect(this.server.requests[1].requestBody).toContain('"locations":[{"region":"москва","kladr_id":"7700000000000"}]');
-    });
-
-    it('Should set unrestricted suggestion value', function() {
-        this.instance.setOptions({
-            constraints: {
-                label: 'обл Ростовская, г Ростов-на-Дону',
-                locations: {
-                    region: 'Ростовская',
-                    city: 'Ростов-на-Дону'
-                }
-            },
-            restrict_value: true
-        });
-        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
-
-        this.input.value = 'Буквенная 20';
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(suggestions));
-        expect(this.instance.suggestions[0]).toEqual({
-            value: 'ул Буквенная, д 20',
-            unrestricted_value: 'обл Ростовская, г Ростов-на-Дону, ул Буквенная, д 20',
-            data: null
-        });
-    });
-
-    it('Should not set unrestricted suggestion value on multiple constraints', function() {
-        this.instance.setOptions({
-            constraints: [
-                {
-                    label: 'обл Ростовская, г Ростов-на-Дону',
-                    locations: {
-                        region: 'Ростовская',
-                        city: 'Ростов-на-Дону'
-                    }
-                },
-                {
-                    locations: {
-                        region: 'Москва'
-                    }
-                }
-            ],
-            restrict_value: true
-        });
-        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
-
-        this.input.value = 'Буквенная 20';
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(suggestions));
-        expect(this.instance.suggestions[0]).toEqual({
-            value: 'ул Буквенная, д 20',
-            unrestricted_value: 'ул Буквенная, д 20',
-            data: null
-        });
     });
 
 });

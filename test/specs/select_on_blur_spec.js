@@ -38,9 +38,7 @@ describe('Select on blur', function () {
         helpers.fireBlur(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[1])
-        );
+        expect(options.onSelect).toHaveBeenCalledWith(suggestions[1]);
     });
 
     it('Should trigger when suggestion is selected manually', function () {
@@ -64,9 +62,7 @@ describe('Select on blur', function () {
         helpers.fireBlur(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[2])
-        );
+        expect(options.onSelect).toHaveBeenCalledWith(suggestions[2]);
     });
 
     it('Should NOT trigger on partial match', function () {

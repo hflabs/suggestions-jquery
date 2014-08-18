@@ -16,7 +16,8 @@ describe('Nothing selected callback', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            onSelect: $.noop
+            onSelect: $.noop,
+            geoLocation: false
         }).suggestions();
 
         this.server.respond();

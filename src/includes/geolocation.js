@@ -5,51 +5,83 @@
             return;
         }
 
-        var locationRequest;
+        var locationRequest,
+            defaultGeoLocation = true;
+
+        function resetLocation () {
+            locationRequest = null;
+            Suggestions.defaultOptions.geoLocation = defaultGeoLocation;
+        }
 
         var methods = {
 
             checkLocation: function () {
                 var that = this;
 
-                if (!that.type.geoEnabled || that.options.constraints != null) {
+                if (!that.type.geoEnabled || !that.options.geoLocation) {
                     return;
                 }
 
-                if (!locationRequest) {
-                    locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
-                }
-
-                locationRequest.done(function (resp) {
-                    var addr = resp && resp.location && resp.location.data;
-                    if (addr && addr.kladr_id) {
-                        that.enableGeolocation(addr);
+                that.geoLocation = $.Deferred();
+                if ($.isPlainObject(that.options.geoLocation)) {
+                    that.geoLocation.resolve(that.options.geoLocation);
+                } else {
+                    if (!locationRequest) {
+                        locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
                     }
-                });
+
+                    locationRequest
+                        .done(function (resp) {
+                            var locationData = resp && resp.location && resp.location.data;
+                            if (locationData && locationData.kladr_id) {
+                                that.geoLocation.resolve(locationData);
+                            } else {
+                                that.geoLocation.reject();
+                            }
+                        })
+                        .fail(function(){
+                            that.geoLocation.reject();
+                        });
+                }
             },
 
-            enableGeolocation: function(address) {
+            /**
+             * Public method to get `geoLocation` promise
+             * @returns {$.Deferred}
+             */
+            getGeoLocation: function () {
+                return this.geoLocation;
+            },
+
+            constructParams: function () {
                 var that = this,
-                    constraint = that.formatConstraint({
-                        deletable: true,
-                        locations: address
+                    params = {};
+
+                if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
+                    that.geoLocation.done(function(locationData){
+                        params['locations_boost'] = [locationData];
                     });
-                constraint.locations = [ {
-                    region: address.region,
-                    area: address.area,
-                    city: address.city,
-                    settlement: address.settlement,
-                    kladr_id: address.kladr_id
-                } ];
-                that.setupConstraints(constraint);
-                // strip restricted value from suggestion value when geolocation is on
-                that.options.restrict_value = true;
+                }
+
+                return params;
             }
 
         };
 
-        $.extend(Suggestions.prototype, methods);
+        $.extend(defaultOptions, {
+            geoLocation: defaultGeoLocation
+        });
+
+        $.extend(Suggestions, {
+            resetLocation: resetLocation
+        });
+
+        $.extend(Suggestions.prototype, {
+            getGeoLocation: methods.getGeoLocation
+        });
 
         setOptionsHooks.push(methods.checkLocation);
+
+        requestParamsHooks.push(methods.constructParams);
 
     }());

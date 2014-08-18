@@ -103,21 +103,21 @@ describe('Adding space on selecting', function () {
     describe('For ADDRESS controls', function(){
 
         beforeEach(function(){
+            this.server = sinon.fakeServer.create();
+
             this.input = document.createElement('input');
             this.$input = $(this.input);
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'ADDRESS',
                 useDadata: false,
-                constraints: false
+                geoLocation: false
             }).suggestions();
-
-            this.server = sinon.fakeServer.create();
         });
 
         afterEach(function () {
+            this.instance.dispose();
             this.server.restore();
-            this.instance.dispose()
         });
 
         it('Should add SPACE at the end if only COUNTRY specified', function () {

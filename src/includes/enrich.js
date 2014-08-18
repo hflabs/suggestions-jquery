@@ -62,6 +62,10 @@
             }
         };
 
+        $.extend(defaultOptions, {
+            useDadata: true
+        });
+
         setOptionsHooks.push(methods.selectEnrichService);
 
     }());

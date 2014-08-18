@@ -8,7 +8,8 @@ describe('Hiding dropdown on selecting', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME',
-            useDadata: false
+            useDadata: false,
+            geoLocation: false
         }).suggestions();
 
         this.server = sinon.fakeServer.create();

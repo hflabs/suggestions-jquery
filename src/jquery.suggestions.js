@@ -41,7 +41,35 @@
             FOREIGN: 7
         },
         rWordBreak = '[\\s\"-]+',
-        rWordPart = '[^\\s\"-]+';
+        rWordPart = '[^\\s\"-]+',
+        defaultOptions = {
+            autoSelectFirst: false,
+            serviceUrl: null,
+            onInvalidateSelection: $.noop,
+            onSearchStart: $.noop,
+            onSearchComplete: $.noop,
+            onSearchError: $.noop,
+            onSelect: null,
+            onSelectNothing: null,
+            minChars: 1,
+            width: 'auto',
+            zIndex: 9999,
+            maxHeight: 300,
+            deferRequestBy: 100,
+            params: {},
+            paramName: 'query',
+            formatResult: null,
+            delimiter: null,
+            noCache: false,
+            containerClass: 'suggestions-suggestions',
+            tabDisabled: false,
+            triggerSelectOnSpace: true,
+            preventBadQueries: false,
+            hint: 'Выберите вариант ниже или продолжите ввод',
+            type: null,
+            count: 10,
+            $helpers: null
+        };
 
 //include "utils.js"
 
@@ -66,39 +94,7 @@
     };
 
     function Suggestions(el, options) {
-        var that = this,
-            defaults = {
-                autoSelectFirst: false,
-                serviceUrl: null,
-                onInvalidateSelection: $.noop,
-                onSearchStart: $.noop,
-                onSearchComplete: $.noop,
-                onSearchError: $.noop,
-                onSelect: null,
-                onSelectNothing: null,
-                minChars: 1,
-                width: 'auto',
-                zIndex: 9999,
-                maxHeight: 300,
-                deferRequestBy: 100,
-                params: {},
-                paramName: 'query',
-                formatResult: null,
-                delimiter: null,
-                noCache: false,
-                containerClass: 'suggestions-suggestions',
-                tabDisabled: false,
-                triggerSelectOnSpace: true,
-                preventBadQueries: false,
-                usePreloader: true,
-                hint: Suggestions.defaultHint,
-                useDadata: true,
-                type: null,
-                count: Suggestions.defaultCount,
-                constraints: null,
-                restrict_value: false,
-                $helpers: null
-            };
+        var that = this;
 
         // Shared variables:
         that.element = el;
@@ -112,7 +108,7 @@
         that.currentRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
-        that.options = $.extend({}, defaults, options);
+        that.options = $.extend({}, defaultOptions, options);
         that.classes = {
             hint: 'suggestions-hint',
             selected: 'suggestions-selected',
@@ -133,9 +129,7 @@
 
     Suggestions.utils = utils;
 
-    Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
-
-    Suggestions.defaultCount = 10;
+    Suggestions.defaultOptions = defaultOptions;
 
     Suggestions.version = '%VERSION%';
 
@@ -504,7 +498,6 @@
             }
 
             that.verifySuggestionsFormat(response.suggestions);
-            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -554,27 +547,6 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
-        },
-
-        shouldRestrictValues: function() {
-            var that = this;
-            // treat suggestions value as restricted only if there is one constraint
-            // and restrict_value is true
-            return that.options.restrict_value
-                && that.constraints
-                && Object.keys(that.constraints).length == 1;
-        },
-
-        /**
-         * Fills suggestion.unrestricted_value property
-         */
-        setUnrestrictedValues: function(suggestions) {
-            var that = this,
-                shouldRestrict = that.shouldRestrictValues(),
-                label = that.getConstraintLabel();
-            $.each(suggestions, function(i, suggestion) {
-                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
-            });
         },
 
         findSuggestionIndex: function (query) {

@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.6.4
+ * DaData.ru Suggestions jQuery plugin, version 4.7.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -48,7 +48,35 @@
             FOREIGN: 7
         },
         rWordBreak = '[\\s\"-]+',
-        rWordPart = '[^\\s\"-]+';
+        rWordPart = '[^\\s\"-]+',
+        defaultOptions = {
+            autoSelectFirst: false,
+            serviceUrl: null,
+            onInvalidateSelection: $.noop,
+            onSearchStart: $.noop,
+            onSearchComplete: $.noop,
+            onSearchError: $.noop,
+            onSelect: null,
+            onSelectNothing: null,
+            minChars: 1,
+            width: 'auto',
+            zIndex: 9999,
+            maxHeight: 300,
+            deferRequestBy: 100,
+            params: {},
+            paramName: 'query',
+            formatResult: null,
+            delimiter: null,
+            noCache: false,
+            containerClass: 'suggestions-suggestions',
+            tabDisabled: false,
+            triggerSelectOnSpace: true,
+            preventBadQueries: false,
+            hint: 'Выберите вариант ниже или продолжите ввод',
+            type: null,
+            count: 10,
+            $helpers: null
+        };
 
     var utils = (function () {
         var uniqueId = 0;
@@ -324,39 +352,7 @@
     };
 
     function Suggestions(el, options) {
-        var that = this,
-            defaults = {
-                autoSelectFirst: false,
-                serviceUrl: null,
-                onInvalidateSelection: $.noop,
-                onSearchStart: $.noop,
-                onSearchComplete: $.noop,
-                onSearchError: $.noop,
-                onSelect: null,
-                onSelectNothing: null,
-                minChars: 1,
-                width: 'auto',
-                zIndex: 9999,
-                maxHeight: 300,
-                deferRequestBy: 100,
-                params: {},
-                paramName: 'query',
-                formatResult: null,
-                delimiter: null,
-                noCache: false,
-                containerClass: 'suggestions-suggestions',
-                tabDisabled: false,
-                triggerSelectOnSpace: true,
-                preventBadQueries: false,
-                usePreloader: true,
-                hint: Suggestions.defaultHint,
-                useDadata: true,
-                type: null,
-                count: Suggestions.defaultCount,
-                constraints: null,
-                restrict_value: false,
-                $helpers: null
-            };
+        var that = this;
 
         // Shared variables:
         that.element = el;
@@ -370,7 +366,7 @@
         that.currentRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
-        that.options = $.extend({}, defaults, options);
+        that.options = $.extend({}, defaultOptions, options);
         that.classes = {
             hint: 'suggestions-hint',
             selected: 'suggestions-selected',
@@ -391,11 +387,9 @@
 
     Suggestions.utils = utils;
 
-    Suggestions.defaultHint = 'Выберите вариант ниже или продолжите ввод';
+    Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.defaultCount = 10;
-
-    Suggestions.version = '4.6.4';
+    Suggestions.version = '4.7.1';
 
     $.Suggestions = Suggestions;
 
@@ -762,7 +756,6 @@
             }
 
             that.verifySuggestionsFormat(response.suggestions);
-            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -812,27 +805,6 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
-        },
-
-        shouldRestrictValues: function() {
-            var that = this;
-            // treat suggestions value as restricted only if there is one constraint
-            // and restrict_value is true
-            return that.options.restrict_value
-                && that.constraints
-                && Object.keys(that.constraints).length == 1;
-        },
-
-        /**
-         * Fills suggestion.unrestricted_value property
-         */
-        setUnrestrictedValues: function(suggestions) {
-            var that = this,
-                shouldRestrict = that.shouldRestrictValues(),
-                label = that.getConstraintLabel();
-            $.each(suggestions, function(i, suggestion) {
-                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
-            });
         },
 
         findSuggestionIndex: function (query) {
@@ -1091,52 +1063,84 @@
             return;
         }
 
-        var locationRequest;
+        var locationRequest,
+            defaultGeoLocation = true;
+
+        function resetLocation () {
+            locationRequest = null;
+            Suggestions.defaultOptions.geoLocation = defaultGeoLocation;
+        }
 
         var methods = {
 
             checkLocation: function () {
                 var that = this;
 
-                if (!that.type.geoEnabled || that.options.constraints != null) {
+                if (!that.type.geoEnabled || !that.options.geoLocation) {
                     return;
                 }
 
-                if (!locationRequest) {
-                    locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
-                }
-
-                locationRequest.done(function (resp) {
-                    var addr = resp && resp.location && resp.location.data;
-                    if (addr && addr.kladr_id) {
-                        that.enableGeolocation(addr);
+                that.geoLocation = $.Deferred();
+                if ($.isPlainObject(that.options.geoLocation)) {
+                    that.geoLocation.resolve(that.options.geoLocation);
+                } else {
+                    if (!locationRequest) {
+                        locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
                     }
-                });
+
+                    locationRequest
+                        .done(function (resp) {
+                            var locationData = resp && resp.location && resp.location.data;
+                            if (locationData && locationData.kladr_id) {
+                                that.geoLocation.resolve(locationData);
+                            } else {
+                                that.geoLocation.reject();
+                            }
+                        })
+                        .fail(function(){
+                            that.geoLocation.reject();
+                        });
+                }
             },
 
-            enableGeolocation: function(address) {
+            /**
+             * Public method to get `geoLocation` promise
+             * @returns {$.Deferred}
+             */
+            getGeoLocation: function () {
+                return this.geoLocation;
+            },
+
+            constructParams: function () {
                 var that = this,
-                    constraint = that.formatConstraint({
-                        deletable: true,
-                        locations: address
+                    params = {};
+
+                if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
+                    that.geoLocation.done(function(locationData){
+                        params['locations_boost'] = [locationData];
                     });
-                constraint.locations = [ {
-                    region: address.region,
-                    area: address.area,
-                    city: address.city,
-                    settlement: address.settlement,
-                    kladr_id: address.kladr_id
-                } ];
-                that.setupConstraints(constraint);
-                // strip restricted value from suggestion value when geolocation is on
-                that.options.restrict_value = true;
+                }
+
+                return params;
             }
 
         };
 
-        $.extend(Suggestions.prototype, methods);
+        $.extend(defaultOptions, {
+            geoLocation: defaultGeoLocation
+        });
+
+        $.extend(Suggestions, {
+            resetLocation: resetLocation
+        });
+
+        $.extend(Suggestions.prototype, {
+            getGeoLocation: methods.getGeoLocation
+        });
 
         setOptionsHooks.push(methods.checkLocation);
+
+        requestParamsHooks.push(methods.constructParams);
 
     }());
 
@@ -1203,6 +1207,10 @@
                 }
             }
         };
+
+        $.extend(defaultOptions, {
+            useDadata: true
+        });
 
         setOptionsHooks.push(methods.selectEnrichService);
 
@@ -1605,6 +1613,10 @@
 
         };
 
+        $.extend(defaultOptions, {
+            usePreloader: true
+        });
+
         $.extend(Suggestions.prototype, methods);
 
         initializeHooks.push(methods.createPreloader);
@@ -1657,15 +1669,11 @@
                 });
             },
 
-            setupConstraints: function (defaultConstraint) {
+            setupConstraints: function () {
                 var that = this,
                     constraints = that.options.constraints;
 
-                if (constraints === false) {
-                    return;
-                }
-
-                if (!constraints && !(constraints = defaultConstraint)) {
+                if (!constraints) {
                     return;
                 }
 
@@ -1736,23 +1744,15 @@
                 });
                 if (locations.length) {
                     params.locations = locations;
-                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
-            },
-
-            /**
-             * Returns label of the first constraint (if any), empty string otherwise
-             * @returns {String}
-             */
-            getConstraintLabel: function() {
-                var that = this,
-                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
-
-                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
+
+        $.extend(defaultOptions, {
+            constraints: null
+        });
 
         $.extend(Suggestions.prototype, methods);
 

@@ -96,6 +96,10 @@
 
         };
 
+        $.extend(defaultOptions, {
+            usePreloader: true
+        });
+
         $.extend(Suggestions.prototype, methods);
 
         initializeHooks.push(methods.createPreloader);

@@ -41,15 +41,11 @@
                 });
             },
 
-            setupConstraints: function (defaultConstraint) {
+            setupConstraints: function () {
                 var that = this,
                     constraints = that.options.constraints;
 
-                if (constraints === false) {
-                    return;
-                }
-
-                if (!constraints && !(constraints = defaultConstraint)) {
+                if (!constraints) {
                     return;
                 }
 
@@ -120,23 +116,15 @@
                 });
                 if (locations.length) {
                     params.locations = locations;
-                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
-            },
-
-            /**
-             * Returns label of the first constraint (if any), empty string otherwise
-             * @returns {String}
-             */
-            getConstraintLabel: function() {
-                var that = this,
-                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
-
-                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
+
+        $.extend(defaultOptions, {
+            constraints: null
+        });
 
         $.extend(Suggestions.prototype, methods);
 

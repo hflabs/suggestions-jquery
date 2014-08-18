@@ -26,6 +26,8 @@ describe('Enrich', function () {
         };
 
     beforeEach(function(){
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.$input = $(this.input);
         this.instance = this.$input.suggestions({
@@ -33,13 +35,11 @@ describe('Enrich', function () {
             type: 'NAME',
             token: '123'
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
+        this.instance.dispose();
         this.server.restore();
-        this.instance.dispose()
     });
 
     it('Should enrich a suggestion when selected', function () {
