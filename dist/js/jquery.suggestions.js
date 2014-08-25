@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.7.1
+ * DaData.ru Suggestions jQuery plugin, version 4.7.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -75,7 +75,8 @@
             hint: 'Выберите вариант ниже или продолжите ввод',
             type: null,
             count: 10,
-            $helpers: null
+            $helpers: null,
+            headers: null
         };
 
     var utils = (function () {
@@ -389,7 +390,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.7.1';
+    Suggestions.version = '4.7.2';
 
     $.Suggestions = Suggestions;
 
@@ -616,7 +617,10 @@
                     headers['Authorization'] = 'Token ' + token;
                 }
                 headers['X-Version'] = Suggestions.version;
-                params.headers = $.extend(params.headers || {}, headers);
+                if (!params.headers) {
+                    params.headers = {};
+                }
+                $.extend(params.headers, that.options.headers, headers);
             } else {
                 // for XDomainRequest put token into URL
                 if (token) {

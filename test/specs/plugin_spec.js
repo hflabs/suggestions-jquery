@@ -211,4 +211,24 @@ describe('Common features', function () {
         expect(this.server.requests[0].requestHeaders['X-Version']).toMatch(/\d+\.\d+\.\d+/);
     });
 
+    it('Should send custom HTTP headers', function(){
+        this.instance.setOptions({
+            headers: {'X-my-header': 'blabla'}
+        });
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestHeaders['X-my-header']).toEqual('blabla');
+    });
+
+    it('Should overwrite custom HTTP headers with ones used by plugin', function(){
+        this.instance.setOptions({
+            headers: {'X-Version': 'blabla'}
+        });
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestHeaders['X-Version']).toEqual($.Suggestions.version);
+    });
+
 });

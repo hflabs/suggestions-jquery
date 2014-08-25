@@ -68,7 +68,8 @@
             hint: 'Выберите вариант ниже или продолжите ввод',
             type: null,
             count: 10,
-            $helpers: null
+            $helpers: null,
+            headers: null
         };
 
 //include "utils.js"
@@ -358,7 +359,10 @@
                     headers['Authorization'] = 'Token ' + token;
                 }
                 headers['X-Version'] = Suggestions.version;
-                params.headers = $.extend(params.headers || {}, headers);
+                if (!params.headers) {
+                    params.headers = {};
+                }
+                $.extend(params.headers, that.options.headers, headers);
             } else {
                 // for XDomainRequest put token into URL
                 if (token) {
