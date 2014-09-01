@@ -116,6 +116,7 @@
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
             subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
+            subtext_delimiter: 'suggestions-subtext-delimiter',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;

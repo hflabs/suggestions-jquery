@@ -232,28 +232,6 @@
                     return result = !!(obj[field]);
                 });
                 return result;
-            },
-            /**
-             * Calculates hashCode for a string
-             * @param {String} s
-             * @returns {number}
-             */
-            checksum: function (s) {
-                var hash = 0;
-                for (var i = 0; i < s.length; i++) {
-                    var char = s.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32bit integer
-                }
-                return hash;
-            },
-
-            formatTimestamp: function (timestamp) {
-                function doubleDigit(n) {
-                    return n < 10 ? '0' + n : n;
-                }
-                var d = new Date(timestamp);
-                return [doubleDigit(d.getDate()), doubleDigit(d.getMonth()+1), d.getFullYear()].join('.');
             }
         };
     }());
@@ -311,15 +289,14 @@
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion) {
                 var that = this,
-                    value = that.formatResult(value, currentValue, suggestion);
+                    inn = suggestion.data && parseInn(suggestion.data);
 
-                if (suggestion.data && suggestion.data.state && suggestion.data.state.registration_date) {
-                    value += '<span class="' + that.classes.subtext_inline + '">' + utils.formatTimestamp(suggestion.data.state.registration_date);
-                    if (suggestion.data.state.liquidation_date) {
-                        value += ' &ndash; ' + utils.formatTimestamp(suggestion.data.state.liquidation_date);
-                    }
-                    value += '</span>'
+                value = that.formatResult(value, currentValue, suggestion);
+
+                if (inn) {
+                    value += '<span class="' + that.classes.subtext_inline + '">' + inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') + '</span>';
                 }
+
                 if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
                     var address = suggestion.data.address.value
                         .replace(/^\d{6}( РОССИЯ)?, /i, '');
@@ -331,6 +308,16 @@
                 return value;
             }
         };
+
+        function parseInn (data) {
+            var innPattern = {
+                    'LEGAL': /(\d{2})(\d{2})(\d{5})(\d+)/,
+                    'INDIVIDUAL': /(\d{2})(\d{2})(\d{6})(\d+)/
+                }[data.type],
+                inn = data.inn && innPattern && innPattern.exec(data.inn);
+
+            return inn && inn.slice(1);
+        }
 
     }());
 
@@ -374,6 +361,7 @@
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
             subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
+            subtext_delimiter: 'suggestions-subtext-delimiter',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;

@@ -151,28 +151,6 @@
                     return result = !!(obj[field]);
                 });
                 return result;
-            },
-            /**
-             * Calculates hashCode for a string
-             * @param {String} s
-             * @returns {number}
-             */
-            checksum: function (s) {
-                var hash = 0;
-                for (var i = 0; i < s.length; i++) {
-                    var char = s.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32bit integer
-                }
-                return hash;
-            },
-
-            formatTimestamp: function (timestamp) {
-                function doubleDigit(n) {
-                    return n < 10 ? '0' + n : n;
-                }
-                var d = new Date(timestamp);
-                return [doubleDigit(d.getDate()), doubleDigit(d.getMonth()+1), d.getFullYear()].join('.');
             }
         };
     }());

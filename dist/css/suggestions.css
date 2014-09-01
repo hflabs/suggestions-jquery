@@ -97,3 +97,7 @@
 .suggestions-wrapper .suggestions-subtext_inline {
   margin-left: 0.5em;
 }
+.suggestions-wrapper .suggestions-subtext-delimiter {
+  display: inline-block;
+  width: 2px;
+}
