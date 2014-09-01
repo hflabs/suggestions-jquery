@@ -446,7 +446,7 @@
                     } else {
                         that.abortRequest();
                         that.showPreloader();
-                        that.currentRequest = $.ajax(that.getAjaxParams('suggest', { data: utils.serialize(params) }));
+                        that.currentRequest = that.doGetSuggestions(params);
                         that.currentRequest.always(function () {
                             that.currentRequest = null;
                             that.hidePreloader();
@@ -469,6 +469,18 @@
                 }
             }
             return resolver;
+        },
+
+        /**
+         * Sends an AJAX request to server suggest method.
+         * @param {Object} params request params
+         * @returns {$.Deferred} response promise
+         */
+        doGetSuggestions: function(params) {
+            var that = this;
+            return $.ajax(
+                that.getAjaxParams('suggest', { data: utils.serialize(params) })
+            );
         },
 
         isBadQuery: function (q) {
