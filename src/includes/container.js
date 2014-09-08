@@ -24,9 +24,7 @@
                     $container.width(options.width);
                 }
 
-                $container.on('mousemove' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMousemove, that));
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
-                $container.on('mouseout' + eventNS, $.proxy(that.onSuggestionsMouseout, that));
             },
 
             applyContainerOptions: function () {
@@ -44,34 +42,23 @@
             // Dropdown event handlers
 
             /**
-             * Listen for mouse moving event on suggestions list:
-             */
-            onSuggestionMousemove: function (e) {
-                var that = this;
-
-                if (e.target != that._lastMousemoveTarget) {
-                    that._lastMousemoveTarget = e.target;
-                    that.activate(that.getClosestSuggestionIndex(e.target));
-                }
-            },
-
-            /**
              * Listen for click event on suggestions list:
              */
             onSuggestionClick: function (e) {
-                var that = this;
+                var that = this,
+                    $el = $(e.target),
+                    index;
+
                 if (!that.dropdownDisabled) {
-                    that.select(that.getClosestSuggestionIndex(e.target));
+                    while ($el.length && !(index = $el.attr('data-index'))) {
+                        $el = $el.closest('.' + that.classes.suggestion);
+                    }
+                    if (index && !isNaN(index)) {
+                        that.select(+index);
+                    }
                 }
                 that.cancelFocus = true;
                 that.el.focus();
-            },
-
-            /**
-             * Deselect active element when mouse leaves suggestions container:
-             */
-            onSuggestionsMouseout: function () {
-                this.deactivate(false);
             },
 
             // Dropdown UI methods
@@ -84,17 +71,6 @@
                     top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
                     width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
                 });
-            },
-
-            getClosestSuggestionIndex: function (el) {
-                var that = this,
-                    $item = $(el),
-                    selector = '.' + that.classes.suggestion + '[data-index]';
-
-                if (!$item.is(selector)) {
-                    $item = $item.closest(selector);
-                }
-                return $item.data('index');
             },
 
             getSuggestionsItems: function () {
@@ -196,7 +172,7 @@
 
             activate: function (index) {
                 var that = this,
-                    activeItem,
+                    $activeItem,
                     selected = that.classes.selected,
                     $children;
 
@@ -208,9 +184,9 @@
                     that.selectedIndex = index;
 
                     if (that.selectedIndex !== -1 && $children.length > that.selectedIndex) {
-                        activeItem = $children.get(that.selectedIndex);
-                        $(activeItem).addClass(selected);
-                        return activeItem;
+                        $activeItem = $children.eq(that.selectedIndex);
+                        $activeItem.addClass(selected);
+                        return $activeItem;
                     }
                 }
 
@@ -266,24 +242,25 @@
 
             adjustScroll: function (index) {
                 var that = this,
-                    activeItem = that.activate(index),
-                    offsetTop,
-                    upperBound,
-                    lowerBound,
-                    heightDelta = 25;
+                    $activeItem = that.activate(index),
+                    itemTop,
+                    itemBottom,
+                    scrollTop = that.$container.scrollTop(),
+                    containerHeight;
 
-                if (!activeItem) {
+                if (!$activeItem || !$activeItem.length) {
                     return;
                 }
 
-                offsetTop = activeItem.offsetTop;
-                upperBound = that.$container.scrollTop();
-                lowerBound = upperBound + that.options.maxHeight - heightDelta;
-
-                if (offsetTop < upperBound) {
-                    that.$container.scrollTop(offsetTop);
-                } else if (offsetTop > lowerBound) {
-                    that.$container.scrollTop(offsetTop - that.options.maxHeight + heightDelta);
+                itemTop = $activeItem.position().top;
+                if (itemTop < 0 ) {
+                    that.$container.scrollTop(scrollTop + itemTop);
+                } else {
+                    itemBottom = itemTop + $activeItem.outerHeight();
+                    containerHeight = that.$container.innerHeight();
+                    if (itemBottom > containerHeight) {
+                        that.$container.scrollTop(scrollTop - containerHeight + itemBottom);
+                    }
                 }
 
                 that.el.val(that.getValue(that.suggestions[index].value));

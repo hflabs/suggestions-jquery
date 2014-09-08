@@ -31,7 +31,7 @@
   box-shadow: 0 0 2px 2px rgba(255, 255, 255, 0.75);
 }
 .suggestions-wrapper .suggestions-suggestions {
-  background: #FFF;
+  background: #ffffff;
   border: 1px solid #999;
   -ms-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -50,7 +50,7 @@
   overflow: hidden;
 }
 .suggestions-wrapper .suggestions-selected {
-  background: #F0F0F0;
+  background: #f0f0f0;
 }
 .suggestions-wrapper .suggestions-hint {
   color: #777;

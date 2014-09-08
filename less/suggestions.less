@@ -1,6 +1,7 @@
 @preloader-size: 16px;
 @subtext-color: #777;
 @preloader-bg-color: rgba(255, 255, 255, 0.75);
+@suggestions-bg-color: #fff;
 
 .box-sizing(@sizing: border-box) {
     -ms-box-sizing: @sizing;
@@ -47,7 +48,7 @@
     }
 
     .suggestions-suggestions {
-        background: #FFF;
+        background: @suggestions-bg-color;
         border: 1px solid #999;
         .box-sizing;
         cursor: default;
@@ -66,7 +67,7 @@
     }
 
     .suggestions-selected {
-        background: #F0F0F0;
+        background: darken(@suggestions-bg-color, 6%);
     }
 
     .suggestions-hint {
