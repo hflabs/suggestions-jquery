@@ -57,6 +57,49 @@ describe('Select on Enter', function () {
             'москва енисейская 24стр2': [
                 { value: 'г Москва, ул Енисейская, д 24', data: 0 },
                 { value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }
+            ],
+            'хф 1057746629115': [
+                {
+                    value:'ООО ХФ ЛАБС',
+                    data: {
+                        name: {
+                            full: 'ХФ ЛАБС'
+                        },
+                        ogrn: '1057746629115'
+                    }
+                }
+            ],
+            'хф 1057746629': [
+                {
+                    value:'ООО ХФ ЛАБС',
+                    data: {
+                        name: {
+                            full: 'ХФ ЛАБС'
+                        },
+                        ogrn: '1057746629115'
+                    }
+                }
+            ],
+            'газпром 1027700055360': [
+                {   value: 'ОАО Газпром автоматизация',
+                    data: {
+                        name:{
+                            full: 'ГАЗПРОМ АВТОМАТИЗАЦИЯ',
+                            short: 'Газпром автоматизация'
+                        },
+                        ogrn: '1027700055360'
+                        }
+                },
+                {
+                    value: 'Филиал ФЛ ОАО \"Газпром автоматизация\" в г. Астрахань',
+                    data: {
+                        name: {
+                            full: 'ОТКРЫТОГО АКЦИОНЕРНОГО ОБЩЕСТВА \"ГАЗПРОМ АВТОМАТИЗАЦИЯ\" В Г. АСТРАХАНЬ',
+                            short: 'ФЛ ОАО \"Газпром автоматизация\" в г. Астрахань'
+                        },
+                        ogrn: '1027700055360'
+                    }
+                }
             ]
         };
 
@@ -375,6 +418,67 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should trigger when fields (ogrn) match single suggestion', function () {
+
+        var options = {
+            type: 'PARTY',
+            onSelect: function(){}
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'хф 1057746629115';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(fixtures['хф 1057746629115'][0]);
+
+    });
+
+    it('Should NOT trigger when fields (ogrn) partially match single suggestion', function () {
+
+        var options = {
+            type: 'PARTY',
+            onSelect: function(){}
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'хф 1057746629';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+
+    });
+
+    it('Should NOT trigger when fields match several suggestions', function () {
+
+        var options = {
+            type: 'PARTY',
+            onSelect: function(){}
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'газпром 1027700055360';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(this.instance.suggestions.length).toEqual(2);
+        expect(options.onSelect).not.toHaveBeenCalled();
+
     });
 
 });

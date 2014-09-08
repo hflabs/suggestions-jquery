@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.7.2
+ * DaData.ru Suggestions jQuery plugin, version 4.8.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -122,16 +122,16 @@
              * Returns array1 minus array2
              */
             arrayMinus: function(array1, array2) {
-                return $.grep(array1, function(el, i){
+                return array2 ? $.grep(array1, function(el, i){
                     return $.inArray(el, array2) === -1;
-                });
+                }) : array1;
             },
             getWords: function(str, stopwords) {
                 // Split numbers and letters written together
-                str = str.replace(/(\d+)([\wа-яА-ЯёЁ]{2,})/g, '$1 $2')
+                str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
                     .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
 
-                var words = this.compact(str.split(/[.,\s]+/g)),
+                var words = this.compact(str.split(/[.,\s"\(\)]+/g)),
                     lastWord = words.pop(),
                     goodWords = this.arrayMinus(words, stopwords);
 
@@ -149,31 +149,60 @@
              * Returns true if str1 includes str2 plus something else, false otherwise.
              */
             stringEncloses: function(str1, str2) {
-                return str1.indexOf(str2) !== -1 && str1.length > str2.length;
+                return str1.length > str2.length && str1.indexOf(str2) !== -1;
             },
-            haveSameParent: function(suggestions) {
-                if (suggestions.length === 0) {
+            fieldsNotEmpty: function(obj, fields){
+                if (!$.isPlainObject(obj)) {
                     return false;
-                } else if (suggestions.length === 1) {
-                    return true;
-                } else {
-                    var parentValue = suggestions[0].value;
-                    var aliens = $.grep(suggestions, function(suggestion) {
-                        return suggestion.value.indexOf(parentValue) === 0;
-                    }, true);
-                    return aliens.length === 0;
                 }
+                var result = true;
+                $.each(fields, function (i, field) {
+                    return result = !!(obj[field]);
+                });
+                return result;
             },
+            getDeepValue: function(obj, name) {
+                var path = name.split('.'),
+                    step = path.shift();
+
+                return obj && (path.length ? utils.getDeepValue(obj[step], path.join('.')) : obj[step]);
+            }
+        };
+    }());
+
+
+    /**
+     * Methods for selecting a suggestion
+     */
+    var matchers = function() {
+
+        function haveSameParent (suggestions) {
+            if (suggestions.length === 0) {
+                return false;
+            }
+            if (suggestions.length === 1) {
+                return true;
+            }
+
+            var parentValue = suggestions[0].value,
+                aliens = $.grep(suggestions, function (suggestion) {
+                    return suggestion.value.indexOf(parentValue) === 0;
+                }, true);
+
+            return aliens.length === 0;
+        }
+
+        return {
+
             /**
              * Matches query against suggestions, removing all the stopwords.
              */
-            matchByNormalizedQuery: function(query, suggestions, stopwords) {
-                var index = -1,
-                    queryLowerCase = query.toLowerCase();
+            matchByNormalizedQuery: function (query, suggestions) {
+                var queryLowerCase = query.toLowerCase(),
+                    stopwords = this.STOPWORDS,
+                    normalizedQuery = utils.normalize(queryLowerCase, stopwords),
+                    matches = [];
 
-                // match query with suggestions
-                var normalizedQuery = utils.normalize(queryLowerCase, stopwords);
-                var matches = [];
                 $.each(suggestions, function(i, suggestion) {
                     var suggestedValue = suggestion.value.toLowerCase();
                     // if query encloses suggestion, than it has already been selected
@@ -191,56 +220,78 @@
                     }
                 });
 
-                if (matches.length === 1) {
-                    index = matches[0];
-                }
-
-                return index;
+                return matches.length == 1 ? matches[0] : -1;
             },
+
             /**
              * Matches query against suggestions word-by-word (with respect to stopwords).
              * Matches if query words are a subset of suggested words.
              */
-            matchByWords: function(query, suggestions, stopwords) {
-                var index = -1,
-                    queryLowerCase = query.toLowerCase();
+            matchByWords: function (query, suggestions) {
+                var stopwords = this.STOPWORDS,
+                    queryLowerCase = query.toLowerCase(),
+                    queryWords = utils.getWords(queryLowerCase, stopwords),
+                    index = -1;
 
-                var sameParent = utils.haveSameParent(suggestions);
-                if (sameParent) {
+                if (haveSameParent(suggestions)) {
                     $.each(suggestions, function(i, suggestion) {
                         var suggestedValue = suggestion.value.toLowerCase();
+
                         if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
                             return false;
                         }
+
                         // check if query words are a subset of suggested words
-                        var queryWords = utils.getWords(queryLowerCase, stopwords);
                         var suggestionWords = utils.getWords(suggestedValue, stopwords);
+
                         if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
                             index = i;
                             return false;
                         }
                     });
                 }
+
                 return index;
             },
-            fieldsNotEmpty: function(obj, fields){
-                if (!$.isPlainObject(obj)) {
-                    return false;
-                }
-                var result = true;
-                $.each(fields, function (i, field) {
-                    return result = !!(obj[field]);
-                });
-                return result;
-            }
-        };
-    }());
 
+            matchByFields: function (query, suggestions) {
+                var stopwords = this.STOPWORDS,
+                    fieldsStopwords = this.fieldsStopwords,
+                    queryWords = utils.getWords(query.toLowerCase(), stopwords),
+                    matches = [];
+
+                $.each(suggestions, function(i, suggestion) {
+                    var suggestionWords = [];
+
+                    if (fieldsStopwords) {
+                        $.each(fieldsStopwords, function (field, stopwords) {
+                            var fieldValue = utils.getDeepValue(suggestion.data, field),
+                                fieldWords = fieldValue && utils.getWords(fieldValue.toLowerCase(), stopwords);
+
+                            if (fieldWords && fieldWords.length) {
+                                suggestionWords = suggestionWords.concat(fieldWords);
+                            }
+                        });
+                    }
+
+                    if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
+                        matches.push(i);
+                    }
+                });
+
+                return matches.length == 1 ? matches[0] : -1;
+            }
+
+        };
+
+    }();
 
     (function () {
 
+        var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
+
         types['NAME'] = {
-            STOPWORDS: [],
+            matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             isDataComplete: function (data) {
                 var that = this,
                     params = that.options.params,
@@ -256,7 +307,8 @@
         };
 
         types['ADDRESS'] = {
-            STOPWORDS: ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'],
+            STOPWORDS: ADDRESS_STOPWORDS,
+            matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
             isDataComplete: function (data) {
                 var fields = ['house'];
@@ -280,7 +332,18 @@
         };
 
         types['PARTY'] = {
-            STOPWORDS: [],
+            // These fields of suggestion's `data` used by by-words matcher
+            fieldsStopwords: {
+                'address.value': ADDRESS_STOPWORDS,
+                'inn': null,
+                'ogrn': null,
+                'name.full': null,
+                'name.short': null,
+                'name.latin': null,
+                'opf.full': null,
+                'opf.short': null
+            },
+            matchers: [matchers.matchByFields],
             isDataComplete: function (data) {
                 return true;
             },
@@ -294,7 +357,9 @@
                 value = that.formatResult(value, currentValue, suggestion);
 
                 if (inn) {
-                    value += '<span class="' + that.classes.subtext_inline + '">' + inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') + '</span>';
+                    value += '<span class="' + that.classes.subtext_inline + '">' +
+                        inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
+                        '</span>';
                 }
 
                 if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
@@ -302,7 +367,7 @@
                         .replace(/^\d{6}( РОССИЯ)?, /i, '');
 
                     value += '<div class="' + that.classes.subtext + '">' +
-                         that.formatResult(address, currentValue, suggestion) +
+                        that.formatResult(address, currentValue, suggestion) +
                         '</div>';
                 }
                 return value;
@@ -366,7 +431,6 @@
         };
         that.selection = null;
         that.$viewport = $(window);
-        that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
         that.type = null;
 
         // Initialize and set options:
@@ -378,7 +442,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.7.2';
+    Suggestions.version = '4.8.1';
 
     $.Suggestions = Suggestions;
 
@@ -813,12 +877,11 @@
 
         findSuggestionIndex: function (query) {
             var that = this,
-                index = -1,
-                stopwords = that.type.STOPWORDS || [];
+                index = -1;
 
             if ($.trim(query) !== '') {
-                $.each(that.matchers, function(i, matcher) {
-                    index = matcher(query, that.suggestions, stopwords);
+                $.each(that.type.matchers, function(i, matcher) {
+                    index = matcher.call(that.type, query, that.suggestions);
                     return index === -1;
                 });
             }

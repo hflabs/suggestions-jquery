@@ -74,6 +74,8 @@
 
 //include "utils.js"
 
+//include "matchers.js"
+
 //include "types.js"
 
     var serviceMethods = {
@@ -121,7 +123,6 @@
         };
         that.selection = null;
         that.$viewport = $(window);
-        that.matchers = [utils.matchByNormalizedQuery, utils.matchByWords];
         that.type = null;
 
         // Initialize and set options:
@@ -568,12 +569,11 @@
 
         findSuggestionIndex: function (query) {
             var that = this,
-                index = -1,
-                stopwords = that.type.STOPWORDS || [];
+                index = -1;
 
             if ($.trim(query) !== '') {
-                $.each(that.matchers, function(i, matcher) {
-                    index = matcher(query, that.suggestions, stopwords);
+                $.each(that.type.matchers, function(i, matcher) {
+                    index = matcher.call(that.type, query, that.suggestions);
                     return index === -1;
                 });
             }
