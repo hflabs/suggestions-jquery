@@ -67,7 +67,7 @@
             preventBadQueries: false,
             hint: 'Выберите вариант ниже или продолжите ввод',
             type: null,
-            count: 10,
+            count: 5,
             $helpers: null,
             headers: null
         };
