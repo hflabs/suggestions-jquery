@@ -1246,7 +1246,7 @@
                     $container.width(options.width);
                 }
 
-                $container.on('mouseover' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMouseover, that));
+                $container.on('mousemove' + eventNS, suggestionSelector, $.proxy(that.onSuggestionMousemove, that));
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
                 $container.on('mouseout' + eventNS, $.proxy(that.onSuggestionsMouseout, that));
             },
@@ -1266,10 +1266,15 @@
             // Dropdown event handlers
 
             /**
-             * Listen for mouse over event on suggestions list:
+             * Listen for mouse moving event on suggestions list:
              */
-            onSuggestionMouseover: function (e) {
-                this.activate(this.getClosestSuggestionIndex(e.target));
+            onSuggestionMousemove: function (e) {
+                var that = this;
+
+                if (e.target != that._lastMousemoveTarget) {
+                    that._lastMousemoveTarget = e.target;
+                    that.activate(that.getClosestSuggestionIndex(e.target));
+                }
             },
 
             /**
@@ -1307,6 +1312,7 @@
                 var that = this,
                     $item = $(el),
                     selector = '.' + that.classes.suggestion + '[data-index]';
+
                 if (!$item.is(selector)) {
                     $item = $item.closest(selector);
                 }
