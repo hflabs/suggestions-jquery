@@ -49,14 +49,20 @@
   white-space: nowrap;
   overflow: hidden;
 }
+.suggestions-wrapper .suggestions-suggestion:hover {
+  background: #f7f7f7;
+}
 .suggestions-wrapper .suggestions-selected {
   background: #f0f0f0;
 }
+.suggestions-wrapper .suggestions-selected:hover {
+  background: #f0f0f0;
+}
 .suggestions-wrapper .suggestions-hint {
-  color: #777;
   padding: 4px 4px;
   white-space: nowrap;
   overflow: hidden;
+  color: #777;
 }
 .suggestions-wrapper .suggestions-constraints {
   list-style: none;
