@@ -64,15 +64,25 @@
         padding: 4px 4px;
         white-space: nowrap;
         overflow: hidden;
+
+        &:hover {
+            background: darken(@suggestions-bg-color, 3%);
+        }
     }
 
     .suggestions-selected {
         background: darken(@suggestions-bg-color, 6%);
+
+        &:hover {
+            background: darken(@suggestions-bg-color, 6%);
+        }
     }
 
     .suggestions-hint {
+        padding: 4px 4px;
+        white-space: nowrap;
+        overflow: hidden;
         color: #777;
-        .suggestions-suggestion;
     }
 
     .suggestions-constraints {
