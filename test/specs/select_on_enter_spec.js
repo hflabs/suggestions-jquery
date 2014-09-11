@@ -154,7 +154,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith({value: 'Albania', data: 'Al'});
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'})
+        );
     });
 
     it('Should trigger when suggestion is selected manually', function () {
@@ -173,7 +175,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'Andorra', data: 'An' });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'Andorra', data: 'An' })
+        );
     });
 
     it('Should NOT trigger on partial match', function () {
@@ -228,7 +232,9 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 })
+        );
     });
 
     it('Should trigger when normalized query equals single suggestion from list (not same parent)', function () {
@@ -245,7 +251,9 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'г Москва, г Зеленоград', data: 0 });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Москва, г Зеленоград', data: 0 })
+        );
     });
 
     it('Should NOT trigger when normalized query equals single suggestion from list (not same parent) AND is contained in other suggestion at the same time', function () {
@@ -314,7 +322,9 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
+            helpers.appendUnrestrictedValue(
+                { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
+            )
         );
     });
 
@@ -383,7 +393,9 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'г Москва, ул Енисейская, д 24', data: 0 });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24', data: 0 })
+        );
     });
 
     it('Should trigger on joint query match (case 2)', function () {
@@ -400,7 +412,9 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith({ value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 });
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 })
+        );
     });
 
     it('Should NOT trigger when joint query not matched', function () {
@@ -436,8 +450,9 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).toHaveBeenCalledWith(fixtures['хф 1057746629115'][0]);
-
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(fixtures['хф 1057746629115'][0])
+        );
     });
 
     it('Should NOT trigger when fields (ogrn) partially match single suggestion', function () {

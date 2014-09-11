@@ -824,6 +824,7 @@
             }
 
             that.verifySuggestionsFormat(response.suggestions);
+            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -873,6 +874,28 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
+        },
+
+        shouldRestrictValues: function() {
+            var that = this;
+            // treat suggestions value as restricted only if there is one constraint
+            // and restrict_value is true
+            return that.options.restrict_value
+                && that.constraints
+                && Object.keys(that.constraints).length == 1;
+        },
+
+        /**
+         * Fills suggestion.unrestricted_value property
+         */
+        setUnrestrictedValues: function(suggestions) {
+            var that = this,
+                shouldRestrict = that.shouldRestrictValues(),
+                label = that.getFirstConstraintLabel();
+
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+            });
         },
 
         findSuggestionIndex: function (query) {
@@ -1680,6 +1703,10 @@
         /**
          * Methods related to CONSTRAINTS component
          */
+        var optionsUsed = {
+            constraints: null,
+            restrict_value: false
+        };
 
         var methods = {
 
@@ -1794,15 +1821,25 @@
                 });
                 if (locations.length) {
                     params.locations = locations;
+                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
+            },
+
+            /**
+             * Returns label of the first constraint (if any), empty string otherwise
+             * @returns {String}
+             */
+            getFirstConstraintLabel: function() {
+                var that = this,
+                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
+
+                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
 
-        $.extend(defaultOptions, {
-            constraints: null
-        });
+        $.extend(defaultOptions, optionsUsed);
 
         $.extend(Suggestions.prototype, methods);
 

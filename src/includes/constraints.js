@@ -2,6 +2,10 @@
         /**
          * Methods related to CONSTRAINTS component
          */
+        var optionsUsed = {
+            constraints: null,
+            restrict_value: false
+        };
 
         var methods = {
 
@@ -116,15 +120,25 @@
                 });
                 if (locations.length) {
                     params.locations = locations;
+                    params.restrict_value = that.options.restrict_value;
                 }
                 return params;
+            },
+
+            /**
+             * Returns label of the first constraint (if any), empty string otherwise
+             * @returns {String}
+             */
+            getFirstConstraintLabel: function() {
+                var that = this,
+                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
+
+                return constraints_id ? that.constraints[constraints_id].label : '';
             }
 
         };
 
-        $.extend(defaultOptions, {
-            constraints: null
-        });
+        $.extend(defaultOptions, optionsUsed);
 
         $.extend(Suggestions.prototype, methods);
 
