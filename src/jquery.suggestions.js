@@ -515,6 +515,7 @@
             }
 
             that.verifySuggestionsFormat(response.suggestions);
+            that.setUnrestrictedValues(response.suggestions);
 
             // Cache results if cache is not disabled:
             if (!options.noCache) {
@@ -564,6 +565,28 @@
             }
 
             return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
+        },
+
+        shouldRestrictValues: function() {
+            var that = this;
+            // treat suggestions value as restricted only if there is one constraint
+            // and restrict_value is true
+            return that.options.restrict_value
+                && that.constraints
+                && Object.keys(that.constraints).length == 1;
+        },
+
+        /**
+         * Fills suggestion.unrestricted_value property
+         */
+        setUnrestrictedValues: function(suggestions) {
+            var that = this,
+                shouldRestrict = that.shouldRestrictValues(),
+                label = that.getFirstConstraintLabel();
+
+            $.each(suggestions, function(i, suggestion) {
+                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+            });
         },
 
         findSuggestionIndex: function (query) {

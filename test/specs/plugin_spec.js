@@ -57,16 +57,16 @@ describe('Common features', function () {
         this.instance.select(0);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(suggestions[0]);
+        expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]));
     });
 
     it('Should convert suggestions format', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(['Alex','Ammy','Anny']));
-        expect(this.instance.suggestions[0]).toEqual({value:'Alex', data:null});
-        expect(this.instance.suggestions[1]).toEqual({value:'Ammy', data:null});
-        expect(this.instance.suggestions[2]).toEqual({value:'Anny', data:null});
+        expect(this.instance.suggestions[0]).toEqual(helpers.appendUnrestrictedValue({value:'Alex', data:null}));
+        expect(this.instance.suggestions[1]).toEqual(helpers.appendUnrestrictedValue({value:'Ammy', data:null}));
+        expect(this.instance.suggestions[2]).toEqual(helpers.appendUnrestrictedValue({value:'Anny', data:null}));
     });
 
     it('Should use custom query parameter name', function () {
