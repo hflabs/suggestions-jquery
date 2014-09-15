@@ -67,7 +67,7 @@
 
                 if (constraint && (constraint.locations || constraint.restrictions)) {
                     constraint.locations = $.makeArray(constraint.locations || constraint.restrictions);
-                    if (!constraint.label) {
+                    if (!constraint.label && that.type.composeValue) {
                         constraint.label = $.map(constraint.locations, function(location){
                             return that.type.composeValue(location);
                         }).join(', ');
@@ -88,16 +88,18 @@
 
                 id = utils.uniqueId('c');
                 that.constraints[id] = constraint;
-                $item = $('<li/>')
-                    .append($('<span/>').text(constraint.label))
-                    .attr('data-constraint-id', id);
-                if (constraint.deletable) {
-                    $item.append($('<span class="suggestions-remove"/>'));
-                }
 
-                that.$constraints.append($item);
-                if (!that._constraintsUpdating) {
-                    that.fixPosition();
+                if (constraint.label) {
+                    $item = $('<li/>')
+                        .append($('<span/>').text(constraint.label))
+                        .attr('data-constraint-id', id);
+                    if (constraint.deletable) {
+                        $item.append($('<span class="suggestions-remove"/>'));
+                    }
+                    that.$constraints.append($item);
+                    if (!that._constraintsUpdating) {
+                        that.fixPosition();
+                    }
                 }
             },
 

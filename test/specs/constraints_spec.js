@@ -193,6 +193,18 @@ describe('Address constraints', function () {
         expect($items.first().text()).toEqual('Берск (НСО)');
     });
 
+    it('Should not display constraint when `label` is empty and can not be generated from `data`', function() {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    kladr_id: '71'
+                }
+            }
+        });
+
+        expect(this.instance.$constraints.children().length).toEqual(0);
+    });
+
     it('Should not show any cross sign if `deletable` option is omitted', function () {
         this.instance.setOptions({
             constraints: {
