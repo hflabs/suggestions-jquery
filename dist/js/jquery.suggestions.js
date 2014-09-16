@@ -1329,8 +1329,7 @@
         var wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
             wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
             wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
-            wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g'),
-            nonWordSymbols = wordDelimeters + wordPartsDelimeters;
+            wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g');
 
         function formatToken(token) {
             return token.toLowerCase().replace(/[ёЁ]/g, 'е');
@@ -1342,10 +1341,11 @@
             $.each(tokens, function (i, token) {
                 var subtokens = token.split(wordPartsSplitter);
 
+                result.push(token);
+
                 if (subtokens.length > 1) {
                     result = result.concat(subtokens);
                 }
-                result.push(token);
             });
 
             return result;
@@ -1505,40 +1505,47 @@
                 var chunks = [],
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
-                    partialMatchers = {},
-                    rWords = new RegExp('([^' + nonWordSymbols + ']*)([' + nonWordSymbols + ']*)', 'g'),
+                    partialMatchers = $.map(partialTokens, function (token) {
+                        return new RegExp('^(.*[' + wordPartsDelimeters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimeters + ']+)', 'i')
+                    }),
+                    rWords = new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g'),
                     match, word;
 
                 tokens = withSubTokens(tokens);
 
-                // check for matching words
+                // check for matching whole words
                 while ((match = rWords.exec(value)) && match[0]) {
                     word = match[1] && formatToken(match[1]);
                     if (word) {
                         chunks.push({
+                            before: null,
+
                             wordFormatted: word,
                             wordOriginal: match[1],
                             matched: $.inArray(word, unformattableTokens) === -1 && $.inArray(word, tokens) >= 0,
-                            rest: match[2]
+
+                            after: match[2]
                         });
                     } else {
                         chunks.push({
-                            rest: match[0]
+                            after: match[0]
                         });
                     }
                 }
 
                 // check for partial match
-                $.each(partialTokens, function (i, token) {
-                    partialMatchers[token] = new RegExp('^' + utils.escapeRegExChars(token) + '[^' + nonWordSymbols + ']+', 'i');
-                });
                 $.each(chunks, function (i, chunk) {
                     if (!chunk.matched && chunk.wordFormatted && $.inArray(chunk.wordFormatted, unformattableTokens) === -1) {
-                        $.each(partialMatchers, function (token, matcher) {
-                            if (matcher.test(chunk.wordFormatted)) {
+                        $.each(partialMatchers, function (i, matcher) {
+                            var match = matcher.exec(chunk.wordFormatted),
+                                beforeLength;
+
+                            if (match && match[2]) {
+                                beforeLength = match[1] == null ? 0 : match[1].length;
                                 chunk.matched = true;
-                                chunk.rest = chunk.wordOriginal.substr(token.length) + chunk.rest;
-                                chunk.wordOriginal = chunk.wordOriginal.substr(0, token.length);
+                                chunk.before = chunk.wordOriginal.substr(0, beforeLength);
+                                chunk.after = chunk.wordOriginal.substr(beforeLength + match[2].length) + chunk.after;
+                                chunk.wordOriginal = chunk.wordOriginal.substr(beforeLength, match[2].length);
                                 return false;
                             }
                         });
@@ -1552,8 +1559,11 @@
                     if (text && chunk.matched) {
                         text = '<strong>' + text + '</strong>';
                     }
-                    if (chunk.rest) {
-                        text += utils.escapeHtml(chunk.rest);
+                    if (chunk.before) {
+                        text = utils.escapeHtml(chunk.before) + text;
+                    }
+                    if (chunk.after) {
+                        text += utils.escapeHtml(chunk.after);
                     }
 
                     return text;

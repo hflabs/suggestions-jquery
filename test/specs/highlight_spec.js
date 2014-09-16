@@ -20,7 +20,7 @@ describe('Highlight suggestions', function () {
         this.server.restore();
     });
 
-    it('Should highlight search phrase, in beginning of words', function () {
+    it('Should highlight search phrase, in the beginning of word', function () {
         this.input.value = 'japa';
         this.instance.onValueChange();
 
@@ -30,6 +30,42 @@ describe('Highlight suggestions', function () {
 
         expect($item.length).toEqual(1);
         expect($item.html()).toEqual('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love nonjapaneese');
+    });
+
+    it('Should highlight search phrase, in the middle of word, if surrounded by delimiters', function () {
+        this.input.value = 'japa';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['Japaneese and non-japaneese']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toEqual('<strong>Japa<\/strong>neese and non-<strong>japa<\/strong>neese');
+    });
+
+    it('Should highlight search phrase with delimiter in the middle', function () {
+        this.input.value = 'санкт-петер';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['г Санкт-Петербург']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toEqual('г <strong>Санкт-Петер<\/strong>бург');
+    });
+
+    it('Should highlight search phrase with delimiter in the middle, example 2', function () {
+        this.input.value = 'на-дон';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['Ростовская обл, г Ростов-на-Дону']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toEqual('Ростовская обл, г Ростов-<strong>на-Дон<\/strong>у');
     });
 
     it('Should highlight search phrase in quotes', function () {
@@ -113,7 +149,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toContain('<strong>ЗАО</strong> &amp;<strong>LT</strong> &lt;b&gt;bold&lt;/b&gt;');
+        expect($item.html()).toContain('<strong>ЗАО</strong> <strong>&amp;LT</strong> &lt;b&gt;bold&lt;/b&gt;');
     });
 
 });
