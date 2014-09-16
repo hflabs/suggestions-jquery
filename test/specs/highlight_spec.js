@@ -66,7 +66,7 @@ describe('Highlight suggestions', function () {
         expect($item.html()).toEqual('<strong>Пе<\/strong>тров <strong>Петр<\/strong> <strong>Иванович</strong>');
     });
 
-    it('Should highlight address in parties', function () {
+    it('Should highlight address in parties, ignoring address components types', function () {
         this.instance.setOptions({
             type: 'PARTY'
         });
@@ -85,10 +85,35 @@ describe('Highlight suggestions', function () {
             }
         ]));
 
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html();
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('<strong>КРА</strong>СНОДАРСКИЙ');
+        expect(html).toContain('<strong>КРА</strong>СНОДАР,');
+
+        expect(html).toContain(' КРАЙ,');
+        expect(html).not.toContain('<strong>КРА</strong>Й');
+    });
+
+    it('Should escape html entries', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'ЗАО &LT';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ЗАО &LT <b>bold</b>',
+                data: {}
+            }
+        ]));
+
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toContain('<strong>КРА</strong>СНОДАРСКИЙ <strong>КРА</strong>Й, Г <strong>КРА</strong>СНОДАР, П ИНДУСТРИАЛЬНЫЙ, УЛ СВЕТЛАЯ, Д 3');
+        expect($item.html()).toContain('<strong>ЗАО</strong> &amp;<strong>LT</strong> &lt;b&gt;bold&lt;/b&gt;');
     });
 
 });

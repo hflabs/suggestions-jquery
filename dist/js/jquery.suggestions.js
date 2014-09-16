@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.2
+ * DaData.ru Suggestions jQuery plugin, version 4.8.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -47,8 +47,6 @@
             BAD: 6,
             FOREIGN: 7
         },
-        rWordBreak = '[\\s\"-]+',
-        rWordPart = '[^\\s\"-]+',
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,
@@ -84,6 +82,23 @@
         return {
             escapeRegExChars: function (value) {
                 return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+            },
+            escapeHtml: function (str) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#x27;',
+                    '/': '&#x2F;'
+                };
+
+                if (str) {
+                    $.each(map, function(char, html){
+                        str = str.replace(new RegExp(char, 'g'), html);
+                    });
+                }
+                return str;
             },
             getDefaultType: function () {
                 return ($.support.cors ? 'POST' : 'GET');
@@ -350,11 +365,11 @@
             // composeValue not needed
             enrichServiceName: 'default',
             urlSuffix: 'party',
-            formatResult: function (value, currentValue, suggestion) {
+            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
                 var that = this,
                     inn = suggestion.data && parseInn(suggestion.data);
 
-                value = that.formatResult(value, currentValue, suggestion);
+                value = that.formatResult.apply(that, arguments);
 
                 if (inn) {
                     value += '<span class="' + that.classes.subtext_inline + '">' +
@@ -367,7 +382,7 @@
                         .replace(/^\d{6}( РОССИЯ)?, /i, '');
 
                     value += '<div class="' + that.classes.subtext + '">' +
-                        that.formatResult(address, currentValue, suggestion) +
+                        that.formatResult(address, currentValue, suggestion, ADDRESS_STOPWORDS) +
                         '</div>';
                 }
                 return value;
@@ -442,7 +457,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.2';
+    Suggestions.version = '4.8.3';
 
     $.Suggestions = Suggestions;
 
@@ -1311,6 +1326,31 @@
          * Methods related to suggestions dropdown list
          */
 
+        var wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
+            wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
+            wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
+            wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g'),
+            nonWordSymbols = wordDelimeters + wordPartsDelimeters;
+
+        function formatToken(token) {
+            return token.toLowerCase().replace(/[ёЁ]/g, 'е');
+        }
+
+        function withSubTokens(tokens) {
+            var result = [];
+
+            $.each(tokens, function (i, token) {
+                var subtokens = token.split(wordPartsSplitter);
+
+                if (subtokens.length > 1) {
+                    result = result.concat(subtokens);
+                }
+                result.push(token);
+            });
+
+            return result;
+        }
+
         var methods = {
 
             createContainer: function () {
@@ -1419,6 +1459,7 @@
                 var that = this,
                     options = that.options,
                     formatResult = options.formatResult || that.type.formatResult || that.formatResult,
+                    unformattableTokens = that.type.STOPWORDS,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -1434,7 +1475,11 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">' + formatResult.call(that, suggestion.value, trimmedValue, suggestion) + '</div>');
+                    html.push(
+                        '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
+                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, unformattableTokens) +
+                        '</div>'
+                    );
                 });
 
                 that.$container.html(html.join(''));
@@ -1455,19 +1500,64 @@
                 that.visible = true;
             },
 
-            formatResult: function (value, currentValue, suggestion) {
-                var words = currentValue.split(/\s+/g);
+            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
 
-                // replace whole words
-                $.each(words, function(i, word){
-                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordBreak + '|$)', 'gi'), '$1<strong>$2<\/strong>$3');
+                var chunks = [],
+                    tokens = formatToken(currentValue).split(wordSplitter),
+                    partialTokens = withSubTokens([tokens[tokens.length -1]]),
+                    partialMatchers = {},
+                    rWords = new RegExp('([^' + nonWordSymbols + ']*)([' + nonWordSymbols + ']*)', 'g'),
+                    match, word;
+
+                tokens = withSubTokens(tokens);
+
+                // check for matching words
+                while ((match = rWords.exec(value)) && match[0]) {
+                    word = match[1] && formatToken(match[1]);
+                    if (word) {
+                        chunks.push({
+                            wordFormatted: word,
+                            wordOriginal: match[1],
+                            matched: $.inArray(word, unformattableTokens) === -1 && $.inArray(word, tokens) >= 0,
+                            rest: match[2]
+                        });
+                    } else {
+                        chunks.push({
+                            rest: match[0]
+                        });
+                    }
+                }
+
+                // check for partial match
+                $.each(partialTokens, function (i, token) {
+                    partialMatchers[token] = new RegExp('^' + utils.escapeRegExChars(token) + '[^' + nonWordSymbols + ']+', 'i');
+                });
+                $.each(chunks, function (i, chunk) {
+                    if (!chunk.matched && chunk.wordFormatted && $.inArray(chunk.wordFormatted, unformattableTokens) === -1) {
+                        $.each(partialMatchers, function (token, matcher) {
+                            if (matcher.test(chunk.wordFormatted)) {
+                                chunk.matched = true;
+                                chunk.rest = chunk.wordOriginal.substr(token.length) + chunk.rest;
+                                chunk.wordOriginal = chunk.wordOriginal.substr(0, token.length);
+                                return false;
+                            }
+                        });
+                    }
                 });
 
-                // replace words' parts
-                $.each(words.reverse(), function(i, word){
-                    value = value.replace(new RegExp('(^|' + rWordBreak + ')(' + utils.escapeRegExChars(word) + ')(' + rWordPart + ')', 'gi'), '$1<strong>$2<\/strong>$3');
-                });
-                return value;
+                // format chunks
+                return $.map(chunks, function (chunk) {
+                    var text = utils.escapeHtml(chunk.wordOriginal);
+
+                    if (text && chunk.matched) {
+                        text = '<strong>' + text + '</strong>';
+                    }
+                    if (chunk.rest) {
+                        text += utils.escapeHtml(chunk.rest);
+                    }
+
+                    return text;
+                }).join('');
             },
 
             hide: function () {

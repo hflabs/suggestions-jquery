@@ -40,8 +40,6 @@
             BAD: 6,
             FOREIGN: 7
         },
-        rWordBreak = '[\\s\"-]+',
-        rWordPart = '[^\\s\"-]+',
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,

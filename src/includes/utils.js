@@ -4,6 +4,23 @@
             escapeRegExChars: function (value) {
                 return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
             },
+            escapeHtml: function (str) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#x27;',
+                    '/': '&#x2F;'
+                };
+
+                if (str) {
+                    $.each(map, function(char, html){
+                        str = str.replace(new RegExp(char, 'g'), html);
+                    });
+                }
+                return str;
+            },
             getDefaultType: function () {
                 return ($.support.cors ? 'POST' : 'GET');
             },
