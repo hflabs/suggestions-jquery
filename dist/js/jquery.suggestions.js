@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.3
+ * DaData.ru Suggestions jQuery plugin, version 4.8.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -50,12 +50,12 @@
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,
-            onInvalidateSelection: $.noop,
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,
             onSelect: null,
             onSelectNothing: null,
+            onInvalidateSelection: null,
             minChars: 1,
             width: 'auto',
             zIndex: 9999,
@@ -326,7 +326,7 @@
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
             isDataComplete: function (data) {
-                var fields = ['house'];
+                var fields = [this.bounds.to || 'house'];
                 return utils.fieldsNotEmpty(data, fields) &&
                     (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
@@ -457,7 +457,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.3';
+    Suggestions.version = '4.8.4';
 
     $.Suggestions = Suggestions;
 
@@ -490,6 +490,7 @@
                 .removeClass('suggestions-input');
             that.unbindWindowEvents();
             that.removeWrapper();
+            that.el.trigger('suggestions-dispose');
         },
 
         applyHooks: function(hooks) {
@@ -621,7 +622,10 @@
             this.clearCache();
             this.currentValue = '';
             this.selection = null;
+            this.hide();
             this.suggestions = [];
+            this.el.val('');
+            this.el.trigger('suggestions-clear');
         },
 
         disable: function () {
@@ -957,8 +961,10 @@
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({ trim: true, noSpace: true });
-                that.abortRequest();
+                if (!that.selection) {
+                    that.selectCurrentValue({ trim: true, noSpace: true });
+                    that.abortRequest();
+                }
             },
 
             onElementFocus: function () {
@@ -1069,11 +1075,10 @@
 
             onValueChange: function () {
                 var that = this,
-                    options = that.options,
                     value = that.el.val();
 
                 if (that.selection) {
-                    (options.onInvalidateSelection || $.noop).call(that.element, that.selection);
+                    that.trigger('InvalidateSelection', that.selection);
                     that.selection = null;
                 }
 
@@ -2039,7 +2044,7 @@
                         }
                         that.selection = enrichedSuggestion;
 
-                        that.triggerOnSelect(enrichedSuggestion);
+                        that.trigger('Select', enrichedSuggestion);
                         onSelectionCompleted();
                     });
 
@@ -2054,22 +2059,19 @@
 
             },
 
-            triggerOnSelect: function(suggestion) {
-                var that = this,
-                    callback = that.options.onSelect;
-
-                if ($.isFunction(callback)) {
-                    callback.call(that.element, suggestion);
-                }
+            triggerOnSelectNothing: function() {
+                this.trigger('SelectNothing', this.currentValue);
             },
 
-            triggerOnSelectNothing: function() {
+            trigger: function(event) {
                 var that = this,
-                    callback = that.options.onSelectNothing;
+                    args = utils.slice(arguments, 1),
+                    callback = that.options['on' + event];
 
                 if ($.isFunction(callback)) {
-                    callback.call(that.element, that.currentValue);
+                    callback.apply(that.element, args);
                 }
+                that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
             },
 
             trySelectOnSpace: function (value) {
@@ -2097,6 +2099,99 @@
 
     }());
 
+
+// bounds should be after constraints to let override `locations` and `restrict_value` params
+(function() {
+    /**
+     * features for connected instances
+     */
+
+    var optionsUsed = {
+        bounds: null
+    };
+
+    var methods = {
+
+        setupBounds: function () {
+            this.bounds = {
+                $parent: $(),
+                from: null,
+                to: null
+            };
+        },
+
+        unbindFromParent: function  () {
+            this.bounds.$parent.off('.' + this.uniqueId);
+        },
+
+        setBoundsOptions: function () {
+            var that = this,
+                $oldParent = that.bounds.$parent,
+                $newParent = $(that.options.bounds && that.options.bounds.parent),
+                newBounds = $.trim(that.options.bounds && that.options.bounds.for).split('-');
+
+            if (!$oldParent.is($newParent)) {
+                that.unbindFromParent();
+                $newParent.on(
+                    [
+                        'suggestions-select.' + that.uniqueId,
+                        'suggestions-selectnothing.' + that.uniqueId,
+                        'suggestions-invalidateselection.' + that.uniqueId,
+                        'suggestions-clear.' + that.uniqueId
+                    ].join(' '),
+                    $.proxy(that.onParentSelectionChanged, that)
+                );
+                $newParent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+            }
+            that.bounds.$parent = $newParent;
+
+            that.bounds.from = newBounds[0];
+            that.bounds.to = newBounds[newBounds.length - 1];
+        },
+
+        constructBoundsParams: function () {
+            var that = this,
+                parentKlardId = utils.getDeepValue(that.bounds.$parent.suggestions(), 'selection.data.kladr_id'),
+                params = {};
+
+            if (parentKlardId) {
+                params['locations'] = [{ 'kladr_id': parentKlardId }];
+                params['restrict_value'] = true;
+            }
+
+            if (that.bounds.from) {
+                params['from_bound'] = { value: that.bounds.from };
+            }
+            if (that.bounds.to) {
+                params['to_bound'] = { value: that.bounds.to };
+            }
+
+            return params;
+        },
+
+        onParentSelectionChanged: function (e, suggestion) {
+            this.clear();
+        },
+
+        onParentDispose: function (e) {
+            this.unbindFromParent();
+        }
+
+    };
+
+    $.extend(defaultOptions, optionsUsed);
+
+    $.extend(Suggestions.prototype, methods);
+
+    initializeHooks.push(methods.setupBounds);
+
+    disposeHooks.push(methods.unbindFromParent);
+
+    setOptionsHooks.push(methods.setBoundsOptions);
+
+    requestParamsHooks.push(methods.constructBoundsParams);
+
+})();
 
     // Create chainable jQuery plugin:
     $.fn.suggestions = function (options, args) {

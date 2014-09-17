@@ -27,8 +27,10 @@
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({ trim: true, noSpace: true });
-                that.abortRequest();
+                if (!that.selection) {
+                    that.selectCurrentValue({ trim: true, noSpace: true });
+                    that.abortRequest();
+                }
             },
 
             onElementFocus: function () {
@@ -139,11 +141,10 @@
 
             onValueChange: function () {
                 var that = this,
-                    options = that.options,
                     value = that.el.val();
 
                 if (that.selection) {
-                    (options.onInvalidateSelection || $.noop).call(that.element, that.selection);
+                    that.trigger('InvalidateSelection', that.selection);
                     that.selection = null;
                 }
 

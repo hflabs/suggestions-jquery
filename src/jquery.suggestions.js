@@ -43,12 +43,12 @@
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,
-            onInvalidateSelection: $.noop,
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,
             onSelect: null,
             onSelectNothing: null,
+            onInvalidateSelection: null,
             minChars: 1,
             width: 'auto',
             zIndex: 9999,
@@ -165,6 +165,7 @@
                 .removeClass('suggestions-input');
             that.unbindWindowEvents();
             that.removeWrapper();
+            that.el.trigger('suggestions-dispose');
         },
 
         applyHooks: function(hooks) {
@@ -296,7 +297,10 @@
             this.clearCache();
             this.currentValue = '';
             this.selection = null;
+            this.hide();
             this.suggestions = [];
+            this.el.val('');
+            this.el.trigger('suggestions-clear');
         },
 
         disable: function () {
@@ -618,6 +622,9 @@
 //include "constraints.js"
 
 //include "select.js"
+
+// bounds should be after constraints to let override `locations` and `restrict_value` params
+//include "bounds.js"
 
     // Create chainable jQuery plugin:
     $.fn.suggestions = function (options, args) {

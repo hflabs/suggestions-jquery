@@ -23,7 +23,7 @@
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
             isDataComplete: function (data) {
-                var fields = ['house'];
+                var fields = [this.bounds.to || 'house'];
                 return utils.fieldsNotEmpty(data, fields) &&
                     (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },

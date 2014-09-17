@@ -77,7 +77,7 @@
                         }
                         that.selection = enrichedSuggestion;
 
-                        that.triggerOnSelect(enrichedSuggestion);
+                        that.trigger('Select', enrichedSuggestion);
                         onSelectionCompleted();
                     });
 
@@ -92,22 +92,19 @@
 
             },
 
-            triggerOnSelect: function(suggestion) {
-                var that = this,
-                    callback = that.options.onSelect;
-
-                if ($.isFunction(callback)) {
-                    callback.call(that.element, suggestion);
-                }
+            triggerOnSelectNothing: function() {
+                this.trigger('SelectNothing', this.currentValue);
             },
 
-            triggerOnSelectNothing: function() {
+            trigger: function(event) {
                 var that = this,
-                    callback = that.options.onSelectNothing;
+                    args = utils.slice(arguments, 1),
+                    callback = that.options['on' + event];
 
                 if ($.isFunction(callback)) {
-                    callback.call(that.element, that.currentValue);
+                    callback.apply(that.element, args);
                 }
+                that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
             },
 
             trySelectOnSpace: function (value) {
