@@ -5,6 +5,4 @@ jQuery-плагин Подсказок DaData.ru
 
 jQuery-плагин для сервиса [подсказок DaData.ru](https://dadata.ru/suggestions/).
 
-Основан на jQuery и плагине [DevBridge Autocomplete](https://github.com/devbridge/jQuery-Autocomplete).
-
 Документация и примеры использования плагина — [на вики](http://confluence.hflabs.ru/pages/viewpage.action?pageId=204669097).
