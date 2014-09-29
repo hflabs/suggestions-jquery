@@ -106,6 +106,42 @@ describe('Common features', function () {
         expect(this.server.requests[0].requestBody).toContain('{"a":2,');
     });
 
+    it('Should include `bounds` option into request, if it is a range', function () {
+        this.instance.setOptions({
+            bounds: 'city-street'
+        });
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"from_bound":{"value":"city"}');
+        expect(this.server.requests[0].requestBody).toContain('"to_bound":{"value":"street"}');
+    });
+
+    it('Should include `bounds` option into request, if it is a single value', function () {
+        this.instance.setOptions({
+            bounds: 'city'
+        });
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"from_bound":{"value":"city"}');
+        expect(this.server.requests[0].requestBody).toContain('"to_bound":{"value":"city"}');
+    });
+
+    it('Should include `bounds` option into request, if it is an open range', function () {
+        this.instance.setOptions({
+            bounds: 'street-'
+        });
+
+        this.input.value = 'Jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"from_bound":{"value":"street"}');
+        expect(this.server.requests[0].requestBody).not.toContain('"to_bound":');
+    });
+
     it('Should destroy suggestions instance', function () {
         var $div = $(document.createElement('div'));
 

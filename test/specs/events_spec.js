@@ -73,4 +73,27 @@ describe('Element events', function () {
         expect(eventArgs).toEqual([helpers.appendUnrestrictedValue(suggestion)]);
     });
 
+    it('`suggestions-dispose` should be triggered', function () {
+        var $parent = $('<input>')
+                .appendTo($('body'));
+
+        $parent.suggestions({
+            type: 'ADDRESS',
+            serviceUrl: serviceUrl,
+            geoLocation: false,
+            useDadata: false
+        });
+
+        spyOn(this.instance, 'onParentDispose');
+
+        this.instance.setOptions({
+            constraints: $parent
+        });
+
+        $parent.suggestions().dispose();
+        $parent.remove();
+
+        expect(this.instance.onParentDispose).toHaveBeenCalled();
+    });
+
 });

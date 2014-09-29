@@ -623,7 +623,6 @@
 
 //include "select.js"
 
-// bounds should be after constraints to let override `locations` and `restrict_value` params
 //include "bounds.js"
 
     // Create chainable jQuery plugin:

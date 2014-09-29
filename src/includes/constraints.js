@@ -47,19 +47,36 @@
 
             setupConstraints: function () {
                 var that = this,
-                    constraints = that.options.constraints;
+                    constraints = that.options.constraints,
+                    $parent;
 
                 if (!constraints) {
+                    that.unbindFromParent();
                     return;
                 }
 
-                that._constraintsUpdating = true;
-                $.each(that.constraints, $.proxy(that.removeConstraint, that));
-                $.each($.makeArray(constraints), function (i, constraint) {
-                    that.addConstraint(constraint);
-                });
-                that._constraintsUpdating = false;
-                that.fixPosition();
+                if (constraints instanceof $ || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
+                    $parent = $(constraints);
+                    if (!$parent.is(that.constraints)) {
+                        that.unbindFromParent();
+                        that.constraints = $parent;
+                        $parent.on([
+                            'suggestions-select.' + that.uniqueId,
+                            'suggestions-selectnothing.' + that.uniqueId,
+                            'suggestions-invalidateselection.' + that.uniqueId,
+                            'suggestions-clear.' + that.uniqueId
+                        ].join(' '), $.proxy(that.onParentSelectionChanged, that));
+                        $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+                    }
+                } else {
+                    that._constraintsUpdating = true;
+                    $.each(that.constraints, $.proxy(that.removeConstraint, that));
+                    $.each($.makeArray(constraints), function (i, constraint) {
+                        that.addConstraint(constraint);
+                    });
+                    that._constraintsUpdating = false;
+                    that.fixPosition();
+                }
             },
 
             formatConstraint: function (constraint) {
@@ -115,15 +132,25 @@
             constructConstraintsParams: function () {
                 var that = this,
                     locations = [],
+                    parentKladrId,
                     params = {};
 
-                $.each(that.constraints, function(id, constraint){
-                    locations = locations.concat(constraint.locations);
-                });
-                if (locations.length) {
-                    params.locations = locations;
-                    params.restrict_value = that.options.restrict_value;
+                if (that.constraints instanceof $) {
+                    parentKladrId = utils.getDeepValue(that.constraints.suggestions(), 'selection.data.kladr_id');
+                    if (parentKladrId) {
+                        params.locations = [{ 'kladr_id': parentKladrId }];
+                        params.restrict_value = true;
+                    }
+                } else {
+                    $.each(that.constraints, function (id, constraint) {
+                        locations = locations.concat(constraint.locations);
+                    });
+                    if (locations.length) {
+                        params.locations = locations;
+                        params.restrict_value = that.options.restrict_value;
+                    }
                 }
+
                 return params;
             },
 
@@ -133,9 +160,25 @@
              */
             getFirstConstraintLabel: function() {
                 var that = this,
-                    constraints_id = that.constraints && Object.keys(that.constraints)[0];
+                    constraints_id = $.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
 
                 return constraints_id ? that.constraints[constraints_id].label : '';
+            },
+
+            unbindFromParent: function  () {
+                var $parent = this.constraints;
+
+                if ($parent instanceof $) {
+                    $parent.off('.' + this.uniqueId);
+                }
+            },
+
+            onParentSelectionChanged: function (e, suggestion) {
+                this.clear();
+            },
+
+            onParentDispose: function (e) {
+                this.unbindFromParent();
             }
 
         };
@@ -156,5 +199,7 @@
         fixPositionHooks.push(methods.setConstraintsPosition);
 
         requestParamsHooks.push(methods.constructConstraintsParams);
+
+        disposeHooks.push(methods.unbindFromParent);
 
     }());

@@ -313,4 +313,34 @@ describe('Address constraints', function () {
         });
     });
 
+    it('Should set another control\'s suggestion as a constraint', function () {
+        var $parent = $('<input>')
+            .appendTo($('body'));
+
+        $parent.suggestions({
+            type: 'ADDRESS',
+            serviceUrl: serviceUrl,
+            geoLocation: false,
+            useDadata: false
+        });
+
+        $parent.suggestions().setSuggestion({
+            value: 'г. Санкт-Петербург',
+            data: {
+                kladr_id: '7800000000000'
+            }
+        });
+
+        this.instance.setOptions({
+            constraints: $parent
+        });
+
+        this.input.value = 'улица';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"7800000000000"}]');
+        expect(this.server.requests[0].requestBody).toContain('"restrict_value":true');
+
+    });
+
 });
