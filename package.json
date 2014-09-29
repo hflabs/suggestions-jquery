@@ -19,7 +19,8 @@
         "grunt-contrib-concat": ">= 0.5",
         "grunt-contrib-less": ">= 0.10",
         "grunt-includes": "*",
-        "grunt-sed": "*"
+        "grunt-sed": "*",
+        "grunt-lineending": ">= 0.2"
     },
     "scripts": {
         "test": "grunt test"

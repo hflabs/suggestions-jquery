@@ -13,6 +13,27 @@ module.exports = function(grunt){
             ' For details, see <%= pkg.homepage %>',
             '/\n'].join('\n *'),
 
+        lineending: {
+            options: {
+                eol: 'lf',
+                overwrite: true
+            },
+            src: {
+                files: [{
+                    expand: true,
+                    cwd: 'src/',
+                    src: '**/*.js'
+                }]
+            },
+            tests: {
+                files: [{
+                    expand: true,
+                    cwd: 'test/specs',
+                    src: '*.js'
+                }]
+            }
+        },
+
         includes: {
             options: {
                 banner: '<%= banner %>',
@@ -89,8 +110,9 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-includes');
     grunt.loadNpmTasks('grunt-sed');
+    grunt.loadNpmTasks('grunt-lineending');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
-    grunt.registerTask('build', ['less', 'includes', 'uglify:jsmin', 'sed:version', 'test']);
+    grunt.registerTask('build', ['lineending', 'less', 'includes', 'uglify:jsmin', 'sed:version', 'test']);
     grunt.registerTask('default', ['build']);
 };
