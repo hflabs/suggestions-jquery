@@ -52,18 +52,6 @@
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
             },
 
-            applyContainerOptions: function () {
-                var that = this,
-                    options = that.options;
-
-                // Adjust height, width and z-index:
-                that.$container.css({
-                    'max-height': options.maxHeight + 'px',
-                    'z-index': options.zIndex,
-                    'width': options.width
-                });
-            },
-
             // Dropdown event handlers
 
             /**
@@ -89,13 +77,21 @@
             // Dropdown UI methods
 
             setDropdownPosition: function (origin, elLayout) {
-                var that = this;
+                var that = this,
+                    isMobile = that.isMobile(),
+                    style = {
+                        left: origin.left + 'px',
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
+                    };
 
-                that.$container.css({
-                    left: origin.left + 'px',
-                    top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
-                    width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
-                });
+                if (isMobile) {
+                    style.width = that.$viewport.width() - that.el.offset().left + 'px';
+                } else {
+                    style.width = (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px';
+                }
+                that.$container
+                    .toggleClass(that.classes.mobile, isMobile)
+                    .css(style);
             },
 
             getSuggestionsItems: function () {
@@ -136,7 +132,6 @@
                 var that = this,
                     options = that.options,
                     formatResult = options.formatResult || that.type.formatResult || that.formatResult,
-                    unformattableTokens = that.type.STOPWORDS,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -154,7 +149,9 @@
                     }
                     html.push(
                         '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
-                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, unformattableTokens) +
+                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, {
+                                unformattableTokens: that.type.STOPWORDS
+                            }) +
                         '</div>'
                     );
                 });
@@ -177,9 +174,21 @@
                 that.visible = true;
             },
 
-            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
+            /**
+             * Makes HTML contents for suggestion item
+             * @param {String} value string to be displayed as a value
+             * @param {String} currentValue contents of the textbox
+             * @param suggestion whole suggestion object with displaying value and other fields
+             * @param {Object} [options] set of flags:
+             *          `unformattableTokens` - array of search tokens, that are not to be highlighted
+             *          `maxLength` - if set, `value` is limited by this length
+             * @returns {String} HTML to be inserted in the list
+             */
+            formatResult: function (value, currentValue, suggestion, options) {
 
                 var chunks = [],
+                    unformattableTokens = options && options.unformattableTokens,
+                    maxLength = options && options.maxLength || value.length,
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
                     partialMatchers = $.map(partialTokens, function (token) {
@@ -201,7 +210,8 @@
                             wordOriginal: match[1],
                             matched: $.inArray(word, unformattableTokens) === -1 && $.inArray(word, tokens) >= 0,
 
-                            after: match[2]
+                            after: match[2],
+                            length: match[0].length
                         });
                     } else {
                         chunks.push({
@@ -227,6 +237,16 @@
                             }
                         });
                     }
+
+                    maxLength -= chunk.length;
+                    if (maxLength < 0) {
+                        checkChunkField(chunk, 'after');
+                        checkChunkField(chunk, 'wordOriginal');
+                        checkChunkField(chunk, 'before');
+
+                        chunks.length = i + 1;
+                        return false;
+                    }
                 });
 
                 // format chunks
@@ -245,6 +265,19 @@
 
                     return text;
                 }).join('');
+
+                function checkChunkField (chunk, field) {
+                    var length;
+
+                    if (chunk[field]) {
+                        length = chunk[field].length;
+                        maxLength += length;
+                        chunk[field] = chunk[field].substr(0, maxLength);
+                        if (maxLength > 0 && maxLength < length) {
+                            chunk[field] += '...';
+                        }
+                    }
+                }
             },
 
             hide: function () {
@@ -356,8 +389,6 @@
         $.extend(Suggestions.prototype, methods);
 
         initializeHooks.push(methods.createContainer);
-
-        setOptionsHooks.push(methods.applyContainerOptions);
 
         fixPositionHooks.push(methods.setDropdownPosition);
 

@@ -37,8 +37,14 @@
                 var that = this;
 
                 if (!that.cancelFocus) {
-                    that.fixPosition();
-                    that.update();
+                    // defer methods to allow browser update input's style before
+                    utils.delay(function () {
+                        if (that.isMobile()) {
+                            that.scrollToTop();
+                        }
+                        that.fixPosition();
+                        that.update();
+                    });
                 }
                 that.cancelFocus = false;
             },

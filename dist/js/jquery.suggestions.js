@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.4
+ * DaData.ru Suggestions jQuery plugin, version 4.8.5
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -58,8 +58,6 @@
             onInvalidateSelection: null,
             minChars: 1,
             width: 'auto',
-            zIndex: 9999,
-            maxHeight: 300,
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
@@ -74,7 +72,9 @@
             type: null,
             count: 5,
             $helpers: null,
-            headers: null
+            headers: null,
+            scrollOnFocus: true,
+            mobileWidth: 768
         };
 
     var utils = (function () {
@@ -365,11 +365,15 @@
             // composeValue not needed
             enrichServiceName: 'default',
             urlSuffix: 'party',
-            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
+            formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     inn = suggestion.data && parseInn(suggestion.data);
 
-                value = that.formatResult.apply(that, arguments);
+                if (that.isMobile()) {
+                    (options || (options = {})).maxLength = 50;
+                }
+
+                value = that.formatResult.call(that, value, currentValue, suggestion, options);
 
                 if (inn) {
                     value += '<span class="' + that.classes.subtext_inline + '">' +
@@ -382,7 +386,9 @@
                         .replace(/^\d{6}( РОССИЯ)?, /i, '');
 
                     value += '<div class="' + that.classes.subtext + '">' +
-                        that.formatResult(address, currentValue, suggestion, ADDRESS_STOPWORDS) +
+                        that.formatResult(address, currentValue, suggestion, {
+                            unformattableTokens: ADDRESS_STOPWORDS
+                        }) +
                         '</div>';
                 }
                 return value;
@@ -437,6 +443,7 @@
         that.options = $.extend({}, defaultOptions, options);
         that.classes = {
             hint: 'suggestions-hint',
+            mobile: 'suggestions-mobile',
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
@@ -457,7 +464,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.4';
+    Suggestions.version = '4.8.5';
 
     $.Suggestions = Suggestions;
 
@@ -562,6 +569,22 @@
 
         unbindWindowEvents: function () {
             this.$viewport.off('resize' + eventNS + this.uniqueId);
+        },
+
+        isMobile: function () {
+            return this.$viewport.width() <= this.options.mobileWidth;
+        },
+
+        scrollToTop: function () {
+            var that = this,
+                scrollTarget = that.options.scrollOnFocus;
+
+            if (scrollTarget === true) {
+                scrollTarget = that.el;
+            }
+            if (scrollTarget instanceof $ && scrollTarget.length > 0) {
+                $('body,html').scrollTop(scrollTarget.offset().top);
+            }
         },
 
         // Configuration methods
@@ -971,8 +994,14 @@
                 var that = this;
 
                 if (!that.cancelFocus) {
-                    that.fixPosition();
-                    that.update();
+                    // defer methods to allow browser update input's style before
+                    utils.delay(function () {
+                        if (that.isMobile()) {
+                            that.scrollToTop();
+                        }
+                        that.fixPosition();
+                        that.update();
+                    });
                 }
                 that.cancelFocus = false;
             },
@@ -1380,18 +1409,6 @@
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
             },
 
-            applyContainerOptions: function () {
-                var that = this,
-                    options = that.options;
-
-                // Adjust height, width and z-index:
-                that.$container.css({
-                    'max-height': options.maxHeight + 'px',
-                    'z-index': options.zIndex,
-                    'width': options.width
-                });
-            },
-
             // Dropdown event handlers
 
             /**
@@ -1417,13 +1434,21 @@
             // Dropdown UI methods
 
             setDropdownPosition: function (origin, elLayout) {
-                var that = this;
+                var that = this,
+                    isMobile = that.isMobile(),
+                    style = {
+                        left: origin.left + 'px',
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
+                    };
 
-                that.$container.css({
-                    left: origin.left + 'px',
-                    top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
-                    width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
-                });
+                if (isMobile) {
+                    style.width = that.$viewport.width() - that.el.offset().left + 'px';
+                } else {
+                    style.width = (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px';
+                }
+                that.$container
+                    .toggleClass(that.classes.mobile, isMobile)
+                    .css(style);
             },
 
             getSuggestionsItems: function () {
@@ -1464,7 +1489,6 @@
                 var that = this,
                     options = that.options,
                     formatResult = options.formatResult || that.type.formatResult || that.formatResult,
-                    unformattableTokens = that.type.STOPWORDS,
                     trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
@@ -1482,7 +1506,9 @@
                     }
                     html.push(
                         '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
-                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, unformattableTokens) +
+                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, {
+                                unformattableTokens: that.type.STOPWORDS
+                            }) +
                         '</div>'
                     );
                 });
@@ -1505,9 +1531,21 @@
                 that.visible = true;
             },
 
-            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
+            /**
+             * Makes HTML contents for suggestion item
+             * @param {String} value string to be displayed as a value
+             * @param {String} currentValue contents of the textbox
+             * @param suggestion whole suggestion object with displaying value and other fields
+             * @param {Object} [options] set of flags:
+             *          `unformattableTokens` - array of search tokens, that are not to be highlighted
+             *          `maxLength` - if set, `value` is limited by this length
+             * @returns {String} HTML to be inserted in the list
+             */
+            formatResult: function (value, currentValue, suggestion, options) {
 
                 var chunks = [],
+                    unformattableTokens = options && options.unformattableTokens,
+                    maxLength = options && options.maxLength || value.length,
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
                     partialMatchers = $.map(partialTokens, function (token) {
@@ -1529,7 +1567,8 @@
                             wordOriginal: match[1],
                             matched: $.inArray(word, unformattableTokens) === -1 && $.inArray(word, tokens) >= 0,
 
-                            after: match[2]
+                            after: match[2],
+                            length: match[0].length
                         });
                     } else {
                         chunks.push({
@@ -1555,6 +1594,16 @@
                             }
                         });
                     }
+
+                    maxLength -= chunk.length;
+                    if (maxLength < 0) {
+                        checkChunkField(chunk, 'after');
+                        checkChunkField(chunk, 'wordOriginal');
+                        checkChunkField(chunk, 'before');
+
+                        chunks.length = i + 1;
+                        return false;
+                    }
                 });
 
                 // format chunks
@@ -1573,6 +1622,19 @@
 
                     return text;
                 }).join('');
+
+                function checkChunkField (chunk, field) {
+                    var length;
+
+                    if (chunk[field]) {
+                        length = chunk[field].length;
+                        maxLength += length;
+                        chunk[field] = chunk[field].substr(0, maxLength);
+                        if (maxLength > 0 && maxLength < length) {
+                            chunk[field] += '...';
+                        }
+                    }
+                }
             },
 
             hide: function () {
@@ -1684,8 +1746,6 @@
         $.extend(Suggestions.prototype, methods);
 
         initializeHooks.push(methods.createContainer);
-
-        setOptionsHooks.push(methods.applyContainerOptions);
 
         fixPositionHooks.push(methods.setDropdownPosition);
 

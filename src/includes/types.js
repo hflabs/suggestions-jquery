@@ -62,11 +62,15 @@
             // composeValue not needed
             enrichServiceName: 'default',
             urlSuffix: 'party',
-            formatResult: function (value, currentValue, suggestion, unformattableTokens) {
+            formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     inn = suggestion.data && parseInn(suggestion.data);
 
-                value = that.formatResult.apply(that, arguments);
+                if (that.isMobile()) {
+                    (options || (options = {})).maxLength = 50;
+                }
+
+                value = that.formatResult.call(that, value, currentValue, suggestion, options);
 
                 if (inn) {
                     value += '<span class="' + that.classes.subtext_inline + '">' +
@@ -79,7 +83,9 @@
                         .replace(/^\d{6}( РОССИЯ)?, /i, '');
 
                     value += '<div class="' + that.classes.subtext + '">' +
-                        that.formatResult(address, currentValue, suggestion, ADDRESS_STOPWORDS) +
+                        that.formatResult(address, currentValue, suggestion, {
+                            unformattableTokens: ADDRESS_STOPWORDS
+                        }) +
                         '</div>';
                 }
                 return value;

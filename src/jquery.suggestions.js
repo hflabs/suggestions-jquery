@@ -51,8 +51,6 @@
             onInvalidateSelection: null,
             minChars: 1,
             width: 'auto',
-            zIndex: 9999,
-            maxHeight: 300,
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
@@ -67,7 +65,9 @@
             type: null,
             count: 5,
             $helpers: null,
-            headers: null
+            headers: null,
+            scrollOnFocus: true,
+            mobileWidth: 768
         };
 
 //include "utils.js"
@@ -112,6 +112,7 @@
         that.options = $.extend({}, defaultOptions, options);
         that.classes = {
             hint: 'suggestions-hint',
+            mobile: 'suggestions-mobile',
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
@@ -237,6 +238,22 @@
 
         unbindWindowEvents: function () {
             this.$viewport.off('resize' + eventNS + this.uniqueId);
+        },
+
+        isMobile: function () {
+            return this.$viewport.width() <= this.options.mobileWidth;
+        },
+
+        scrollToTop: function () {
+            var that = this,
+                scrollTarget = that.options.scrollOnFocus;
+
+            if (scrollTarget === true) {
+                scrollTarget = that.el;
+            }
+            if (scrollTarget instanceof $ && scrollTarget.length > 0) {
+                $('body,html').scrollTop(scrollTarget.offset().top);
+            }
         },
 
         // Configuration methods

@@ -152,4 +152,24 @@ describe('Highlight suggestions', function () {
         expect($item.html()).toContain('<strong>ЗАО</strong> <strong>&amp;LT</strong> &lt;b&gt;bold&lt;/b&gt;');
     });
 
+    it('Should drop the end of text if `maxLength` option specified', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'мфюа калмыц';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'Филиал КАЛМЫЦКИЙ ФИЛИАЛ АККРЕДИТОВАННОГО ОБРАЗОВАТЕЛЬНОГО ЧАСТНОГО УЧРЕЖДЕНИЯ ВЫСШЕГО ПРОФЕССИОНАЛЬНОГО ОБРАЗОВАНИЯ "МОСКОВСКИЙ ФИНАНСОВО-ЮРИДИЧЕСКИЙ УНИВЕРСИТЕТ МФЮА"',
+                data: {}
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toEqual('Филиал <strong>КАЛМЫЦ</strong>КИЙ ФИЛИАЛ АККРЕДИТОВАННОГО ОБРАЗОВАТ...');
+    });
+
 });

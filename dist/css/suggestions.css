@@ -38,11 +38,18 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   cursor: default;
-  overflow: auto;
+  z-index: 9999;
 }
 .suggestions-wrapper .suggestions-suggestions strong {
   font-weight: normal;
   color: #3399FF;
+}
+.suggestions-wrapper .suggestions-suggestions.suggestions-mobile {
+  background: transparent;
+  border: none;
+}
+.suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-suggestion {
+  white-space: normal;
 }
 .suggestions-wrapper .suggestions-suggestion {
   padding: 4px 4px;
@@ -99,6 +106,9 @@
 }
 .suggestions-wrapper .suggestions-subtext {
   color: #777777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .suggestions-wrapper .suggestions-subtext_inline {
   margin-left: 0.5em;

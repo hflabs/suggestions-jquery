@@ -52,11 +52,21 @@
         border: 1px solid #999;
         .box-sizing;
         cursor: default;
-        overflow: auto;
+        z-index: 9999;
 
         strong {
             font-weight: normal;
             color: #3399FF;
+        }
+
+        &.suggestions-mobile {
+            background: transparent;
+            border: none;
+
+            .suggestions-suggestion {
+                white-space: normal;
+            }
+
         }
     }
 
@@ -125,6 +135,9 @@
 
     .suggestions-subtext {
         color: @subtext-color;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .suggestions-subtext_inline {

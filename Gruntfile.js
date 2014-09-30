@@ -113,6 +113,6 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-lineending');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
-    grunt.registerTask('build', ['lineending', 'less', 'includes', 'uglify:jsmin', 'sed:version', 'test']);
-    grunt.registerTask('default', ['build']);
+    grunt.registerTask('build', ['lineending', 'less', 'includes', 'uglify:jsmin', 'sed:version']);
+    grunt.registerTask('default', ['build', 'test']);
 };
