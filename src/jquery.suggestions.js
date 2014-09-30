@@ -277,7 +277,6 @@
         fixPosition: function () {
             var that = this,
                 elLayout = {},
-                elOffset,
                 wrapperOffset,
                 origin;
 
@@ -288,16 +287,17 @@
             elLayout.paddingLeft = parseFloat(that.el.css('paddingLeft'));
             elLayout.paddingRight = parseFloat(that.el.css('paddingRight'));
 
-            elOffset = that.el.offset();
+            $.extend(elLayout, that.el.offset());
             elLayout.borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width'));
             elLayout.borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width'));
             elLayout.innerHeight = that.el.innerHeight();
             elLayout.innerWidth = that.el.innerWidth();
+            elLayout.outerHeight = that.el.outerHeight();
             wrapperOffset = that.$wrapper.offset();
 
             origin = {
-                top: elOffset.top - wrapperOffset.top,
-                left: elOffset.left - wrapperOffset.left
+                top: elLayout.top - wrapperOffset.top,
+                left: elLayout.left - wrapperOffset.left
             };
 
             that.applyHooks(fixPositionHooks, origin, elLayout);

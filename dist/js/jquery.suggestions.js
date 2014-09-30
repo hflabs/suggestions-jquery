@@ -608,7 +608,6 @@
         fixPosition: function () {
             var that = this,
                 elLayout = {},
-                elOffset,
                 wrapperOffset,
                 origin;
 
@@ -619,16 +618,17 @@
             elLayout.paddingLeft = parseFloat(that.el.css('paddingLeft'));
             elLayout.paddingRight = parseFloat(that.el.css('paddingRight'));
 
-            elOffset = that.el.offset();
+            $.extend(elLayout, that.el.offset());
             elLayout.borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width'));
             elLayout.borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width'));
             elLayout.innerHeight = that.el.innerHeight();
             elLayout.innerWidth = that.el.innerWidth();
+            elLayout.outerHeight = that.el.outerHeight();
             wrapperOffset = that.$wrapper.offset();
 
             origin = {
-                top: elOffset.top - wrapperOffset.top,
-                left: elOffset.left - wrapperOffset.left
+                top: elLayout.top - wrapperOffset.top,
+                left: elLayout.left - wrapperOffset.left
             };
 
             that.applyHooks(fixPositionHooks, origin, elLayout);
@@ -1435,20 +1435,21 @@
 
             setDropdownPosition: function (origin, elLayout) {
                 var that = this,
-                    isMobile = that.isMobile(),
-                    style = {
-                        left: origin.left + 'px',
-                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
-                    };
+                    isMobile = that.isMobile();
 
-                if (isMobile) {
-                    style.width = that.$viewport.width() - that.el.offset().left + 'px';
-                } else {
-                    style.width = (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px';
-                }
                 that.$container
                     .toggleClass(that.classes.mobile, isMobile)
-                    .css(style);
+                    .css(isMobile ? {
+                        left: origin.left - elLayout.left + 'px',
+                        top: origin.top + elLayout.outerHeight + 'px',
+                        width: that.$viewport.width() + 'px',
+                        paddingLeft: elLayout.left + 'px'
+                    } : {
+                        left: origin.left + 'px',
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
+                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px',
+                        paddingLeft: ''
+                    });
             },
 
             getSuggestionsItems: function () {

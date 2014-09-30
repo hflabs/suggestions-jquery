@@ -78,20 +78,21 @@
 
             setDropdownPosition: function (origin, elLayout) {
                 var that = this,
-                    isMobile = that.isMobile(),
-                    style = {
-                        left: origin.left + 'px',
-                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
-                    };
+                    isMobile = that.isMobile();
 
-                if (isMobile) {
-                    style.width = that.$viewport.width() - that.el.offset().left + 'px';
-                } else {
-                    style.width = (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px';
-                }
                 that.$container
                     .toggleClass(that.classes.mobile, isMobile)
-                    .css(style);
+                    .css(isMobile ? {
+                        left: origin.left - elLayout.left + 'px',
+                        top: origin.top + elLayout.outerHeight + 'px',
+                        width: that.$viewport.width() + 'px',
+                        paddingLeft: elLayout.left + 'px'
+                    } : {
+                        left: origin.left + 'px',
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
+                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px',
+                        paddingLeft: ''
+                    });
             },
 
             getSuggestionsItems: function () {
