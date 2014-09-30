@@ -64,7 +64,8 @@
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
-                    inn = suggestion.data && parseInn(suggestion.data);
+                    inn = suggestion.data && parseInn(suggestion.data),
+                    address = utils.getDeepValue(suggestion, 'data.address.value');
 
                 if (that.isMobile()) {
                     (options || (options = {})).maxLength = 50;
@@ -78,16 +79,14 @@
                         '</span>';
                 }
 
-                if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
-                    var address = suggestion.data.address.value
-                        .replace(/^\d{6}( РОССИЯ)?, /i, '');
-
+                if (address && (address = address.replace(/^\d{6}( РОССИЯ)?, /i, ''))) {
                     value += '<div class="' + that.classes.subtext + '">' +
                         that.formatResult(address, currentValue, suggestion, {
                             unformattableTokens: ADDRESS_STOPWORDS
                         }) +
                         '</div>';
                 }
+
                 return value;
             }
         };

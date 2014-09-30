@@ -27,10 +27,8 @@
                     delete that.cancelBlur;
                     return;
                 }
-                if (!that.selection) {
-                    that.selectCurrentValue({ trim: true, noSpace: true });
-                    that.abortRequest();
-                }
+                that.selectCurrentValue({ trim: true, noSpace: true });
+                that.abortRequest();
             },
 
             onElementFocus: function () {

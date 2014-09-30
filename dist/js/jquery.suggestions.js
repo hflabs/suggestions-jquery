@@ -367,7 +367,8 @@
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
-                    inn = suggestion.data && parseInn(suggestion.data);
+                    inn = suggestion.data && parseInn(suggestion.data),
+                    address = utils.getDeepValue(suggestion, 'data.address.value');
 
                 if (that.isMobile()) {
                     (options || (options = {})).maxLength = 50;
@@ -381,16 +382,14 @@
                         '</span>';
                 }
 
-                if (suggestion.data && suggestion.data.address && suggestion.data.address.value) {
-                    var address = suggestion.data.address.value
-                        .replace(/^\d{6}( РОССИЯ)?, /i, '');
-
+                if (address && (address = address.replace(/^\d{6}( РОССИЯ)?, /i, ''))) {
                     value += '<div class="' + that.classes.subtext + '">' +
                         that.formatResult(address, currentValue, suggestion, {
                             unformattableTokens: ADDRESS_STOPWORDS
                         }) +
                         '</div>';
                 }
+
                 return value;
             }
         };
@@ -984,10 +983,8 @@
                     delete that.cancelBlur;
                     return;
                 }
-                if (!that.selection) {
-                    that.selectCurrentValue({ trim: true, noSpace: true });
-                    that.abortRequest();
-                }
+                that.selectCurrentValue({ trim: true, noSpace: true });
+                that.abortRequest();
             },
 
             onElementFocus: function () {
@@ -1926,14 +1923,16 @@
                     $parent = $(constraints);
                     if (!$parent.is(that.constraints)) {
                         that.unbindFromParent();
-                        that.constraints = $parent;
-                        $parent.on([
-                            'suggestions-select.' + that.uniqueId,
-                            'suggestions-selectnothing.' + that.uniqueId,
-                            'suggestions-invalidateselection.' + that.uniqueId,
-                            'suggestions-clear.' + that.uniqueId
-                        ].join(' '), $.proxy(that.onParentSelectionChanged, that));
-                        $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+                        if (!$parent.is(that.el)) {
+                            that.constraints = $parent;
+                            $parent.on([
+                                    'suggestions-select.' + that.uniqueId,
+                                    'suggestions-selectnothing.' + that.uniqueId,
+                                    'suggestions-invalidateselection.' + that.uniqueId,
+                                    'suggestions-clear.' + that.uniqueId
+                            ].join(' '), $.proxy(that.onParentSelectionChanged, that));
+                            $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+                        }
                     }
                 } else {
                     that._constraintsUpdating = true;
@@ -1999,17 +1998,26 @@
             constructConstraintsParams: function () {
                 var that = this,
                     locations = [],
+                    constraints = that.constraints,
+                    parentInstance,
                     parentKladrId,
                     params = {};
 
-                if (that.constraints instanceof $) {
-                    parentKladrId = utils.getDeepValue(that.constraints.suggestions(), 'selection.data.kladr_id');
+                while (constraints instanceof $ && (parentInstance = constraints.suggestions()) &&
+                    !(parentKladrId = utils.getDeepValue(parentInstance, 'selection.data.kladr_id'))
+                ) {
+                    constraints = parentInstance.constraints;
+                }
+
+                if (constraints instanceof $) {
                     if (parentKladrId) {
-                        params.locations = [{ 'kladr_id': parentKladrId }];
+                        params.locations = [
+                            { 'kladr_id': parentKladrId }
+                        ];
                         params.restrict_value = true;
                     }
                 } else {
-                    $.each(that.constraints, function (id, constraint) {
+                    $.each(constraints, function (id, constraint) {
                         locations = locations.concat(constraint.locations);
                     });
                     if (locations.length) {
