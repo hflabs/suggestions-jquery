@@ -71,7 +71,7 @@
             $helpers: null,
             headers: null,
             scrollOnFocus: true,
-            mobileWidth: 768
+            mobileWidth: 980
         };
 
 //include "utils.js"

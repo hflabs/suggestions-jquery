@@ -78,7 +78,7 @@
             $helpers: null,
             headers: null,
             scrollOnFocus: true,
-            mobileWidth: 768
+            mobileWidth: 980
         };
 
     var utils = (function () {
