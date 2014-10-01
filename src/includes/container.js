@@ -3,11 +3,6 @@
          * Methods related to suggestions dropdown list
          */
 
-        var wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
-            wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
-            wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
-            wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g');
-
         function formatToken(token) {
             return token.toLowerCase().replace(/[ёЁ]/g, 'е');
         }

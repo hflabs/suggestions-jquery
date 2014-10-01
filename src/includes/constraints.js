@@ -190,6 +190,62 @@
 
             onParentDispose: function (e) {
                 this.unbindFromParent();
+            },
+
+            shareWithParent: function (suggestion, otherSuggestions) {
+                // that is the parent control's instance
+                var that = this.constraints instanceof $ && this.constraints.suggestions(),
+                    parts = ['region', 'area', 'city', 'settlement', 'street', 'house', 'block', 'flat'],
+                    values = [],
+                    locations = {},
+                    resolver = $.Deferred();
+
+                if (!that || that.selection || !that.bounds.from && !that.bounds.to) {
+                    return resolver.resolve();
+                }
+
+                $.each(parts, function (i, part) {
+                    var value = suggestion.data[part];
+
+                    if (value) {
+                        values.push({ part: part, value: value });
+                    }
+
+                    if (part == that.bounds.to) {
+                        return false;
+                    }
+                });
+
+                if (values.length) {
+                    that.currentValue = values.pop().value;
+                    $.each(values, function (i, value) {
+                        locations[value.part] = value.value;
+                    });
+                    that.getSuggestions(that.currentValue, !$.isEmptyObject(locations) && {
+                        locations: [locations],
+                        restrict_value: false
+                    })
+                        .done(function (suggestions) {
+                            var parentSuggestion = suggestions[0];
+                            if (parentSuggestion) {
+                                otherSuggestions.push(parentSuggestion);
+                                that.shareWithParent(suggestion, otherSuggestions)
+                                    .done(function () {
+                                        var rParentReplaces = new RegExp('([' + wordDelimeters + ']*)' + utils.escapeRegExChars(parentSuggestion.value) + '[' + wordDelimeters + ']*', 'i');
+                                        that.setSuggestion(parentSuggestion);
+                                        $.each(otherSuggestions, function (i, suggestion) {
+                                            suggestion.value = suggestion.value.replace(rParentReplaces, '$1');
+                                        });
+                                        resolver.resolve();
+                                    });
+                            }
+                        })
+                        .fail(function () {
+                            resolver.resolve();
+                        })
+                }
+
+                return resolver;
             }
 
         };

@@ -40,6 +40,10 @@
             BAD: 6,
             FOREIGN: 7
         },
+        wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
+        wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
+        wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
+        wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g'),
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,

@@ -337,10 +337,73 @@ describe('Address constraints', function () {
 
         this.input.value = 'улица';
         this.instance.onValueChange();
+        $parent.remove();
 
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"7800000000000"}]');
         expect(this.server.requests[0].requestBody).toContain('"restrict_value":true');
+    });
 
+    it('Should fill empty controls, that are set as constraints', function () {
+        var $parent = $('<input>')
+            .appendTo($('body'));
+
+        $parent.suggestions({
+            type: 'ADDRESS',
+            serviceUrl: serviceUrl,
+            geoLocation: false,
+            useDadata: false,
+            bounds: 'region-settlement',
+            params: { 'id': 'parent' }
+        });
+
+        this.instance.setOptions({
+            bounds: 'street-',
+            constraints: $parent
+        });
+
+        this.input.value = 'бара';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor([
+            {
+                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
+                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
+                "data": {
+                    "country": "Россия",
+                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
+                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
+                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
+                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
+                    "street_type": "ул", "street_type_full": "улица", "street": "Строителей",
+                    "house_type": "д", "house_type_full": "дом", "house": "1-бара",
+                    "kladr_id": "7102200100200310001"
+                }
+            }
+        ]));
+        this.instance.selectedIndex = 0;
+        this.instance.select(0);
+
+        var request = JSON.parse(this.server.requests[1].requestBody);
+        expect(request).toEqual(jasmine.objectContaining({id:"parent"}));
+        expect(request).toEqual(jasmine.objectContaining({locations:[{"area":"Узловский","city":"Узловая","region":"Тульская"}]}));
+        expect(request).toEqual(jasmine.objectContaining({query:"Брусянский"}));
+        this.server.respond(helpers.responseFor([
+            {
+                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
+                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
+                "data": {
+                    "country": "Россия",
+                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
+                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
+                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
+                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
+                    "kladr_id": "7102200100200000000"
+                }
+            }
+        ]));
+
+        expect($parent.val()).toEqual('Тульская обл, Узловский р-н, г Узловая, поселок Брусянский');
+        expect(this.$input.val()).toEqual('ул Строителей, д 1-бара');
+        $parent.remove();
     });
 
 });
