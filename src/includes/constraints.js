@@ -222,6 +222,8 @@
                     $.each(values, function (i, value) {
                         locations[value.part] = value.value;
                     });
+                    // Ensure preloader is at right place
+                    that.fixPosition();
                     that.getSuggestions(that.currentValue, !$.isEmptyObject(locations) && {
                         locations: [locations],
                         restrict_value: false
