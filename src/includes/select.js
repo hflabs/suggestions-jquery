@@ -71,18 +71,17 @@
                             continueSelecting = false;
                         }
 
-                        that.shareWithParent(enrichedSuggestion, [enrichedSuggestion])
-                            .done(function () {
-                                that.currentValue = that.getValue(enrichedSuggestion.value);
-                                if (!noSpace && !assumeDataComplete || addSpace) {
-                                    that.currentValue += ' ';
-                                }
-                                that.el.val(that.currentValue);
-                                that.selection = enrichedSuggestion;
+                        that.checkValueBounds(enrichedSuggestion);
+                        that.currentValue = enrichedSuggestion.value;
+                        if (!noSpace && !assumeDataComplete || addSpace) {
+                            that.currentValue += ' ';
+                        }
+                        that.el.val(that.currentValue);
+                        that.selection = enrichedSuggestion;
 
-                                that.trigger('Select', enrichedSuggestion);
-                                onSelectionCompleted();
-                            });
+                        that.trigger('Select', enrichedSuggestion);
+                        onSelectionCompleted();
+                        that.shareWithParent(enrichedSuggestion);
                     });
 
                 function onSelectionCompleted() {

@@ -401,7 +401,7 @@ describe('Address constraints', function () {
             }
         ]));
 
-        expect($parent.val()).toEqual('Тульская обл, Узловский р-н, г Узловая, поселок Брусянский');
+        expect($parent.val()).toEqual('Тульская обл, р-н Узловский, г Узловая, п Брусянский');
         expect(this.$input.val()).toEqual('ул Строителей, д 1-бара');
         $parent.remove();
     });

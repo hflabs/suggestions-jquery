@@ -192,19 +192,20 @@
                 this.unbindFromParent();
             },
 
-            shareWithParent: function (suggestion, otherSuggestions) {
+            shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.constraints instanceof $ && this.constraints.suggestions(),
-                    parts = ['region', 'area', 'city', 'settlement', 'street', 'house', 'block', 'flat'],
                     values = [],
-                    locations = {},
-                    resolver = $.Deferred();
+                    locations = {};
 
-                if (!that || that.selection || !that.bounds.from && !that.bounds.to) {
-                    return resolver.resolve();
+                if (!suggestion.data || !suggestion.data.kladr_id ||
+                    !that || that.selection || !that.type.boundsAvailable || !that.bounds.from && !that.bounds.to) {
+                    return;
                 }
 
-                $.each(parts, function (i, part) {
+                that.shareWithParent(suggestion);
+
+                $.each(that.type.boundsAvailable, function (i, part) {
                     var value = suggestion.data[part];
 
                     if (value) {
@@ -227,25 +228,13 @@
                     })
                         .done(function (suggestions) {
                             var parentSuggestion = suggestions[0];
-                            if (parentSuggestion) {
-                                otherSuggestions.push(parentSuggestion);
-                                that.shareWithParent(suggestion, otherSuggestions)
-                                    .done(function () {
-                                        var rParentReplaces = new RegExp('([' + wordDelimeters + ']*)' + utils.escapeRegExChars(parentSuggestion.value) + '[' + wordDelimeters + ']*', 'i');
-                                        that.setSuggestion(parentSuggestion);
-                                        $.each(otherSuggestions, function (i, suggestion) {
-                                            suggestion.value = suggestion.value.replace(rParentReplaces, '$1');
-                                        });
-                                        resolver.resolve();
-                                    });
-                            }
-                        })
-                        .fail(function () {
-                            resolver.resolve();
-                        })
-                }
 
-                return resolver;
+                            if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
+                                that.checkValueBounds(parentSuggestion);
+                                that.setSuggestion(parentSuggestion);
+                            }
+                        });
+                }
             }
 
         };

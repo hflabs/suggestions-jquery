@@ -329,12 +329,14 @@
             STOPWORDS: ADDRESS_STOPWORDS,
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
+            boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house', 'block', 'flat'],
             isDataComplete: function (data) {
                 var fields = [this.bounds.to || 'house'];
                 return utils.fieldsNotEmpty(data, fields) &&
                     (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
             composeValue: function (data) {
+                // TODO improve according with server logic
                 return utils.compact([
                     utils.compact([data.region, data.region_type]).join(' '),
                     utils.compact([data.area_type, data.area]).join(' '),
@@ -2055,19 +2057,20 @@
                 this.unbindFromParent();
             },
 
-            shareWithParent: function (suggestion, otherSuggestions) {
+            shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.constraints instanceof $ && this.constraints.suggestions(),
-                    parts = ['region', 'area', 'city', 'settlement', 'street', 'house', 'block', 'flat'],
                     values = [],
-                    locations = {},
-                    resolver = $.Deferred();
+                    locations = {};
 
-                if (!that || that.selection || !that.bounds.from && !that.bounds.to) {
-                    return resolver.resolve();
+                if (!suggestion.data || !suggestion.data.kladr_id ||
+                    !that || that.selection || !that.type.boundsAvailable || !that.bounds.from && !that.bounds.to) {
+                    return;
                 }
 
-                $.each(parts, function (i, part) {
+                that.shareWithParent(suggestion);
+
+                $.each(that.type.boundsAvailable, function (i, part) {
                     var value = suggestion.data[part];
 
                     if (value) {
@@ -2090,25 +2093,13 @@
                     })
                         .done(function (suggestions) {
                             var parentSuggestion = suggestions[0];
-                            if (parentSuggestion) {
-                                otherSuggestions.push(parentSuggestion);
-                                that.shareWithParent(suggestion, otherSuggestions)
-                                    .done(function () {
-                                        var rParentReplaces = new RegExp('([' + wordDelimeters + ']*)' + utils.escapeRegExChars(parentSuggestion.value) + '[' + wordDelimeters + ']*', 'i');
-                                        that.setSuggestion(parentSuggestion);
-                                        $.each(otherSuggestions, function (i, suggestion) {
-                                            suggestion.value = suggestion.value.replace(rParentReplaces, '$1');
-                                        });
-                                        resolver.resolve();
-                                    });
-                            }
-                        })
-                        .fail(function () {
-                            resolver.resolve();
-                        })
-                }
 
-                return resolver;
+                            if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
+                                that.checkValueBounds(parentSuggestion);
+                                that.setSuggestion(parentSuggestion);
+                            }
+                        });
+                }
             }
 
         };
@@ -2207,18 +2198,17 @@
                             continueSelecting = false;
                         }
 
-                        that.shareWithParent(enrichedSuggestion, [enrichedSuggestion])
-                            .done(function () {
-                                that.currentValue = that.getValue(enrichedSuggestion.value);
-                                if (!noSpace && !assumeDataComplete || addSpace) {
-                                    that.currentValue += ' ';
-                                }
-                                that.el.val(that.currentValue);
-                                that.selection = enrichedSuggestion;
+                        that.checkValueBounds(enrichedSuggestion);
+                        that.currentValue = enrichedSuggestion.value;
+                        if (!noSpace && !assumeDataComplete || addSpace) {
+                            that.currentValue += ' ';
+                        }
+                        that.el.val(that.currentValue);
+                        that.selection = enrichedSuggestion;
 
-                                that.trigger('Select', enrichedSuggestion);
-                                onSelectionCompleted();
-                            });
+                        that.trigger('Select', enrichedSuggestion);
+                        onSelectionCompleted();
+                        that.shareWithParent(enrichedSuggestion);
                     });
 
                 function onSelectionCompleted() {
@@ -2311,11 +2301,42 @@
             }
 
             return params;
+        },
+
+        checkValueBounds: function (suggestion) {
+            var that = this,
+                value,
+                bounds = that.type.boundsAvailable,
+                boundedData = {},
+                includeBound = !that.bounds.from;
+
+            if ((that.bounds.from || that.bounds.to) && suggestion.data && that.type.composeValue) {
+                $.each(bounds, function (i, bound) {
+                    if (bound == that.bounds.from) {
+                        includeBound = true;
+                    }
+                    if (includeBound) {
+                        boundedData[bound] = suggestion.data[bound];
+                        boundedData[bound + '_type'] = suggestion.data[bound + '_type'];
+                    }
+                    if (bound == that.bounds.to) {
+                        return false;
+                    }
+                });
+                value = that.type.composeValue(boundedData);
+                if (value) {
+                    suggestion.value = value;
+                }
+            }
         }
 
     };
 
     $.extend(defaultOptions, optionsUsed);
+
+    $.extend(Suggestions.prototype, {
+        checkValueBounds: methods.checkValueBounds
+    });
 
     initializeHooks.push(methods.setupBounds);
 
