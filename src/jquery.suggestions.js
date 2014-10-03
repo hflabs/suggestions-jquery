@@ -348,11 +348,13 @@
         },
 
         setSuggestion: function(suggestion){
-            var that = this;
+            var that = this,
+                value;
 
             if ($.isPlainObject(suggestion) && suggestion.value) {
-                that.currentValue = suggestion.value;
-                that.el.val(suggestion.value);
+                value = suggestion.bounded_value || suggestion.value;
+                that.currentValue = value;
+                that.el.val(value);
                 that.selection = suggestion;
                 that.abortRequest();
             }

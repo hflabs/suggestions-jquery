@@ -71,8 +71,7 @@
                             continueSelecting = false;
                         }
 
-                        that.checkValueBounds(enrichedSuggestion);
-                        that.currentValue = enrichedSuggestion.value;
+                        that.currentValue = enrichedSuggestion.bounded_value || enrichedSuggestion.value;
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                         }

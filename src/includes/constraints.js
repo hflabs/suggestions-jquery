@@ -230,7 +230,6 @@
                             var parentSuggestion = suggestions[0];
 
                             if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
-                                that.checkValueBounds(parentSuggestion);
                                 that.setSuggestion(parentSuggestion);
                             }
                         });

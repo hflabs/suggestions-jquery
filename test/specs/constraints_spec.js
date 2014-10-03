@@ -365,6 +365,7 @@ describe('Address constraints', function () {
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor([
             {
+                "bounded_value": "ул Строителей, д 1-бара",
                 "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
                 "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
                 "data": {
@@ -388,6 +389,7 @@ describe('Address constraints', function () {
         expect(request).toEqual(jasmine.objectContaining({query:"Брусянский"}));
         this.server.respond(helpers.responseFor([
             {
+                "bounded_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
                 "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
                 "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
                 "data": {
@@ -401,7 +403,7 @@ describe('Address constraints', function () {
             }
         ]));
 
-        expect($parent.val()).toEqual('Тульская обл, р-н Узловский, г Узловая, п Брусянский');
+        expect($parent.val()).toEqual('Тульская обл, Узловский р-н, г Узловая, поселок Брусянский');
         expect(this.$input.val()).toEqual('ул Строителей, д 1-бара');
         $parent.remove();
     });

@@ -36,42 +36,11 @@
             }
 
             return params;
-        },
-
-        checkValueBounds: function (suggestion) {
-            var that = this,
-                value,
-                bounds = that.type.boundsAvailable,
-                boundedData = {},
-                includeBound = !that.bounds.from;
-
-            if ((that.bounds.from || that.bounds.to) && suggestion.data && that.type.composeValue) {
-                $.each(bounds, function (i, bound) {
-                    if (bound == that.bounds.from) {
-                        includeBound = true;
-                    }
-                    if (includeBound) {
-                        boundedData[bound] = suggestion.data[bound];
-                        boundedData[bound + '_type'] = suggestion.data[bound + '_type'];
-                    }
-                    if (bound == that.bounds.to) {
-                        return false;
-                    }
-                });
-                value = that.type.composeValue(boundedData);
-                if (value) {
-                    suggestion.value = value;
-                }
-            }
         }
 
     };
 
     $.extend(defaultOptions, optionsUsed);
-
-    $.extend(Suggestions.prototype, {
-        checkValueBounds: methods.checkValueBounds
-    });
 
     initializeHooks.push(methods.setupBounds);
 
