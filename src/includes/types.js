@@ -69,26 +69,41 @@
                     inn = suggestion.data && parseInn(suggestion.data),
                     address = utils.getDeepValue(suggestion, 'data.address.value');
 
-                if (that.isMobile()) {
+                if (that.isMobile) {
                     (options || (options = {})).maxLength = 50;
                 }
 
                 value = that.formatResult.call(that, value, currentValue, suggestion, options);
 
-                if (inn) {
-                    value += '<span class="' + that.classes.subtext_inline + '">' +
-                        inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
-                        '</span>';
+                if (address) {
+                    address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
                 }
 
-                if (address && (address = address.replace(/^\d{6}( РОССИЯ)?, /i, ''))) {
+                if (that.isMobile) {
+                    // keep only two first words
+                    if (address) {
+                        address = address.replace(new RegExp('^([^' + wordDelimeters + ']+[' + wordDelimeters + ']+[^' + wordDelimeters + ']+).*'), '$1');
+                    }
                     value += '<div class="' + that.classes.subtext + '">' +
-                        that.formatResult(address, currentValue, suggestion, {
-                            unformattableTokens: ADDRESS_STOPWORDS
-                        }) +
-                        '</div>';
-                }
+                        '<span class="' + that.classes.subtext_inline + '">' +
+                        (inn && inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') || '') +
+                        '</span>' + (address || '') +
+                    '</div>';
+                } else {
+                    if (inn) {
+                        value += '<span class="' + that.classes.subtext_inline + '">' +
+                            inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
+                            '</span>';
+                    }
 
+                    if (address) {
+                        value += '<div class="' + that.classes.subtext + '">' +
+                            that.formatResult(address, currentValue, suggestion, {
+                                unformattableTokens: ADDRESS_STOPWORDS
+                            }) +
+                            '</div>';
+                    }
+                }
                 return value;
             }
         };

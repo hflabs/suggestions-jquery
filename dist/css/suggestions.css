@@ -45,10 +45,14 @@
   color: #3399FF;
 }
 .suggestions-wrapper .suggestions-suggestions.suggestions-mobile {
-  border-style: none none solid;
+  border-style: none;
 }
 .suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-suggestion {
+  border-bottom: 1px solid #ddd;
   white-space: normal;
+}
+.suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-subtext_inline {
+  margin: 0 0.5em 0 0;
 }
 .suggestions-wrapper .suggestions-suggestion {
   padding: 4px 4px;

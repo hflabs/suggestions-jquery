@@ -37,7 +37,7 @@
                 if (!that.cancelFocus) {
                     // defer methods to allow browser update input's style before
                     utils.delay(function () {
-                        if (that.isMobile()) {
+                        if (that.isMobile) {
                             that.scrollToTop();
                         }
                         that.fixPosition();

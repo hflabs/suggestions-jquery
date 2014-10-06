@@ -244,10 +244,6 @@
             this.$viewport.off('resize' + eventNS + this.uniqueId);
         },
 
-        isMobile: function () {
-            return this.$viewport.width() <= this.options.mobileWidth;
-        },
-
         scrollToTop: function () {
             var that = this,
                 scrollTarget = that.options.scrollOnFocus;
@@ -283,6 +279,8 @@
                 elLayout = {},
                 wrapperOffset,
                 origin;
+
+            that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
             that.applyHooks(resetPositionHooks);
             // reset input's padding to default, determined by css

@@ -72,22 +72,28 @@
             // Dropdown UI methods
 
             setDropdownPosition: function (origin, elLayout) {
-                var that = this,
-                    isMobile = that.isMobile();
+                var that = this;
 
                 that.$container
-                    .toggleClass(that.classes.mobile, isMobile)
-                    .css(isMobile ? {
+                    .toggleClass(that.classes.mobile, that.isMobile)
+                    .css(that.isMobile ? {
                         left: origin.left - elLayout.left + 'px',
                         top: origin.top + elLayout.outerHeight + 'px',
-                        width: that.$viewport.width() + 'px',
-                        paddingLeft: elLayout.left + 'px'
+                        width: that.$viewport.width() + 'px'
                     } : {
                         left: origin.left + 'px',
                         top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
-                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px',
-                        paddingLeft: ''
+                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
                     });
+
+                that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft;
+            },
+
+            setItemsPositions: function () {
+                var that = this,
+                    $items = that.getSuggestionsItems();
+
+                $items.css('paddingLeft', that.isMobile ? that.containerItemsPadding + 'px' : '');
             },
 
             getSuggestionsItems: function () {
@@ -134,7 +140,7 @@
                     index;
 
                 // Build hint html
-                if (options.hint && that.suggestions.length) {
+                if (!that.isMobile && options.hint && that.suggestions.length) {
                     html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
                 }
                 that.selectedIndex = -1;
@@ -168,6 +174,7 @@
 
                 that.$container.show();
                 that.visible = true;
+                that.setItemsPositions();
             },
 
             /**
@@ -387,6 +394,7 @@
         initializeHooks.push(methods.createContainer);
 
         fixPositionHooks.push(methods.setDropdownPosition);
+        fixPositionHooks.push(methods.setItemsPositions);
 
         assignSuggestionsHooks.push(methods.suggest);
 
