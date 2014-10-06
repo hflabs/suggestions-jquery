@@ -386,7 +386,7 @@
                     address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
                 }
 
-                if (that.isMobile) {
+                if (that.isMobile && (inn || address)) {
                     // keep only two first words
                     if (address) {
                         address = address.replace(new RegExp('^([^' + wordDelimeters + ']+[' + wordDelimeters + ']+[^' + wordDelimeters + ']+).*'), '$1');

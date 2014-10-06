@@ -9,9 +9,11 @@ describe('Common features', function () {
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME'
+            type: 'NAME',
+            // disable mobile view features
+            mobileWidth: null
         }).suggestions();
-        
+
         this.server = sinon.fakeServer.create();
     });
     
@@ -237,6 +239,21 @@ describe('Common features', function () {
 
         var $hint = this.instance.$container.find('.suggestions-hint');
             
+        expect($hint.length).toEqual(0);
+    });
+
+    it('Should not display any hint message for narrow-screen (mobile) view', function(){
+        this.instance.setOptions({
+            hint: false,
+            mobileWidth: 0
+        });
+
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(['Jamaica']));
+
+        var $hint = this.instance.$container.find('.suggestions-hint');
+
         expect($hint.length).toEqual(0);
     });
 

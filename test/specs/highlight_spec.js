@@ -8,7 +8,9 @@ describe('Highlight suggestions', function () {
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME'
+            type: 'NAME',
+            // disable mobile view
+            mobileWidth: null
         }).suggestions();
 
         this.server = sinon.fakeServer.create();
@@ -154,8 +156,10 @@ describe('Highlight suggestions', function () {
 
     it('Should drop the end of text if `maxLength` option specified', function () {
         this.instance.setOptions({
-            type: 'PARTY'
+            type: 'PARTY',
+            mobileWidth: 0
         });
+        this.instance.isMobile = true;
         this.input.value = 'мфюа калмыц';
         this.instance.onValueChange();
 
