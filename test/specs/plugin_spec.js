@@ -110,6 +110,8 @@ describe('Common features', function () {
 
     it('Should include `bounds` option into request, if it is a range', function () {
         this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
             bounds: 'city-street'
         });
 
@@ -122,6 +124,8 @@ describe('Common features', function () {
 
     it('Should include `bounds` option into request, if it is a single value', function () {
         this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
             bounds: 'city'
         });
 
@@ -134,6 +138,8 @@ describe('Common features', function () {
 
     it('Should include `bounds` option into request, if it is an open range', function () {
         this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
             bounds: 'street-'
         });
 

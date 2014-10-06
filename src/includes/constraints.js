@@ -195,7 +195,10 @@
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.constraints instanceof $ && this.constraints.suggestions(),
+                    queryValue,
                     values = [],
+                    boundRange = [],
+                    boundInRange,
                     locations = {};
 
                 if (!suggestion.data || !suggestion.data.kladr_id ||
@@ -205,36 +208,45 @@
 
                 that.shareWithParent(suggestion);
 
+                boundInRange = !that.bounds.from;
                 $.each(that.type.boundsAvailable, function (i, part) {
-                    var value = suggestion.data[part];
+                    var dataValue = suggestion.data[part];
 
-                    if (value) {
-                        values.push({ part: part, value: value });
+                    if (part == that.bounds.from) {
+                        boundInRange = true;
                     }
-
+                    if (boundInRange) {
+                        boundRange.push(part);
+                    }
+                    if (dataValue) {
+                        values.push({ part: part, value: dataValue });
+                    }
                     if (part == that.bounds.to) {
                         return false;
                     }
                 });
 
                 if (values.length) {
-                    that.currentValue = values.pop().value;
-                    $.each(values, function (i, value) {
-                        locations[value.part] = value.value;
-                    });
-                    // Ensure preloader is at right place
-                    that.fixPosition();
-                    that.getSuggestions(that.currentValue, !$.isEmptyObject(locations) && {
-                        locations: [locations],
-                        restrict_value: false
-                    })
-                        .done(function (suggestions) {
-                            var parentSuggestion = suggestions[0];
-
-                            if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
-                                that.setSuggestion(parentSuggestion);
-                            }
+                    queryValue = values.pop();
+                    if ($.inArray(queryValue.part, boundRange) >= 0) {
+                        $.each(values, function (i, value) {
+                            locations[value.part] = value.value;
                         });
+                        that.currentValue = queryValue.value;
+                        // Ensure preloader is at right place
+                        that.fixPosition();
+                        that.getSuggestions(that.currentValue, !$.isEmptyObject(locations) && {
+                            locations: [locations],
+                            restrict_value: false
+                        })
+                            .done(function (suggestions) {
+                                var parentSuggestion = suggestions[0];
+
+                                if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
+                                    that.setSuggestion(parentSuggestion);
+                                }
+                            });
+                    }
                 }
             }
 

@@ -18,10 +18,20 @@
 
         setBoundsOptions: function () {
             var that = this,
-                newBounds = $.trim(that.options.bounds).split('-');
+                boundsAvailable = that.type.boundsAvailable,
+                newBounds = $.trim(that.options.bounds).split('-'),
+                boundFrom = newBounds[0],
+                boundTo = newBounds[newBounds.length - 1];
 
-            that.bounds.from = newBounds[0];
-            that.bounds.to = newBounds[newBounds.length - 1];
+            if ($.inArray(boundFrom, boundsAvailable) === -1) {
+                boundFrom = null;
+            }
+            if ($.inArray(boundTo, boundsAvailable) === -1) {
+                boundTo = null;
+            }
+
+            that.bounds.from = boundFrom;
+            that.bounds.to = boundTo;
         },
 
         constructBoundsParams: function () {
