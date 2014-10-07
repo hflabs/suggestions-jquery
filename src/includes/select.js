@@ -59,10 +59,6 @@
                     return;
                 }
 
-                // Set input's value to prevent onChange
-                that.currentValue = that.getValue(suggestion.value);
-                that.el.val(that.currentValue);
-
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);

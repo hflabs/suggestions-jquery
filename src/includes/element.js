@@ -91,13 +91,15 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            var selected = that.selectCurrentValue({continueSelecting: true, noSpace: true}) !== -1;
+                            var hasBeenSelected = that.selectCurrentValue({continueSelecting: true}) !== -1;
 
                             // set this flag to seek and select matched suggestion when server responds
-                            that._waitingForTriggerSelectOnSpace = !selected;
+                            that._waitingForTriggerSelectOnSpace = !hasBeenSelected;
 
-                            // set this flag to prevent enrich request interruption during onKeyUp and onValueChange
-                            that.cancelKeyUp = selected;
+                            // prevent actual adding space char until enrich request complete
+                            if (hasBeenSelected) {
+                                e.preventDefault();
+                            }
                         }
                         return;
                     case keys.UP:
@@ -118,8 +120,7 @@
             onElementKeyUp: function (e) {
                 var that = this;
 
-                if (that.disabled || that.cancelKeyUp) {
-                    that.cancelKeyUp = false;
+                if (that.disabled) {
                     return;
                 }
 

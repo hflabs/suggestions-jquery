@@ -7,7 +7,7 @@ describe('Adding space on selecting', function () {
 
         beforeEach(function(){
             this.input = document.createElement('input');
-            this.$input = $(this.input);
+            this.$input = $(this.input).appendTo($('body'));
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'NAME',
@@ -19,7 +19,8 @@ describe('Adding space on selecting', function () {
 
         afterEach(function () {
             this.server.restore();
-            this.instance.dispose()
+            this.instance.dispose();
+            this.$input.remove();
         });
 
         it('Should add SPACE at the end if only NAME specified', function () {
