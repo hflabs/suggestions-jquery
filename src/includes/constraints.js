@@ -7,6 +7,45 @@
             restrict_value: false
         };
 
+        var LOCATION_FIELDS = ['kladr_id', 'postal_code', 'region', 'area', 'city', 'settlement', 'street'];
+
+        function filteredLocation (data) {
+            var location = {};
+
+            if ($.isPlainObject(data)) {
+                $.each(data, function(key, value) {
+                    if (value && LOCATION_FIELDS.indexOf(key) >= 0) {
+                        location[key] = value;
+                    }
+                });
+            }
+
+            return $.isEmptyObject(location) ? null : location;
+        }
+
+        /**
+         * Compares two suggestion objects
+         * @param suggestion
+         * @param instance other Suggestions instance
+         */
+        function belongsToArea(suggestion, instance){
+            var result = true,
+                bounds = instance.type.boundsAvailable,
+                toBound,
+                parentSuggestion = instance.selection;
+
+            if (parentSuggestion && parentSuggestion.data && bounds) {
+                toBound = instance.bounds.to || bounds[bounds.length - 1];
+                $.each(bounds, function (i, bound) {
+                    result = parentSuggestion.data[bound] === suggestion.data[bound];
+                    if (!result || bound == toBound) {
+                        return false;
+                    }
+                });
+                return result;
+            }
+        }
+
         var methods = {
 
             createConstraints: function () {
@@ -81,17 +120,34 @@
                 }
             },
 
+            /**
+             * Checks for required fields
+             * Also checks `locations` objects for having acceptable fields
+             * @param constraint
+             * @returns {*}
+             */
             formatConstraint: function (constraint) {
-                var that = this;
+                var that = this,
+                    locations;
 
                 if (constraint && (constraint.locations || constraint.restrictions)) {
-                    constraint.locations = $.makeArray(constraint.locations || constraint.restrictions);
+                    locations = $.makeArray(constraint.locations || constraint.restrictions);
                     if (!constraint.label && that.type.composeValue) {
-                        constraint.label = $.map(constraint.locations, function(location){
+                        constraint.label = $.map(locations, function(location){
                             return that.type.composeValue(location);
                         }).join(', ');
                     }
-                    return constraint;
+
+                    constraint.locations = [];
+                    $.each(locations, function (i, location) {
+                        var filtered = filteredLocation(location);
+
+                        if (filtered) {
+                            constraint.locations.push(filtered);
+                        }
+                    });
+
+                    return constraint.locations.length ? constraint : null;
                 }
             },
 
@@ -136,20 +192,19 @@
                     locations = [],
                     constraints = that.constraints,
                     parentInstance,
-                    parentKladrId,
+                    parentData,
                     params = {};
 
                 while (constraints instanceof $ && (parentInstance = constraints.suggestions()) &&
-                    !(parentKladrId = utils.getDeepValue(parentInstance, 'selection.data.kladr_id'))
+                    !(parentData = utils.getDeepValue(parentInstance, 'selection.data'))
                 ) {
                     constraints = parentInstance.constraints;
                 }
 
                 if (constraints instanceof $) {
-                    if (parentKladrId) {
-                        params.locations = [
-                            { 'kladr_id': parentKladrId }
-                        ];
+                    parentData = filteredLocation(parentData);
+                    if (parentData) {
+                        params.locations = [ parentData ];
                         params.restrict_value = true;
                     }
                 } else {
@@ -195,58 +250,46 @@
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.constraints instanceof $ && this.constraints.suggestions(),
-                    queryValue,
-                    values = [],
-                    boundRange = [],
+                    parentData = {},
+                    parentValueData = {},
                     boundInRange,
-                    locations = {};
+                    bounds,
+                    toBound;
 
-                if (!suggestion.data || !suggestion.data.kladr_id ||
-                    !that || that.selection || !that.type.boundsAvailable || !that.bounds.from && !that.bounds.to) {
+                if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
                     return;
                 }
 
                 that.shareWithParent(suggestion);
 
+                bounds = that.type.boundsAvailable;
                 boundInRange = !that.bounds.from;
-                $.each(that.type.boundsAvailable, function (i, part) {
-                    var dataValue = suggestion.data[part];
+                toBound = that.bounds.to || bounds[bounds.length - 1];
+                $.each(bounds, function (i, bound) {
+                    var dataSet = {};
 
-                    if (part == that.bounds.from) {
+                    $.each([bound, bound + '_type', bound + '_type_full'], function (i, dataField) {
+                        dataSet[dataField] = suggestion.data[dataField];
+                    });
+                    $.extend(parentData, dataSet);
+
+                    if (bound == that.bounds.from) {
                         boundInRange = true;
                     }
                     if (boundInRange) {
-                        boundRange.push(part);
+                        $.extend(parentValueData, dataSet);
                     }
-                    if (dataValue) {
-                        values.push({ part: part, value: dataValue });
-                    }
-                    if (part == that.bounds.to) {
+                    if (bound == toBound) {
                         return false;
                     }
                 });
+                parentValueData = that.type.composeValue(parentValueData);
 
-                if (values.length) {
-                    queryValue = values.pop();
-                    if ($.inArray(queryValue.part, boundRange) >= 0) {
-                        $.each(values, function (i, value) {
-                            locations[value.part] = value.value;
-                        });
-                        that.currentValue = queryValue.value;
-                        // Ensure preloader is at right place
-                        that.fixPosition();
-                        that.getSuggestions(that.currentValue, !$.isEmptyObject(locations) && {
-                            locations: [locations],
-                            restrict_value: false
-                        })
-                            .done(function (suggestions) {
-                                var parentSuggestion = suggestions[0];
-
-                                if (parentSuggestion && parentSuggestion.data.kladr_id && suggestion.data.kladr_id.indexOf(parentSuggestion.data.kladr_id.replace(/0+$/g, '')) == 0) {
-                                    that.setSuggestion(parentSuggestion);
-                                }
-                            });
-                    }
+                if (parentValueData) {
+                    that.setSuggestion({
+                        value: parentValueData,
+                        data: parentData
+                    });
                 }
             }
 

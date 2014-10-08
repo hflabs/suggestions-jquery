@@ -67,7 +67,7 @@
                             continueSelecting = false;
                         }
 
-                        that.currentValue = enrichedSuggestion.bounded_value || enrichedSuggestion.value;
+                        that.currentValue = enrichedSuggestion.value;
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                         }

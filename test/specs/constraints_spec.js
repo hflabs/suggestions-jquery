@@ -1,10 +1,26 @@
-
 describe('Address constraints', function () {
     'use strict';
 
-    var serviceUrl = '/some/url';
+    var serviceUrl = '/some/url',
+        fixtures = {
+            fullyAddress: {
+                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
+                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
+                "data": {
+                    "country": "Россия",
+                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
+                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
+                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
+                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
+                    "street_type": "ул", "street_type_full": "улица", "street": "Строителей",
+                    "house_type": "д", "house_type_full": "дом", "house": "1-бара",
+                    "kladr_id": "7102200100200310001"
+                }
+            }
 
-    beforeEach(function(){
+        };
+
+    beforeEach(function () {
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
@@ -45,7 +61,7 @@ describe('Address constraints', function () {
     it('Should not have `locations` parameter in request if bad-formatted constraints specified', function () {
         this.instance.setOptions({
             constraints: {
-                region:'Москва'
+                region: 'Москва'
             }
         });
 
@@ -59,7 +75,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
-                    region:'Москва'
+                    region: 'Москва'
                 }
             }
         });
@@ -70,11 +86,30 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"Москва"}]');
     });
 
+    it('Should have `locations` parameter in request with only acceptable fields', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: 'россия',
+                    region: 'москва',
+                    city: 'москва',
+                    kladr_id: '77',
+                    qc_complete: 1
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"москва","city":"москва","kladr_id":"77"}]');
+    });
+
     it('Should have `locations` parameter in request if constraints specified as single object named `restrictions`', function () {
         this.instance.setOptions({
             constraints: {
                 restrictions: {
-                    region:'Москва'
+                    region: 'Москва'
                 }
             }
         });
@@ -90,12 +125,12 @@ describe('Address constraints', function () {
             constraints: [
                 {
                     locations: {
-                        region:'Москва'
+                        region: 'Москва'
                     }
                 },
                 {
                     locations: {
-                        kladr_id:'6500000000000'
+                        kladr_id: '6500000000000'
                     }
                 }
             ]
@@ -150,7 +185,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
-                    region:'Москва'
+                    region: 'Москва'
                 }
             }
         });
@@ -193,7 +228,7 @@ describe('Address constraints', function () {
         expect($items.first().text()).toEqual('Берск (НСО)');
     });
 
-    it('Should not display constraint when `label` is empty and can not be generated from `data`', function() {
+    it('Should not display constraint when `label` is empty and can not be generated from `data`', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
@@ -209,7 +244,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
-                    region:'Москва'
+                    region: 'Москва'
                 }
             }
         });
@@ -223,7 +258,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
-                    region:'Москва'
+                    region: 'Москва'
                 },
                 deletable: true
             }
@@ -239,7 +274,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
-                    region:'Москва'
+                    region: 'Москва'
                 },
                 deletable: true
             }
@@ -260,7 +295,7 @@ describe('Address constraints', function () {
         jQuery.fx.off = false;
     });
 
-    it('Should set unrestricted suggestion value', function() {
+    it('Should set unrestricted suggestion value', function () {
         this.instance.setOptions({
             constraints: {
                 label: 'обл Ростовская, г Ростов-на-Дону',
@@ -271,7 +306,9 @@ describe('Address constraints', function () {
             },
             restrict_value: true
         });
-        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
+        var suggestions = [
+            { value: 'ул Буквенная, д 20', data: null }
+        ];
 
         this.input.value = 'Буквенная 20';
         this.instance.onValueChange();
@@ -283,7 +320,7 @@ describe('Address constraints', function () {
         });
     });
 
-    it('Should not set unrestricted suggestion value on multiple constraints', function() {
+    it('Should not set unrestricted suggestion value on multiple constraints', function () {
         this.instance.setOptions({
             constraints: [
                 {
@@ -301,7 +338,9 @@ describe('Address constraints', function () {
             ],
             restrict_value: true
         });
-        var suggestions = [{ value: 'ул Буквенная, д 20', data: null }];
+        var suggestions = [
+            { value: 'ул Буквенная, д 20', data: null }
+        ];
 
         this.input.value = 'Буквенная 20';
         this.instance.onValueChange();
@@ -313,99 +352,123 @@ describe('Address constraints', function () {
         });
     });
 
-    it('Should set another control\'s suggestion as a constraint', function () {
-        var $parent = $('<input>')
-            .appendTo($('body'));
+    describe('in cooperation with other control', function () {
 
-        $parent.suggestions({
-            type: 'ADDRESS',
-            serviceUrl: serviceUrl,
-            geoLocation: false,
-            useDadata: false
+        beforeEach(function () {
+            this.$parent = $('<input>')
+                .appendTo($('body'));
+
+            this.$parent.suggestions({
+                type: 'ADDRESS',
+                serviceUrl: serviceUrl,
+                geoLocation: false,
+                useDadata: false,
+                bounds: 'region-area'
+            });
+
+            this.parentInstance = this.$parent.suggestions();
         });
 
-        $parent.suggestions().setSuggestion({
-            value: 'г. Санкт-Петербург',
-            data: {
-                kladr_id: '7800000000000'
-            }
+        afterEach(function () {
+            this.$parent.remove();
         });
 
-        this.instance.setOptions({
-            constraints: $parent
-        });
+        it('Should use parent data as a constraint in child', function () {
 
-        this.input.value = 'улица';
-        this.instance.onValueChange();
-        $parent.remove();
-
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"7800000000000"}]');
-        expect(this.server.requests[0].requestBody).toContain('"restrict_value":true');
-    });
-
-    it('Should fill empty controls, that are set as constraints', function () {
-        var $parent = $('<input>')
-            .appendTo($('body'));
-
-        $parent.suggestions({
-            type: 'ADDRESS',
-            serviceUrl: serviceUrl,
-            geoLocation: false,
-            useDadata: false,
-            bounds: 'region-settlement',
-            params: { 'id': 'parent' }
-        });
-
-        this.instance.setOptions({
-            bounds: 'street-',
-            constraints: $parent
-        });
-
-        this.input.value = 'бара';
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor([
-            {
-                "bounded_value": "ул Строителей, д 1-бара",
-                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
-                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
-                "data": {
-                    "country": "Россия",
-                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
-                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
-                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
-                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
-                    "street_type": "ул", "street_type_full": "улица", "street": "Строителей",
-                    "house_type": "д", "house_type_full": "дом", "house": "1-бара",
-                    "kladr_id": "7102200100200310001"
+            this.parentInstance.setSuggestion({
+                value: 'г. Санкт-Петербург',
+                data: {
+                    kladr_id: '7800000000000'
                 }
-            }
-        ]));
-        this.instance.selectedIndex = 0;
-        this.instance.select(0);
+            });
 
-        var request = JSON.parse(this.server.requests[1].requestBody);
-        expect(request).toEqual(jasmine.objectContaining({id:"parent"}));
-        expect(request).toEqual(jasmine.objectContaining({locations:[{"area":"Узловский","city":"Узловая","region":"Тульская"}]}));
-        expect(request).toEqual(jasmine.objectContaining({query:"Брусянский"}));
-        this.server.respond(helpers.responseFor([
-            {
-                "bounded_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
-                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
-                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский",
-                "data": {
-                    "country": "Россия",
-                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
-                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
-                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
-                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
-                    "kladr_id": "7102200100200000000"
+            this.instance.setOptions({
+                constraints: this.$parent
+            });
+
+            this.input.value = 'улица';
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"7800000000000"}]');
+            expect(this.server.requests[0].requestBody).toContain('"restrict_value":true');
+        });
+
+        it('Should fill empty parent control when suggestion is selected in child', function () {
+
+            this.instance.setOptions({
+                bounds: 'street-',
+                constraints: this.$parent
+            });
+
+            this.input.value = 'бара';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.instance.selectedIndex = 0;
+            this.instance.select(0);
+
+            expect(this.$parent.val()).toEqual('Тульская обл, р-н Узловский');
+            expect(this.parentInstance.selection.data).toEqual(jasmine.objectContaining({
+                region: 'Тульская',
+                area: 'Узловский'
+            }));
+        });
+
+        it('Should fill non-empty parent control with territory not including a selected', function () {
+
+            this.parentInstance.setSuggestion({
+                value: 'Новосибирская обл',
+                data: {
+                    region: 'новосибирская'
                 }
-            }
-        ]));
+            });
 
-        expect($parent.val()).toEqual('Тульская обл, Узловский р-н, г Узловая, поселок Брусянский');
-        expect(this.$input.val()).toEqual('ул Строителей, д 1-бара');
-        $parent.remove();
+            this.instance.setOptions({
+                bounds: 'street-',
+                constraints: this.$parent
+            });
+
+            this.input.value = 'бара';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.instance.selectedIndex = 0;
+            this.instance.select(0);
+
+            expect(this.$parent.val()).toEqual('Тульская обл, р-н Узловский');
+            expect(this.parentInstance.selection.data).toEqual(jasmine.objectContaining({
+                region: 'Тульская',
+                area: 'Узловский'
+            }));
+        });
+
+        it('Should not fill non-empty parent control with territory including a selected', function () {
+            var mockValue = 'выбранная ранее область';
+
+            this.parentInstance.setSuggestion({
+                value: mockValue,
+                data: {
+                    region: 'Тульская',
+                    area: 'Узловский'
+                }
+            });
+
+            this.instance.setOptions({
+                bounds: 'street-',
+                constraints: this.$parent
+            });
+
+            this.input.value = 'бара';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.instance.selectedIndex = 0;
+            this.instance.select(0);
+
+            expect(this.$parent.val()).toEqual(mockValue);
+            expect(this.parentInstance.selection.data).toEqual({
+                region: 'Тульская',
+                area: 'Узловский'
+            });
+        });
+
     });
 
 });

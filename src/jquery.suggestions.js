@@ -349,11 +349,12 @@
             var that = this,
                 value;
 
-            if ($.isPlainObject(suggestion) && suggestion.value) {
-                value = suggestion.bounded_value || suggestion.value;
+            if ($.isPlainObject(suggestion)) {
+                value = suggestion.value || '';
                 that.currentValue = value;
                 that.el.val(value);
                 that.selection = suggestion;
+                that.suggestions = [suggestion];
                 that.abortRequest();
             }
         },
