@@ -128,7 +128,7 @@
 
                 if (constraint && (constraint.locations || constraint.restrictions)) {
                     locations = $.makeArray(constraint.locations || constraint.restrictions);
-                    if (!constraint.label && that.type.composeValue) {
+                    if (constraint.label == null && that.type.composeValue) {
                         constraint.label = $.map(locations, function(location){
                             return that.type.composeValue(location);
                         }).join(', ');

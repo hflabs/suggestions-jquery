@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.5
+ * DaData.ru Suggestions jQuery plugin, version 4.9.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -484,7 +484,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.5';
+    Suggestions.version = '4.9.1';
 
     $.Suggestions = Suggestions;
 
@@ -2022,7 +2022,7 @@
 
                 if (constraint && (constraint.locations || constraint.restrictions)) {
                     locations = $.makeArray(constraint.locations || constraint.restrictions);
-                    if (!constraint.label && that.type.composeValue) {
+                    if (constraint.label == null && that.type.composeValue) {
                         constraint.label = $.map(locations, function(location){
                             return that.type.composeValue(location);
                         }).join(', ');

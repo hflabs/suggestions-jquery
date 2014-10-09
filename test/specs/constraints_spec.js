@@ -246,11 +246,25 @@ describe('Address constraints', function () {
         expect($items.first().text()).toEqual('Берск (НСО)');
     });
 
-    it('Should not display constraint when `label` is empty and can not be generated from `data`', function () {
+    it('Should not display constraint when `label` is not set and can not be generated from `data`', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
                     kladr_id: '71'
+                }
+            }
+        });
+
+        expect(this.instance.$constraints.children().length).toEqual(0);
+    });
+
+    it('Should not display constraint when `label` is set and as empty', function () {
+        this.instance.setOptions({
+            constraints: {
+                label: false,
+                locations: {
+                    region: 'новосибирская',
+                    city: 'новосибирск'
                 }
             }
         });
