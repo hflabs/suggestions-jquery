@@ -1914,7 +1914,9 @@
                 });
             }
 
-            return $.isEmptyObject(location) ? null : location;
+            if (!$.isEmptyObject(location)) {
+                return location.kladr_id ? { kladr_id: location.kladr_id } : location;
+            }
         }
 
         /**
@@ -1924,17 +1926,11 @@
          */
         function belongsToArea(suggestion, instance){
             var result = true,
-                bounds = instance.type.boundsAvailable,
-                toBound,
                 parentSuggestion = instance.selection;
 
-            if (parentSuggestion && parentSuggestion.data && bounds) {
-                toBound = instance.bounds.to || bounds[bounds.length - 1];
-                $.each(bounds, function (i, bound) {
-                    result = parentSuggestion.data[bound] === suggestion.data[bound];
-                    if (!result || bound == toBound) {
-                        return false;
-                    }
+            if (parentSuggestion && parentSuggestion.data && instance.bounds) {
+                $.each(instance.bounds.all, function (i, bound) {
+                    return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
                 });
                 return result;
             }
@@ -2144,11 +2140,7 @@
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.constraints instanceof $ && this.constraints.suggestions(),
-                    parentData = {},
-                    parentValueData = {},
-                    boundInRange,
-                    bounds,
-                    toBound;
+                    parentValueData;
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
                     return;
@@ -2156,33 +2148,13 @@
 
                 that.shareWithParent(suggestion);
 
-                bounds = that.type.boundsAvailable;
-                boundInRange = !that.bounds.from;
-                toBound = that.bounds.to || bounds[bounds.length - 1];
-                $.each(bounds, function (i, bound) {
-                    var dataSet = {};
-
-                    $.each([bound, bound + '_type', bound + '_type_full'], function (i, dataField) {
-                        dataSet[dataField] = suggestion.data[dataField];
-                    });
-                    $.extend(parentData, dataSet);
-
-                    if (bound == that.bounds.from) {
-                        boundInRange = true;
-                    }
-                    if (boundInRange) {
-                        $.extend(parentValueData, dataSet);
-                    }
-                    if (bound == toBound) {
-                        return false;
-                    }
-                });
+                parentValueData = that.copyBoundedData(suggestion.data, that.bounds.own);
                 parentValueData = that.type.composeValue(parentValueData);
 
                 if (parentValueData) {
                     that.setSuggestion({
                         value: parentValueData,
-                        data: parentData
+                        data: that.copyBoundedData(suggestion.data, that.bounds.all)
                     });
                 }
             }
@@ -2279,6 +2251,7 @@
                             continueSelecting = false;
                         }
 
+                        that.checkValueBounds(enrichedSuggestion);
                         that.currentValue = enrichedSuggestion.value;
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
@@ -2366,7 +2339,10 @@
                 boundsAvailable = that.type.boundsAvailable,
                 newBounds = $.trim(that.options.bounds).split('-'),
                 boundFrom = newBounds[0],
-                boundTo = newBounds[newBounds.length - 1];
+                boundTo = newBounds[newBounds.length - 1],
+                boundsOwn = [],
+                boundIsOwn,
+                boundsAll = [];
 
             if ($.inArray(boundFrom, boundsAvailable) === -1) {
                 boundFrom = null;
@@ -2375,8 +2351,26 @@
                 boundTo = null;
             }
 
+            if (boundFrom || boundTo) {
+                boundIsOwn = !boundFrom;
+                $.each(boundsAvailable, function (i, bound) {
+                    if (bound == boundFrom) {
+                        boundIsOwn = true;
+                    }
+                    boundsAll.push(bound);
+                    if (boundIsOwn) {
+                        boundsOwn.push(bound);
+                    }
+                    if (bound == boundTo) {
+                        return false;
+                    }
+                });
+            }
+
             that.bounds.from = boundFrom;
             that.bounds.to = boundTo;
+            that.bounds.all = boundsAll;
+            that.bounds.own = boundsOwn;
         },
 
         constructBoundsParams: function () {
@@ -2391,11 +2385,39 @@
             }
 
             return params;
+        },
+
+        checkValueBounds: function (suggestion) {
+            var that = this,
+                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+
+            if (!$.isEmptyObject(valueData) && that.type.composeValue) {
+                valueData = that.type.composeValue(valueData);
+                if (valueData) {
+                    suggestion.value = valueData;
+                }
+            }
+        },
+
+        copyBoundedData: function (data, boundsRange) {
+            var result = {};
+
+            $.each(boundsRange, function (i, bound) {
+                $.each([bound, bound + '_type', bound + '_type_full'], function (i, field) {
+                    if (data[field] != null) {
+                        result[field] = data[field];
+                    }
+                })
+            });
+
+            return result;
         }
 
     };
 
     $.extend(defaultOptions, optionsUsed);
+
+    $.extend($.Suggestions.prototype, methods);
 
     initializeHooks.push(methods.setupBounds);
 

@@ -86,7 +86,7 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"Москва"}]');
     });
 
-    it('Should have `locations` parameter in request with only acceptable fields', function () {
+    it('Should have `locations` parameter in request with only `kladr_id` if it is specified', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
@@ -102,7 +102,25 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"москва","city":"москва","kladr_id":"77"}]');
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"77"}]');
+    });
+
+    it('Should have `locations` parameter in request with only acceptable fields', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: 'россия',
+                    region: 'москва',
+                    city: 'москва',
+                    qc_complete: 1
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"москва","city":"москва"}]');
     });
 
     it('Should have `locations` parameter in request if constraints specified as single object named `restrictions`', function () {
