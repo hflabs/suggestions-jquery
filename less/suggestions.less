@@ -16,6 +16,10 @@
     border-radius: @radius;
 }
 
+.suggestions-nowrap {
+    white-space: nowrap;
+}
+
 .suggestions-input {
     // IE9 can't determine border-style until it is specified in stylesheets
     border: 1px solid grey;
@@ -65,10 +69,6 @@
             .suggestions-suggestion {
                 border-bottom: 1px solid #ddd;
                 white-space: normal;
-            }
-
-            .suggestions-subtext_inline {
-                margin: 0 0.5em 0 0;
             }
 
         }
@@ -145,7 +145,7 @@
     }
 
     .suggestions-subtext_inline {
-        margin-left: 0.5em;
+        margin: 0 1em 0 0;
     }
 
     .suggestions-subtext-delimiter {

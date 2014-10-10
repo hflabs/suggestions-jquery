@@ -31,6 +31,13 @@ module.exports = function(grunt){
                     cwd: 'test/specs',
                     src: '*.js'
                 }]
+            },
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: 'src/',
+                    src: '**/*.js'
+                }]
             }
         },
 
@@ -113,6 +120,6 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-lineending');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
-    grunt.registerTask('build', ['lineending', 'less', 'includes', 'uglify:jsmin', 'sed:version']);
+    grunt.registerTask('build', ['lineending:src', 'lineending:tests', 'less', 'includes', 'uglify:jsmin', 'sed:version', 'lineending:dist']);
     grunt.registerTask('default', ['build', 'test']);
 };

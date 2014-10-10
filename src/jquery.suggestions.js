@@ -117,6 +117,7 @@
         that.classes = {
             hint: 'suggestions-hint',
             mobile: 'suggestions-mobile',
+            nowrap: 'suggestions-nowrap',
             selected: 'suggestions-selected',
             suggestion: 'suggestions-suggestion',
             subtext: 'suggestions-subtext',
@@ -252,7 +253,9 @@
                 scrollTarget = that.el;
             }
             if (scrollTarget instanceof $ && scrollTarget.length > 0) {
-                $('body,html').scrollTop(scrollTarget.offset().top);
+                $('body,html').animate({
+                    scrollTop: scrollTarget.offset().top
+                }, 'fast');
             }
         },
 

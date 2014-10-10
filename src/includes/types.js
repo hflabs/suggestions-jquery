@@ -77,32 +77,24 @@
 
                 if (address) {
                     address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
+                    if (that.isMobile) {
+                        // keep only two first words
+                        address = address.replace(new RegExp('^([^' + wordDelimeters + ']+[' + wordDelimeters + ']+[^' + wordDelimeters + ']+).*'), '$1');
+                    } else {
+                        address =that.formatResult(address, currentValue, suggestion, {
+                            unformattableTokens: ADDRESS_STOPWORDS
+                        });
+                    }
                 }
 
-                if (that.isMobile && (inn || address)) {
-                    // keep only two first words
-                    if (address) {
-                        address = address.replace(new RegExp('^([^' + wordDelimeters + ']+[' + wordDelimeters + ']+[^' + wordDelimeters + ']+).*'), '$1');
-                    }
-                    value += '<div class="' + that.classes.subtext + '">' +
+                if (inn || address) {
+                    value +=
+                        '<div class="' + that.classes.subtext + '">' +
                         '<span class="' + that.classes.subtext_inline + '">' +
                         (inn && inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') || '') +
-                        '</span>' + (address || '') +
-                    '</div>';
-                } else {
-                    if (inn) {
-                        value += '<span class="' + that.classes.subtext_inline + '">' +
-                            inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
-                            '</span>';
-                    }
-
-                    if (address) {
-                        value += '<div class="' + that.classes.subtext + '">' +
-                            that.formatResult(address, currentValue, suggestion, {
-                                unformattableTokens: ADDRESS_STOPWORDS
-                            }) +
-                            '</div>';
-                    }
+                        '</span>' +
+                        (address || '') +
+                        '</div>';
                 }
                 return value;
             }
