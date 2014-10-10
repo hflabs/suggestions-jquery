@@ -67,7 +67,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('Ростовская обл, г Ростов-<strong>на-Дон<\/strong>у');
+        expect($item.html()).toContain('Ростов-<strong>на-Дон<\/strong>у');
     });
 
     it('Should highlight search phrase in quotes', function () {
@@ -128,9 +128,9 @@ describe('Highlight suggestions', function () {
 
         expect($item.length).toEqual(1);
         expect(html).toContain('<strong>КРА</strong>СНОДАРСКИЙ');
-        expect(html).toContain('<strong>КРА</strong>СНОДАР,');
+        expect(html).toContain('Г <strong>КРА</strong>СНОДАР');
 
-        expect(html).toContain(' КРАЙ,');
+        expect(html).toContain('КРАЙ');
         expect(html).not.toContain('<strong>КРА</strong>Й');
     });
 

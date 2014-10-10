@@ -189,7 +189,8 @@
              */
             formatResult: function (value, currentValue, suggestion, options) {
 
-                var chunks = [],
+                var that = this,
+                    chunks = [],
                     unformattableTokens = options && options.unformattableTokens,
                     maxLength = options && options.maxLength || value.length,
                     tokens = formatToken(currentValue).split(wordSplitter),
@@ -252,22 +253,8 @@
                     }
                 });
 
-                // format chunks
-                return $.map(chunks, function (chunk) {
-                    var text = utils.escapeHtml(chunk.wordOriginal);
-
-                    if (text && chunk.matched) {
-                        text = '<strong>' + text + '</strong>';
-                    }
-                    if (chunk.before) {
-                        text = utils.escapeHtml(chunk.before) + text;
-                    }
-                    if (chunk.after) {
-                        text += utils.escapeHtml(chunk.after);
-                    }
-
-                    return text;
-                }).join('');
+                var formattedStr = highlightMatches(chunks);
+                return nowrapLinkedParts(formattedStr, that.classes.nowrap);
 
                 function checkChunkField (chunk, field) {
                     var length;
@@ -280,6 +267,36 @@
                             chunk[field] += '...';
                         }
                     }
+                }
+
+                function highlightMatches(chunks) {
+                    return $.map(chunks, function (chunk) {
+                        var text = utils.escapeHtml(chunk.wordOriginal);
+
+                        if (text && chunk.matched) {
+                            text = '<strong>' + text + '</strong>';
+                        }
+                        if (chunk.before) {
+                            text = utils.escapeHtml(chunk.before) + text;
+                        }
+                        if (chunk.after) {
+                            text += utils.escapeHtml(chunk.after);
+                        }
+
+                        return text;
+                    }).join('');
+                }
+
+                function nowrapLinkedParts(formattedStr, nowrapClass) {
+                    var delimitedParts = formattedStr.split(', ');
+                    // string has no delimiters, should not wrap
+                    if (delimitedParts.length === 1) {
+                        return formattedStr;
+                    }
+                    // disable word-wrap inside delimited parts
+                    return $.map(delimitedParts, function (part) {
+                        return '<span class="' + nowrapClass + '">' + part + '</span>'
+                    }).join(', ');
                 }
             },
 

@@ -1,3 +1,6 @@
+.suggestions-nowrap {
+  white-space: nowrap;
+}
 .suggestions-input {
   border: 1px solid grey;
   -ms-box-sizing: border-box;
@@ -50,9 +53,6 @@
 .suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-suggestion {
   border-bottom: 1px solid #ddd;
   white-space: normal;
-}
-.suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-subtext_inline {
-  margin: 0 0.5em 0 0;
 }
 .suggestions-wrapper .suggestions-suggestion {
   padding: 4px 4px;
@@ -114,7 +114,7 @@
   text-overflow: ellipsis;
 }
 .suggestions-wrapper .suggestions-subtext_inline {
-  margin-left: 0.5em;
+  margin: 0 1em 0 0;
 }
 .suggestions-wrapper .suggestions-subtext-delimiter {
   display: inline-block;
