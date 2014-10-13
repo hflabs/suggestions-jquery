@@ -1155,6 +1155,7 @@
                 var element = this.element;
 
                 element.selectionEnd = element.selectionStart = element.value.length;
+                element.scrollLeft = element.scrollWidth;
             }
 
 
