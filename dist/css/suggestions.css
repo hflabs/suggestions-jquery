@@ -52,11 +52,9 @@
 }
 .suggestions-wrapper .suggestions-suggestions.suggestions-mobile .suggestions-suggestion {
   border-bottom: 1px solid #ddd;
-  white-space: normal;
 }
 .suggestions-wrapper .suggestions-suggestion {
   padding: 4px 4px;
-  white-space: nowrap;
   overflow: hidden;
 }
 .suggestions-wrapper .suggestions-suggestion:hover {
