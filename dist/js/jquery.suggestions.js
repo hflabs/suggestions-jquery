@@ -1010,11 +1010,12 @@
                 if (!that.cancelFocus) {
                     // defer methods to allow browser update input's style before
                     utils.delay(function () {
-                        if (that.isMobile) {
-                            that.scrollToTop();
-                        }
                         that.fixPosition();
                         that.update();
+                        if (that.isMobile) {
+                            that.setCursorAtEnd();
+                            that.scrollToTop();
+                        }
                     });
                 }
                 that.cancelFocus = false;
@@ -1148,9 +1149,16 @@
                     return valLength === range.text.length;
                 }
                 return true;
+            },
+
+            setCursorAtEnd: function () {
+                var element = this.element;
+
+                element.selectionEnd = element.selectionStart = element.value.length;
             }
 
-        };
+
+    };
 
         $.extend(Suggestions.prototype, methods);
 
