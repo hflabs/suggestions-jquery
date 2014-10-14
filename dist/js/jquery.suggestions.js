@@ -72,7 +72,7 @@
             tabDisabled: false,
             triggerSelectOnSpace: true,
             preventBadQueries: false,
-            hint: 'Выберите вариант ниже или продолжите ввод',
+            hint: 'Выберите вариант или продолжите ввод',
             type: null,
             count: 5,
             $helpers: null,
