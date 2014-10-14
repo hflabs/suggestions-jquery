@@ -71,6 +71,7 @@
   white-space: nowrap;
   overflow: hidden;
   color: #777;
+  font-size: 85%;
 }
 .suggestions-wrapper .suggestions-constraints {
   list-style: none;
