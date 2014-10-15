@@ -35,7 +35,7 @@ module.exports = function(grunt){
             dist: {
                 files: [{
                     expand: true,
-                    cwd: 'src/',
+                    cwd: 'dist/',
                     src: '**/*.js'
                 }]
             }
@@ -81,6 +81,7 @@ module.exports = function(grunt){
                 specs: 'test/specs/*.js',
                 helpers: 'test/helpers/*.js',
                 vendor: 'test/vendor/*.js',
+                styles: 'dist/css/*.css',
                 outfile: 'test/runner.html',
                 keepRunner: true
             },

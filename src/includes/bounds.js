@@ -101,10 +101,9 @@
 
     $.extend($.Suggestions.prototype, methods);
 
-    initializeHooks.push(methods.setupBounds);
-
-    setOptionsHooks.push(methods.setBoundsOptions);
-
-    requestParamsHooks.push(methods.constructBoundsParams);
+    notificator
+        .on('initialize', methods.setupBounds)
+        .on('setOptions', methods.setBoundsOptions)
+        .on('requestParams', methods.constructBoundsParams);
 
 })();

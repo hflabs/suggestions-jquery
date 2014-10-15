@@ -1,4 +1,3 @@
-
 describe('Common features', function () {
     'use strict';
     
@@ -32,6 +31,7 @@ describe('Common features', function () {
         $.each(['$wrapper','$container','$constraints'], function(i,component){
             expect(instance[component].length).toEqual(1);
         });
+        expect(instance.clearButton.$el.length).toEqual(1);
         expect(instance.preloader.$el.length).toEqual(1);
     });
 

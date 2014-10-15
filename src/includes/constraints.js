@@ -62,7 +62,7 @@
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
                 });
 
-                elLayout.paddingLeft += that.$constraints.outerWidth(true);
+                elLayout.componentsLeft += that.$constraints.outerWidth(true);
             },
 
             onConstraintRemoveClick: function (e) {
@@ -276,14 +276,11 @@
             return;
         }
 
-        initializeHooks.push(methods.createConstraints);
-
-        setOptionsHooks.push(methods.setupConstraints);
-
-        fixPositionHooks.push(methods.setConstraintsPosition);
-
-        requestParamsHooks.push(methods.constructConstraintsParams);
-
-        disposeHooks.push(methods.unbindFromParent);
+        notificator
+            .on('initialize', methods.createConstraints)
+            .on('setOptions', methods.setupConstraints)
+            .on('fixPosition', methods.setConstraintsPosition)
+            .on('requestParams', methods.constructConstraintsParams)
+            .on('dispose', methods.unbindFromParent);
 
     }());
