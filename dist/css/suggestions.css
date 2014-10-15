@@ -35,11 +35,10 @@
 }
 .suggestions-wrapper .suggestions-clear {
   position: absolute;
-  background: transparent url("data:image/gif;base64,R0lGODlhBwAHAIABAIiIiP///yH5BAEKAAEALAAAAAAHAAcAAAINDIIHa7yP2klPORdPAQA7") 50% 50% no-repeat;
+  background: transparent url("data:image/svg+xml;utf8,<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><g><path d='m20,20m10,0l20,20l20,-20l10,10l-20,20l20,20l-10,10l-20,-20l-20,20l-10,-10l20,-20l-20,-20l10,-10' fill='#999'/></g></svg>") 50% 50% no-repeat;
+  background-size: contain;
   cursor: pointer;
   display: inline-block;
-  height: 1em;
-  width: 1em;
   opacity: 0.8;
 }
 .suggestions-wrapper .suggestions-clear:hover {
@@ -104,12 +103,13 @@
   padding: 0 0.5em;
 }
 .suggestions-wrapper .suggestions-constraints li .suggestions-remove {
-  margin: 0 0 0 0.5em;
-  background: transparent url("data:image/gif;base64,R0lGODlhBwAHAIABAIiIiP///yH5BAEKAAEALAAAAAAHAAcAAAINDIIHa7yP2klPORdPAQA7") 50% 50% no-repeat;
+  height: 1em;
+  width: 1em;
+  margin: 0 0 0 0.25em;
+  background: transparent url("data:image/svg+xml;utf8,<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><g><path d='m20,20m10,0l20,20l20,-20l10,10l-20,20l20,20l-10,10l-20,-20l-20,20l-10,-10l20,-20l-20,-20l10,-10' fill='#999'/></g></svg>") 50% 50% no-repeat;
+  background-size: contain;
   cursor: pointer;
   display: inline-block;
-  height: 7px;
-  width: 7px;
   opacity: 0.8;
 }
 .suggestions-wrapper .suggestions-constraints li .suggestions-remove:hover {
