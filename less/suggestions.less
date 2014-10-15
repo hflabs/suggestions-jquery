@@ -16,12 +16,16 @@
     border-radius: @radius;
 }
 
-.cross-button-mixin(@size) {
-    background: transparent url("data:image/gif;base64,R0lGODlhBwAHAIABAIiIiP///yH5BAEKAAEALAAAAAAHAAcAAAINDIIHa7yP2klPORdPAQA7") 50% 50% no-repeat;
+.cross-button-mixin() {
+    @cross-padding: 20;
+    @cross-ray-width: 10;
+    @cross-ray-length: 50 - @cross-padding - @cross-ray-width;
+    background: transparent url("data:image/svg+xml;utf8,<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><g><path d='m@{cross-padding},@{cross-padding}m@{cross-ray-width},0l@{cross-ray-length},@{cross-ray-length}l@{cross-ray-length},-@{cross-ray-length}l@{cross-ray-width},@{cross-ray-width}l-@{cross-ray-length},@{cross-ray-length}l@{cross-ray-length},@{cross-ray-length}l-@{cross-ray-width},@{cross-ray-width}l-@{cross-ray-length},-@{cross-ray-length}l-@{cross-ray-length},@{cross-ray-length}l-@{cross-ray-width},-@{cross-ray-width}l@{cross-ray-length},-@{cross-ray-length}l-@{cross-ray-length},-@{cross-ray-length}l@{cross-ray-width},-@{cross-ray-width}' fill='#999'/></g></svg>") 50% 50% no-repeat;
+    background-size: contain;
+
     cursor: pointer;
     display: inline-block;
-    height: @size;
-    width: @size;
+
     opacity: 0.8;
 
     &:hover {
@@ -66,7 +70,7 @@
 
     .suggestions-clear {
         position: absolute;
-        .cross-button-mixin(1em);
+        .cross-button-mixin();
     }
 
     .suggestions-suggestions {
@@ -133,8 +137,12 @@
             padding: 0 0.5em;
 
             .suggestions-remove {
-                margin: 0 0 0 0.5em;
-                .cross-button-mixin(7px);
+                @icon-size: 1em;
+                height: @icon-size;
+                width: @icon-size;
+
+                margin: 0 0 0 0.25em;
+                .cross-button-mixin();
             }
 
             span {

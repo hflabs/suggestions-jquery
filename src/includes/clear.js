@@ -17,8 +17,6 @@
             that.ownerEdge = 'right';
             that.ownerEdgeId = 'clear';
             that.$el = $el;
-            that.height = $el.height();
-            that.width = $el.width();
             that.checkActivity();
 
             $el.on('click', $.proxy(that, 'onClick'));
@@ -33,15 +31,18 @@
             },
 
             fixPosition: function (origin, elLayout) {
-                var that = this;
+                var that = this,
+                    size = elLayout.innerHeight;
 
                 that.checkActivity();
                 that.$el.css({
-                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.width - elLayout.paddingRight + 'px',
-                    top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.height) / 2) + 'px'
+                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - size + 'px',
+                    top: origin.top + elLayout.borderTop + 'px',
+                    height: size,
+                    width: size
                 });
                 if (that.active) {
-                    elLayout.componentsRight += that.width;
+                    elLayout.componentsRight += size;
                 }
             },
 
