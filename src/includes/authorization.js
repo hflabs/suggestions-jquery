@@ -43,6 +43,7 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        setOptionsHooks.push(methods.checkToken);
+        notificator
+            .on('setOptions', methods.checkToken);
 
     }());

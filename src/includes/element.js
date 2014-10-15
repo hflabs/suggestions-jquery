@@ -190,8 +190,8 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        initializeHooks.push(methods.bindElementEvents);
-
-        disposeHooks.push(methods.unbindElementEvents);
+        notificator
+            .on('initialize', methods.bindElementEvents)
+            .on('dispose', methods.unbindElementEvents);
 
     }());

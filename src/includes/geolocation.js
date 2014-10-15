@@ -80,8 +80,8 @@
             getGeoLocation: methods.getGeoLocation
         });
 
-        setOptionsHooks.push(methods.checkLocation);
-
-        requestParamsHooks.push(methods.constructParams);
+        notificator
+            .on('setOptions', methods.checkLocation)
+            .on('requestParams', methods.constructParams);
 
     }());

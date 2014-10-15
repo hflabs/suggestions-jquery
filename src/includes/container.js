@@ -23,6 +23,36 @@
             return result;
         }
 
+        function highlightMatches(chunks) {
+            return $.map(chunks, function (chunk) {
+                var text = utils.escapeHtml(chunk.wordOriginal);
+
+                if (text && chunk.matched) {
+                    text = '<strong>' + text + '</strong>';
+                }
+                if (chunk.before) {
+                    text = utils.escapeHtml(chunk.before) + text;
+                }
+                if (chunk.after) {
+                    text += utils.escapeHtml(chunk.after);
+                }
+
+                return text;
+            }).join('');
+        }
+
+        function nowrapLinkedParts(formattedStr, nowrapClass) {
+            var delimitedParts = formattedStr.split(', ');
+            // string has no delimiters, should not wrap
+            if (delimitedParts.length === 1) {
+                return formattedStr;
+            }
+            // disable word-wrap inside delimited parts
+            return $.map(delimitedParts, function (part) {
+                return '<span class="' + nowrapClass + '">' + part + '</span>'
+            }).join(', ');
+        }
+
         var methods = {
 
             createContainer: function () {
@@ -269,35 +299,6 @@
                     }
                 }
 
-                function highlightMatches(chunks) {
-                    return $.map(chunks, function (chunk) {
-                        var text = utils.escapeHtml(chunk.wordOriginal);
-
-                        if (text && chunk.matched) {
-                            text = '<strong>' + text + '</strong>';
-                        }
-                        if (chunk.before) {
-                            text = utils.escapeHtml(chunk.before) + text;
-                        }
-                        if (chunk.after) {
-                            text += utils.escapeHtml(chunk.after);
-                        }
-
-                        return text;
-                    }).join('');
-                }
-
-                function nowrapLinkedParts(formattedStr, nowrapClass) {
-                    var delimitedParts = formattedStr.split(', ');
-                    // string has no delimiters, should not wrap
-                    if (delimitedParts.length === 1) {
-                        return formattedStr;
-                    }
-                    // disable word-wrap inside delimited parts
-                    return $.map(delimitedParts, function (part) {
-                        return '<span class="' + nowrapClass + '">' + part + '</span>'
-                    }).join(', ');
-                }
             },
 
             hide: function () {
@@ -408,11 +409,10 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        initializeHooks.push(methods.createContainer);
-
-        fixPositionHooks.push(methods.setDropdownPosition);
-        fixPositionHooks.push(methods.setItemsPositions);
-
-        assignSuggestionsHooks.push(methods.suggest);
+        notificator
+            .on('initialize', methods.createContainer)
+            .on('fixPosition', methods.setDropdownPosition)
+            .on('fixPosition', methods.setItemsPositions)
+            .on('assignSuggestions', methods.suggest);
 
     }());

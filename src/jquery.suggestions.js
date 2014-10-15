@@ -21,13 +21,6 @@
             DOWN: 40
         },
         types = {},
-        initializeHooks = [],
-        disposeHooks = [],
-        setOptionsHooks = [],
-        fixPositionHooks = [],
-        resetPositionHooks = [],
-        requestParamsHooks = [],
-        assignSuggestionsHooks = [],
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
         QC_COMPLETE = {
@@ -73,6 +66,21 @@
             scrollOnFocus: true,
             mobileWidth: 980
         };
+
+    var notificator = {
+
+        chains: {},
+
+        'on': function (name, method) {
+            this.get(name).push(method);
+            return this;
+        },
+
+        'get': function (name) {
+            var chains = this.chains;
+            return chains[name] || (chains[name] = []);
+        }
+    };
 
 //include "utils.js"
 
@@ -128,6 +136,9 @@
         that.selection = null;
         that.$viewport = $(window);
         that.type = null;
+        that.visibleComponents = {
+            'right': {}
+        };
 
         // Initialize and set options:
         that.initialize();
@@ -157,7 +168,7 @@
             that.uniqueId = utils.uniqueId('i');
 
             that.createWrapper();
-            that.applyHooks(initializeHooks);
+            that.notify('initialize');
 
             that.bindWindowEvents();
 
@@ -166,7 +177,7 @@
 
         dispose: function () {
             var that = this;
-            that.applyHooks(disposeHooks);
+            that.notify('dispose');
             that.el.removeData(dataAttrKey)
                 .removeClass('suggestions-input');
             that.unbindWindowEvents();
@@ -174,12 +185,12 @@
             that.el.trigger('suggestions-dispose');
         },
 
-        applyHooks: function(hooks) {
+        notify: function(chainName) {
             var that = this,
                 args = utils.slice(arguments, 1);
 
-            return $.map(hooks, function(hook){
-                return hook.apply(that, args);
+            return $.map(notificator.get(chainName), function(method){
+                return method.apply(that, args);
             });
         },
 
@@ -193,7 +204,10 @@
         },
 
         removeWrapper: function () {
-            this.$wrapper.remove();
+            var that = this;
+
+            that.$wrapper.remove();
+            $(that.options.$helpers).off(eventNS);
         },
 
         /** This whole handler is needed to prevent blur event on textbox
@@ -272,7 +286,7 @@
                 throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
             }
 
-            that.applyHooks(setOptionsHooks);
+            that.notify('setOptions');
         },
 
         // Common public methods
@@ -285,7 +299,7 @@
 
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
-            that.applyHooks(resetPositionHooks);
+            that.notify('resetPosition');
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
             that.el.css('paddingRight', '');
@@ -298,6 +312,8 @@
             elLayout.innerHeight = that.el.innerHeight();
             elLayout.innerWidth = that.el.innerWidth();
             elLayout.outerHeight = that.el.outerHeight();
+            elLayout.componentsLeft = 0;
+            elLayout.componentsRight = 0;
             wrapperOffset = that.$wrapper.offset();
 
             origin = {
@@ -305,9 +321,14 @@
                 left: elLayout.left - wrapperOffset.left
             };
 
-            that.applyHooks(fixPositionHooks, origin, elLayout);
+            that.notify('fixPosition', origin, elLayout);
 
-            that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
+            if (elLayout.componentsLeft) {
+                that.el.css('paddingLeft', elLayout.paddingLeft + elLayout.componentsLeft + 'px');
+            }
+            if (elLayout.componentsRight) {
+                that.el.css('paddingRight', elLayout.paddingRight + elLayout.componentsRight + 'px');
+            }
         },
 
         clearCache: function () {
@@ -424,7 +445,7 @@
                     ? options.params.call(that.element, query)
                     : $.extend({}, options.params);
 
-            $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
+            $.each(that.notify('requestParams'), function(i, hookParams){
                 $.extend(params, hookParams);
             });
             params[options.paramName] = query;
@@ -471,27 +492,22 @@
                     if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
                         resolver.reject();
                     } else {
-                        that.abortRequest();
-                        that.showPreloader();
-                        that.currentRequest = that.doGetSuggestions(params);
-                        that.currentRequest.always(function () {
-                            that.currentRequest = null;
-                            that.hidePreloader();
-                        }).done(function (response) {
-                            if (that.processResponse(response, query, cacheKey)) {
-                                resolver.resolve(response.suggestions);
-                            } else {
+                        that.doGetSuggestions(params)
+                            .done(function (response) {
+                                if (that.processResponse(response, query, cacheKey)) {
+                                    resolver.resolve(response.suggestions);
+                                } else {
+                                    resolver.reject();
+                                }
+                                if (!noCallbacks) {
+                                    options.onSearchComplete.call(that.element, query, response.suggestions);
+                                }
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
                                 resolver.reject();
-                            }
-                            if (!noCallbacks) {
-                                options.onSearchComplete.call(that.element, query, response.suggestions);
-                            }
-                        }).fail(function (jqXHR, textStatus, errorThrown) {
-                            resolver.reject();
-                            if (!noCallbacks) {
-                                options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
-                            }
-                        });
+                                if (!noCallbacks) {
+                                    options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
+                                }
+                            });
                     }
                 }
             }
@@ -504,10 +520,22 @@
          * @returns {$.Deferred} response promise
          */
         doGetSuggestions: function(params) {
-            var that = this;
-            return $.ajax(
-                that.getAjaxParams('suggest', { data: utils.serialize(params) })
-            );
+            var that = this,
+                request = $.ajax(
+                    that.getAjaxParams('suggest', { data: utils.serialize(params) })
+                );
+
+            that.abortRequest();
+            that.notify('requestStart');
+
+            that.currentRequest = request;
+
+            request.always(function () {
+                that.currentRequest = null;
+                that.notify('requestEnd');
+            });
+
+            return request;
         },
 
         isBadQuery: function (q) {
@@ -572,7 +600,7 @@
         assignSuggestions: function(suggestions, query) {
             var that = this;
             that.suggestions = suggestions;
-            that.applyHooks(assignSuggestionsHooks, query);
+            that.notify('assignSuggestions', query);
         },
 
         getValue: function (value) {
@@ -641,6 +669,8 @@
 //include "enrich.js"
 
 //include "container.js"
+
+//include "clear.js"
 
 //include "preloader.js"
 

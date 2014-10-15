@@ -127,6 +127,7 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        assignSuggestionsHooks.push(methods.trySelectOnSpace)
+        notificator
+            .on('assignSuggestions', methods.trySelectOnSpace);
 
     }());

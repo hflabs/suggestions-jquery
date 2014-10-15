@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.1
+ * DaData.ru Suggestions jQuery plugin, version 4.9.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -28,13 +28,6 @@
             DOWN: 40
         },
         types = {},
-        initializeHooks = [],
-        disposeHooks = [],
-        setOptionsHooks = [],
-        fixPositionHooks = [],
-        resetPositionHooks = [],
-        requestParamsHooks = [],
-        assignSuggestionsHooks = [],
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
         QC_COMPLETE = {
@@ -80,6 +73,21 @@
             scrollOnFocus: true,
             mobileWidth: 980
         };
+
+    var notificator = {
+
+        chains: {},
+
+        'on': function (name, method) {
+            this.get(name).push(method);
+            return this;
+        },
+
+        'get': function (name) {
+            var chains = this.chains;
+            return chains[name] || (chains[name] = []);
+        }
+    };
 
     var utils = (function () {
         var uniqueId = 0;
@@ -467,6 +475,9 @@
         that.selection = null;
         that.$viewport = $(window);
         that.type = null;
+        that.visibleComponents = {
+            'right': {}
+        };
 
         // Initialize and set options:
         that.initialize();
@@ -477,7 +488,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.1';
+    Suggestions.version = '4.9.2';
 
     $.Suggestions = Suggestions;
 
@@ -496,7 +507,7 @@
             that.uniqueId = utils.uniqueId('i');
 
             that.createWrapper();
-            that.applyHooks(initializeHooks);
+            that.notify('initialize');
 
             that.bindWindowEvents();
 
@@ -505,7 +516,7 @@
 
         dispose: function () {
             var that = this;
-            that.applyHooks(disposeHooks);
+            that.notify('dispose');
             that.el.removeData(dataAttrKey)
                 .removeClass('suggestions-input');
             that.unbindWindowEvents();
@@ -513,12 +524,12 @@
             that.el.trigger('suggestions-dispose');
         },
 
-        applyHooks: function(hooks) {
+        notify: function(chainName) {
             var that = this,
                 args = utils.slice(arguments, 1);
 
-            return $.map(hooks, function(hook){
-                return hook.apply(that, args);
+            return $.map(notificator.get(chainName), function(method){
+                return method.apply(that, args);
             });
         },
 
@@ -532,7 +543,10 @@
         },
 
         removeWrapper: function () {
-            this.$wrapper.remove();
+            var that = this;
+
+            that.$wrapper.remove();
+            $(that.options.$helpers).off(eventNS);
         },
 
         /** This whole handler is needed to prevent blur event on textbox
@@ -611,7 +625,7 @@
                 throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
             }
 
-            that.applyHooks(setOptionsHooks);
+            that.notify('setOptions');
         },
 
         // Common public methods
@@ -624,7 +638,7 @@
 
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
-            that.applyHooks(resetPositionHooks);
+            that.notify('resetPosition');
             // reset input's padding to default, determined by css
             that.el.css('paddingLeft', '');
             that.el.css('paddingRight', '');
@@ -637,6 +651,8 @@
             elLayout.innerHeight = that.el.innerHeight();
             elLayout.innerWidth = that.el.innerWidth();
             elLayout.outerHeight = that.el.outerHeight();
+            elLayout.componentsLeft = 0;
+            elLayout.componentsRight = 0;
             wrapperOffset = that.$wrapper.offset();
 
             origin = {
@@ -644,9 +660,14 @@
                 left: elLayout.left - wrapperOffset.left
             };
 
-            that.applyHooks(fixPositionHooks, origin, elLayout);
+            that.notify('fixPosition', origin, elLayout);
 
-            that.el.css('paddingLeft', elLayout.paddingLeft + 'px');
+            if (elLayout.componentsLeft) {
+                that.el.css('paddingLeft', elLayout.paddingLeft + elLayout.componentsLeft + 'px');
+            }
+            if (elLayout.componentsRight) {
+                that.el.css('paddingRight', elLayout.paddingRight + elLayout.componentsRight + 'px');
+            }
         },
 
         clearCache: function () {
@@ -763,7 +784,7 @@
                     ? options.params.call(that.element, query)
                     : $.extend({}, options.params);
 
-            $.each(that.applyHooks(requestParamsHooks), function(i, hookParams){
+            $.each(that.notify('requestParams'), function(i, hookParams){
                 $.extend(params, hookParams);
             });
             params[options.paramName] = query;
@@ -810,27 +831,22 @@
                     if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
                         resolver.reject();
                     } else {
-                        that.abortRequest();
-                        that.showPreloader();
-                        that.currentRequest = that.doGetSuggestions(params);
-                        that.currentRequest.always(function () {
-                            that.currentRequest = null;
-                            that.hidePreloader();
-                        }).done(function (response) {
-                            if (that.processResponse(response, query, cacheKey)) {
-                                resolver.resolve(response.suggestions);
-                            } else {
+                        that.doGetSuggestions(params)
+                            .done(function (response) {
+                                if (that.processResponse(response, query, cacheKey)) {
+                                    resolver.resolve(response.suggestions);
+                                } else {
+                                    resolver.reject();
+                                }
+                                if (!noCallbacks) {
+                                    options.onSearchComplete.call(that.element, query, response.suggestions);
+                                }
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
                                 resolver.reject();
-                            }
-                            if (!noCallbacks) {
-                                options.onSearchComplete.call(that.element, query, response.suggestions);
-                            }
-                        }).fail(function (jqXHR, textStatus, errorThrown) {
-                            resolver.reject();
-                            if (!noCallbacks) {
-                                options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
-                            }
-                        });
+                                if (!noCallbacks) {
+                                    options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
+                                }
+                            });
                     }
                 }
             }
@@ -843,10 +859,22 @@
          * @returns {$.Deferred} response promise
          */
         doGetSuggestions: function(params) {
-            var that = this;
-            return $.ajax(
-                that.getAjaxParams('suggest', { data: utils.serialize(params) })
-            );
+            var that = this,
+                request = $.ajax(
+                    that.getAjaxParams('suggest', { data: utils.serialize(params) })
+                );
+
+            that.abortRequest();
+            that.notify('requestStart');
+
+            that.currentRequest = request;
+
+            request.always(function () {
+                that.currentRequest = null;
+                that.notify('requestEnd');
+            });
+
+            return request;
         },
 
         isBadQuery: function (q) {
@@ -911,7 +939,7 @@
         assignSuggestions: function(suggestions, query) {
             var that = this;
             that.suggestions = suggestions;
-            that.applyHooks(assignSuggestionsHooks, query);
+            that.notify('assignSuggestions', query);
         },
 
         getValue: function (value) {
@@ -1163,9 +1191,9 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        initializeHooks.push(methods.bindElementEvents);
-
-        disposeHooks.push(methods.unbindElementEvents);
+        notificator
+            .on('initialize', methods.bindElementEvents)
+            .on('dispose', methods.unbindElementEvents);
 
     }());
 
@@ -1215,7 +1243,8 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        setOptionsHooks.push(methods.checkToken);
+        notificator
+            .on('setOptions', methods.checkToken);
 
     }());
 
@@ -1301,9 +1330,9 @@
             getGeoLocation: methods.getGeoLocation
         });
 
-        setOptionsHooks.push(methods.checkLocation);
-
-        requestParamsHooks.push(methods.constructParams);
+        notificator
+            .on('setOptions', methods.checkLocation)
+            .on('requestParams', methods.constructParams);
 
     }());
 
@@ -1379,7 +1408,8 @@
             useDadata: true
         });
 
-        setOptionsHooks.push(methods.selectEnrichService);
+        notificator
+            .on('setOptions', methods.selectEnrichService);
 
     }());
 
@@ -1406,6 +1436,36 @@
             });
 
             return result;
+        }
+
+        function highlightMatches(chunks) {
+            return $.map(chunks, function (chunk) {
+                var text = utils.escapeHtml(chunk.wordOriginal);
+
+                if (text && chunk.matched) {
+                    text = '<strong>' + text + '</strong>';
+                }
+                if (chunk.before) {
+                    text = utils.escapeHtml(chunk.before) + text;
+                }
+                if (chunk.after) {
+                    text += utils.escapeHtml(chunk.after);
+                }
+
+                return text;
+            }).join('');
+        }
+
+        function nowrapLinkedParts(formattedStr, nowrapClass) {
+            var delimitedParts = formattedStr.split(', ');
+            // string has no delimiters, should not wrap
+            if (delimitedParts.length === 1) {
+                return formattedStr;
+            }
+            // disable word-wrap inside delimited parts
+            return $.map(delimitedParts, function (part) {
+                return '<span class="' + nowrapClass + '">' + part + '</span>'
+            }).join(', ');
         }
 
         var methods = {
@@ -1654,35 +1714,6 @@
                     }
                 }
 
-                function highlightMatches(chunks) {
-                    return $.map(chunks, function (chunk) {
-                        var text = utils.escapeHtml(chunk.wordOriginal);
-
-                        if (text && chunk.matched) {
-                            text = '<strong>' + text + '</strong>';
-                        }
-                        if (chunk.before) {
-                            text = utils.escapeHtml(chunk.before) + text;
-                        }
-                        if (chunk.after) {
-                            text += utils.escapeHtml(chunk.after);
-                        }
-
-                        return text;
-                    }).join('');
-                }
-
-                function nowrapLinkedParts(formattedStr, nowrapClass) {
-                    var delimitedParts = formattedStr.split(', ');
-                    // string has no delimiters, should not wrap
-                    if (delimitedParts.length === 1) {
-                        return formattedStr;
-                    }
-                    // disable word-wrap inside delimited parts
-                    return $.map(delimitedParts, function (part) {
-                        return '<span class="' + nowrapClass + '">' + part + '</span>'
-                    }).join(', ');
-                }
             },
 
             hide: function () {
@@ -1793,14 +1824,101 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        initializeHooks.push(methods.createContainer);
-
-        fixPositionHooks.push(methods.setDropdownPosition);
-        fixPositionHooks.push(methods.setItemsPositions);
-
-        assignSuggestionsHooks.push(methods.suggest);
+        notificator
+            .on('initialize', methods.createContainer)
+            .on('fixPosition', methods.setDropdownPosition)
+            .on('fixPosition', methods.setItemsPositions)
+            .on('assignSuggestions', methods.suggest);
 
     }());
+
+    (function(){
+        /**
+         * Methods related to Clear button
+         */
+
+        var optionsUsed = {
+            // if not set as boolean, determined by `isMobile`
+            showClear: null
+        };
+
+        var ClearButton = function (owner) {
+            var that = this,
+                $el = $('<span class="suggestions-clear"/>')
+                    .appendTo(owner.$wrapper);
+
+            that.owner = owner;
+            that.ownerEdge = 'right';
+            that.ownerEdgeId = 'clear';
+            that.$el = $el;
+            that.height = $el.height();
+            that.width = $el.width();
+            that.checkActivity();
+
+            $el.on('click', $.proxy(that, 'onClick'));
+        };
+
+        ClearButton.prototype = {
+
+            onClick: function (e) {
+                var owner = this.owner;
+
+                owner.clear();
+            },
+
+            fixPosition: function (origin, elLayout) {
+                var that = this;
+
+                that.checkActivity();
+                that.$el.css({
+                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.width - elLayout.paddingRight + 'px',
+                    top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.height) / 2) + 'px'
+                });
+                if (that.active) {
+                    elLayout.componentsRight += that.width;
+                }
+            },
+
+            checkActivity: function () {
+                var that = this,
+                    enabled = that.owner.options.showClear,
+                    active = enabled == null ? that.owner.isMobile : !!enabled;
+
+                if (active != that.active) {
+                    that.$el.toggle(active);
+                    that.active = active;
+
+                    that.owner.visibleComponents[that.ownerEdge][that.ownerEdgeId] = active;
+                }
+            }
+
+        };
+
+        var methods = {
+
+            createClearButton: function () {
+                this.clearButton = new ClearButton(this);
+            },
+
+            setClearButtonOptions: function () {
+                this.clearButton.checkActivity();
+            },
+
+            setClearButtonPosition: function (origin, elLayout) {
+                this.clearButton.fixPosition(origin, elLayout);
+            }
+
+        };
+
+        $.extend(defaultOptions, optionsUsed);
+
+        notificator
+            .on('initialize', methods.createClearButton)
+            .on('setOptions', methods.setClearButtonOptions)
+            .on('fixPosition', methods.setClearButtonPosition);
+
+    }());
+
 
     (function(){
         /**
@@ -1811,60 +1929,72 @@
             BEFORE_SHOW_PRELOADER = 50,
             BEFORE_RESTORE_PADDING = 1000;
 
-        var methods = {
+        var optionsUsed = {
+            usePreloader: true
+        };
 
-            createPreloader: function () {
+        var Preloader = function (owner) {
+            var that = this,
+                $el = $('<i class="suggestions-preloader"/>')
+                    .appendTo(owner.$wrapper);
+
+            that.owner = owner;
+            that.ownerEdge = 'right';
+            that.ownerEdgeId = 'preloader';
+            that.$el = $el;
+            that.visibleCount = 0;
+            that.height = $el.height();
+            that.width = $el.width();
+            that.initialPadding = null;
+        };
+
+        Preloader.prototype = {
+
+            isEnabled: function () {
                 var that = this,
-                    $preloader = $('<i class="suggestions-preloader"/>')
-                        .appendTo(that.$wrapper);
+                    enabled = that.owner.options.usePreloader;
 
-                that.preloader = {
-                    $el: $preloader,
-                    visibleCount: 0,
-                    height: $preloader.height(),
-                    width: $preloader.width(),
-                    initialPadding: null
-                };
+                // disable if other components are shown at the sae edge
+                if (enabled) {
+                    $.each(that.owner.visibleComponents[that.ownerEdge], function (id, visible) {
+                        if (visible && id != that.ownerEdgeId) {
+                            return enabled = false;
+                        }
+                    });
+                }
+
+                return enabled;
             },
 
-            setPreloaderPosition: function(origin, elLayout){
+            show: function () {
                 var that = this;
 
-                that.preloader.$el.css({
-                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.preloader.width - elLayout.paddingRight + 'px',
-                    top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.preloader.height) / 2) + 'px'
-                });
-
-                that.preloader.initialPadding = elLayout.paddingRight;
-            },
-
-            showPreloader: function () {
-                var that = this;
-
-                if (that.options.usePreloader) {
-                    if (!that.preloader.visibleCount++) {
-                        that.preloader.$el
+                if (that.isEnabled()) {
+                    if (!that.visibleCount++) {
+                        that.$el
                             .stop(true, true)
                             .delay(BEFORE_SHOW_PRELOADER)
                             .queue(function () {
                                 that.showPreloaderBackground();
-                                $(this).dequeue();
+                                that.$el.css('display','inline-block');
+                                that.$el.dequeue();
                             })
                             .animate({'opacity': 1}, 'fast');
                     }
                 }
             },
 
-            hidePreloader: function () {
+            hide: function () {
                 var that = this;
 
-                if (that.options.usePreloader) {
-                    if (! --that.preloader.visibleCount) {
-                        that.preloader.$el
+                if (that.isEnabled()) {
+                    if (!--that.visibleCount) {
+                        that.$el
                             .stop(true)
                             .animate({'opacity': 0}, {
                                 duration: 'fast',
                                 complete: function () {
+                                    that.$el.css('display','none');
                                     that.hidePreloaderBackground();
                                 }
                             });
@@ -1872,45 +2002,90 @@
                 }
             },
 
+            fixPosition: function(origin, elLayout){
+                var that = this;
+
+                that.$el.css({
+                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.width - elLayout.paddingRight + 'px',
+                    top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.height) / 2) + 'px'
+                });
+
+                that.initialPadding = elLayout.paddingRight;
+            },
+
             showPreloaderBackground: function () {
                 var that = this,
                     preloaderLeftSpacing = 4;
 
-                that.el.stop(QUEUE_NAME, true)
-                    .animate({'padding-right': that.preloader.initialPadding + that.preloader.width + preloaderLeftSpacing}, {
+                that.stopPreloaderBackground();
+                that.owner.el
+                    .animate({'padding-right': that.initialPadding + that.width + preloaderLeftSpacing}, {
                         duration: 'fast',
                         queue: QUEUE_NAME
-                    }).dequeue(QUEUE_NAME);
+                    })
+                    .dequeue(QUEUE_NAME);
             },
 
             hidePreloaderBackground: function () {
                 var that = this;
 
-                that.el.stop(QUEUE_NAME, true, true)
+                that.stopPreloaderBackground(true);
+                that.owner.el
                     .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
-                    .animate({'padding-right': that.preloader.initialPadding}, {
+                    .animate({'padding-right': that.initialPadding}, {
                         duration: 'fast',
                         queue: QUEUE_NAME
                     }).dequeue(QUEUE_NAME);
             },
 
-            stopPreloaderBackground: function () {
-                this.el.stop(QUEUE_NAME, true);
+            stopPreloaderBackground: function (gotoEnd) {
+                this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
             }
 
         };
 
-        $.extend(defaultOptions, {
-            usePreloader: true
-        });
+        var methods = {
 
-        $.extend(Suggestions.prototype, methods);
+            createPreloader: function () {
+                var that = this;
 
-        initializeHooks.push(methods.createPreloader);
+                that.preloader = new Preloader(that);
+            },
 
-        fixPositionHooks.push(methods.setPreloaderPosition);
+            setPreloaderOptions: function () {
+                var that = this;
 
-        resetPositionHooks.push(methods.stopPreloaderBackground);
+                that.preloader.enabled = that.options.usePreloader;
+            },
+
+            setPreloaderPosition: function (origin, elLayout) {
+                this.preloader.fixPosition(origin, elLayout);
+            },
+
+            stopPreloaderBackground: function () {
+                this.preloader.stopPreloaderBackground();
+            },
+
+            showPreloader: function () {
+                this.preloader.show();
+            },
+
+            hidePreloader: function () {
+                this.preloader.hide();
+            }
+
+        };
+
+        $.extend(defaultOptions, optionsUsed);
+
+        notificator
+            .on('initialize', methods.createPreloader)
+            .on('setOptions', methods.setPreloaderOptions)
+            .on('fixPosition', methods.setPreloaderPosition)
+            .on('resetPosition', methods.stopPreloaderBackground)
+            .on('requestStart', methods.showPreloader)
+            .on('requestEnd', methods.hidePreloader);
+
     }());
 
     (function(){
@@ -1977,7 +2152,7 @@
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
                 });
 
-                elLayout.paddingLeft += that.$constraints.outerWidth(true);
+                elLayout.componentsLeft += that.$constraints.outerWidth(true);
             },
 
             onConstraintRemoveClick: function (e) {
@@ -2191,15 +2366,12 @@
             return;
         }
 
-        initializeHooks.push(methods.createConstraints);
-
-        setOptionsHooks.push(methods.setupConstraints);
-
-        fixPositionHooks.push(methods.setConstraintsPosition);
-
-        requestParamsHooks.push(methods.constructConstraintsParams);
-
-        disposeHooks.push(methods.unbindFromParent);
+        notificator
+            .on('initialize', methods.createConstraints)
+            .on('setOptions', methods.setupConstraints)
+            .on('fixPosition', methods.setConstraintsPosition)
+            .on('requestParams', methods.constructConstraintsParams)
+            .on('dispose', methods.unbindFromParent);
 
     }());
 
@@ -2332,7 +2504,8 @@
 
         $.extend(Suggestions.prototype, methods);
 
-        assignSuggestionsHooks.push(methods.trySelectOnSpace)
+        notificator
+            .on('assignSuggestions', methods.trySelectOnSpace);
 
     }());
 
@@ -2440,11 +2613,10 @@
 
     $.extend($.Suggestions.prototype, methods);
 
-    initializeHooks.push(methods.setupBounds);
-
-    setOptionsHooks.push(methods.setBoundsOptions);
-
-    requestParamsHooks.push(methods.constructBoundsParams);
+    notificator
+        .on('initialize', methods.setupBounds)
+        .on('setOptions', methods.setBoundsOptions)
+        .on('requestParams', methods.constructBoundsParams);
 
 })();
 

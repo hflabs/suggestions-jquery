@@ -70,6 +70,7 @@
             useDadata: true
         });
 
-        setOptionsHooks.push(methods.selectEnrichService);
+        notificator
+            .on('setOptions', methods.selectEnrichService);
 
     }());
