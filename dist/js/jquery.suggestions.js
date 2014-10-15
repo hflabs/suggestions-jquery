@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.2
+ * DaData.ru Suggestions jQuery plugin, version 4.9.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -346,11 +346,11 @@
             composeValue: function (data) {
                 // TODO improve according with server logic
                 return utils.compact([
-                    utils.compact([data.region, data.region_type]).join(' '),
-                    utils.compact([data.area_type, data.area]).join(' '),
-                    utils.compact([data.city_type, data.city]).join(' '),
-                    utils.compact([data.settlement_type, data.settlement]).join(' '),
-                    utils.compact([data.street_type, data.street]).join(' '),
+                    data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
+                    data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
+                    data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
+                    data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
+                    data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
                     utils.compact([data.house_type, data.house]).join(' '),
                     utils.compact([data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' '),
@@ -488,7 +488,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.2';
+    Suggestions.version = '4.9.3';
 
     $.Suggestions = Suggestions;
 
@@ -2597,7 +2597,7 @@
             var result = {};
 
             $.each(boundsRange, function (i, bound) {
-                $.each([bound, bound + '_type', bound + '_type_full'], function (i, field) {
+                $.each([bound, bound + '_type', bound + '_type_full', bound + '_with_type'], function (i, field) {
                     if (data[field] != null) {
                         result[field] = data[field];
                     }

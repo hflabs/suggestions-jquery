@@ -85,7 +85,7 @@
             var result = {};
 
             $.each(boundsRange, function (i, bound) {
-                $.each([bound, bound + '_type', bound + '_type_full'], function (i, field) {
+                $.each([bound, bound + '_type', bound + '_type_full', bound + '_with_type'], function (i, field) {
                     if (data[field] != null) {
                         result[field] = data[field];
                     }

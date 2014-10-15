@@ -4,17 +4,22 @@ describe('Address constraints', function () {
     var serviceUrl = '/some/url',
         fixtures = {
             fullyAddress: {
-                "value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
-                "unrestricted_value": "Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара",
-                "data": {
-                    "country": "Россия",
-                    "region_type": "обл", "region_type_full": "область", "region": "Тульская",
-                    "area_type": "р-н", "area_type_full": "район", "area": "Узловский",
-                    "city_type": "г", "city_type_full": "город", "city": "Узловая",
-                    "settlement_type": "п", "settlement_type_full": "поселок", "settlement": "Брусянский",
-                    "street_type": "ул", "street_type_full": "улица", "street": "Строителей",
-                    "house_type": "д", "house_type_full": "дом", "house": "1-бара",
-                    "kladr_id": "7102200100200310001"
+                'value': 'Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара',
+                'unrestricted_value': 'Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара',
+                'data': {
+                    'country': 'Россия',
+                    'region_type': 'обл', 'region_type_full': 'область', 'region': 'Тульская',
+                        'region_with_type': 'Тульская обл',
+                    'area_type': 'р-н', 'area_type_full': 'район', 'area': 'Узловский',
+                        'area_with_type': 'Узловский р-н',
+                    'city_type': 'г', 'city_type_full': 'город', 'city': 'Узловая',
+                        'city_with_type': 'г Узловая',
+                    'settlement_type': 'п', 'settlement_type_full': 'поселок', 'settlement': 'Брусянский',
+                        'settlement_with_type': 'поселок Брусянский',
+                    'street_type': 'ул', 'street_type_full': 'улица', 'street': 'Строителей',
+                        'street_with_type': 'ул Строителей',
+                    'house_type': 'д', 'house_type_full': 'дом', 'house': '1-бара',
+                    'kladr_id': '7102200100200310001'
                 }
             }
 
@@ -438,7 +443,7 @@ describe('Address constraints', function () {
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 
-            expect(this.$parent.val()).toEqual('Тульская обл, р-н Узловский');
+            expect(this.$parent.val()).toEqual('Тульская обл, Узловский р-н');
             expect(this.parentInstance.selection.data).toEqual(jasmine.objectContaining({
                 region: 'Тульская',
                 area: 'Узловский'
@@ -465,7 +470,7 @@ describe('Address constraints', function () {
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 
-            expect(this.$parent.val()).toEqual('Тульская обл, р-н Узловский');
+            expect(this.$parent.val()).toEqual('Тульская обл, Узловский р-н');
             expect(this.parentInstance.selection.data).toEqual(jasmine.objectContaining({
                 region: 'Тульская',
                 area: 'Узловский'
