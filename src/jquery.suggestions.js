@@ -136,9 +136,6 @@
         that.selection = null;
         that.$viewport = $(window);
         that.type = null;
-        that.visibleComponents = {
-            'right': {}
-        };
 
         // Initialize and set options:
         that.initialize();
@@ -324,10 +321,10 @@
             that.notify('fixPosition', origin, elLayout);
 
             if (elLayout.componentsLeft) {
-                that.el.css('paddingLeft', elLayout.paddingLeft + elLayout.componentsLeft + 'px');
+                that.el.css('paddingLeft', elLayout.componentsLeft + 'px');
             }
             if (elLayout.componentsRight) {
-                that.el.css('paddingRight', elLayout.paddingRight + elLayout.componentsRight + 'px');
+                that.el.css('paddingRight', elLayout.componentsRight + 'px');
             }
         },
 
@@ -337,17 +334,21 @@
         },
 
         clear: function () {
-            this.clearCache();
-            this.currentValue = '';
-            this.selection = null;
-            this.hide();
-            this.suggestions = [];
-            this.el.val('');
-            this.el.trigger('suggestions-clear');
+            var that = this;
+            
+            that.clearCache();
+            that.currentValue = '';
+            that.selection = null;
+            that.hide();
+            that.suggestions = [];
+            that.el.val('');
+            that.el.trigger('suggestions-clear');
+            that.notify('clear');
         },
 
         disable: function () {
             var that = this;
+
             that.disabled = true;
             that.abortRequest();
             that.hide();
@@ -526,13 +527,12 @@
                 );
 
             that.abortRequest();
-            that.notify('requestStart');
-
             that.currentRequest = request;
+            that.notify('request');
 
             request.always(function () {
                 that.currentRequest = null;
-                that.notify('requestEnd');
+                that.notify('request');
             });
 
             return request;
@@ -670,9 +670,7 @@
 
 //include "container.js"
 
-//include "clear.js"
-
-//include "preloader.js"
+//include "addon.js"
 
 //include "constraints.js"
 

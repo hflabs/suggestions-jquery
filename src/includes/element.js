@@ -159,6 +159,7 @@
                 that.selectedIndex = -1;
 
                 that.update();
+                that.notify('valueChange');
             },
 
             isCursorAtEnd: function () {

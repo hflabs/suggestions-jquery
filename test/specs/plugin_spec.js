@@ -10,7 +10,7 @@ describe('Common features', function () {
             serviceUrl: serviceUrl,
             type: 'NAME',
             // disable mobile view features
-            mobileWidth: null
+            mobileWidth: NaN
         }).suggestions();
 
         this.server = sinon.fakeServer.create();
@@ -31,8 +31,7 @@ describe('Common features', function () {
         $.each(['$wrapper','$container','$constraints'], function(i,component){
             expect(instance[component].length).toEqual(1);
         });
-        expect(instance.clearButton.$el.length).toEqual(1);
-        expect(instance.preloader.$el.length).toEqual(1);
+        expect(instance.addon.$el.length).toEqual(1);
     });
 
     it('Should get current value', function () {
@@ -160,7 +159,7 @@ describe('Common features', function () {
         this.$input.suggestions('dispose');
 
         expect(this.$input.data('suggestions')).toBeUndefined();
-        $.each(['.suggestions-suggestions','.suggestions-preloader','.suggestions-constraints'], function(i, selector){
+        $.each(['.suggestions-suggestions','.suggestions-addon','.suggestions-constraints'], function(i, selector){
             expect($div.find(selector).length).toEqual(0);
         });
     });
@@ -251,7 +250,7 @@ describe('Common features', function () {
     it('Should not display any hint message for narrow-screen (mobile) view', function(){
         this.instance.setOptions({
             hint: false,
-            mobileWidth: 0
+            mobileWidth: 20000
         });
 
         this.input.value = 'jam';

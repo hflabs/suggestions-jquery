@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.3
+ * DaData.ru Suggestions jQuery plugin, version 4.9.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -475,9 +475,6 @@
         that.selection = null;
         that.$viewport = $(window);
         that.type = null;
-        that.visibleComponents = {
-            'right': {}
-        };
 
         // Initialize and set options:
         that.initialize();
@@ -488,7 +485,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.3';
+    Suggestions.version = '4.9.4';
 
     $.Suggestions = Suggestions;
 
@@ -663,10 +660,10 @@
             that.notify('fixPosition', origin, elLayout);
 
             if (elLayout.componentsLeft) {
-                that.el.css('paddingLeft', elLayout.paddingLeft + elLayout.componentsLeft + 'px');
+                that.el.css('paddingLeft', elLayout.componentsLeft + 'px');
             }
             if (elLayout.componentsRight) {
-                that.el.css('paddingRight', elLayout.paddingRight + elLayout.componentsRight + 'px');
+                that.el.css('paddingRight', elLayout.componentsRight + 'px');
             }
         },
 
@@ -676,17 +673,21 @@
         },
 
         clear: function () {
-            this.clearCache();
-            this.currentValue = '';
-            this.selection = null;
-            this.hide();
-            this.suggestions = [];
-            this.el.val('');
-            this.el.trigger('suggestions-clear');
+            var that = this;
+            
+            that.clearCache();
+            that.currentValue = '';
+            that.selection = null;
+            that.hide();
+            that.suggestions = [];
+            that.el.val('');
+            that.el.trigger('suggestions-clear');
+            that.notify('clear');
         },
 
         disable: function () {
             var that = this;
+
             that.disabled = true;
             that.abortRequest();
             that.hide();
@@ -865,13 +866,12 @@
                 );
 
             that.abortRequest();
-            that.notify('requestStart');
-
             that.currentRequest = request;
+            that.notify('request');
 
             request.always(function () {
                 that.currentRequest = null;
-                that.notify('requestEnd');
+                that.notify('request');
             });
 
             return request;
@@ -1160,6 +1160,7 @@
                 that.selectedIndex = -1;
 
                 that.update();
+                that.notify('valueChange');
             },
 
             isCursorAtEnd: function () {
@@ -1834,245 +1835,220 @@
 
     (function(){
         /**
-         * Methods related to Clear button
+         * Methods related to right-sided component
          */
 
+        var QUEUE_NAME = 'addon',
+            BEFORE_SHOW_ADDON = 50,
+            BEFORE_RESTORE_PADDING = 1000;
+
         var optionsUsed = {
-            // if not set as boolean, determined by `isMobile`
-            showClear: null
+            addon: null
         };
 
-        var ClearButton = function (owner) {
+        var ADDON_TYPES = {
+            'NONE': 'none',
+            'SPINNER': 'spinner',
+            'CLEAR': 'clear'
+        };
+
+        var Addon = function (owner) {
             var that = this,
-                $el = $('<span class="suggestions-clear"/>')
-                    .appendTo(owner.$wrapper);
+                $el = $('<span class="suggestions-addon"/>');
 
             that.owner = owner;
-            that.ownerEdge = 'right';
-            that.ownerEdgeId = 'clear';
             that.$el = $el;
-            that.checkActivity();
+            that.type = ADDON_TYPES.NONE;
+            that.visible = false;
+            that.initialPadding = null;
 
             $el.on('click', $.proxy(that, 'onClick'));
         };
 
-        ClearButton.prototype = {
+        Addon.prototype = {
 
-            onClick: function (e) {
-                var owner = this.owner;
-
-                owner.clear();
-            },
-
-            fixPosition: function (origin, elLayout) {
+            checkType: function () {
                 var that = this,
-                    size = elLayout.innerHeight;
+                    type = that.owner.options.addon,
+                    isTypeCorrect = false;
 
-                that.checkActivity();
-                that.$el.css({
-                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - size + 'px',
-                    top: origin.top + elLayout.borderTop + 'px',
-                    height: size,
-                    width: size
+                $.each(ADDON_TYPES, function (key, value) {
+                    isTypeCorrect = value == type;
+                    if (isTypeCorrect) {
+                        return false;
+                    }
                 });
-                if (that.active) {
-                    elLayout.componentsRight += size;
+
+                if (!isTypeCorrect) {
+                    type = that.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
+                }
+
+                if (type != that.type) {
+                    that.type = type;
+                    that.$el.attr('data-addon-type', type);
+                    that.toggle(true);
                 }
             },
 
-            checkActivity: function () {
+            toggle: function (immediate) {
                 var that = this,
-                    enabled = that.owner.options.showClear,
-                    active = enabled == null ? that.owner.isMobile : !!enabled;
+                    visible;
 
-                if (active != that.active) {
-                    that.$el.toggle(active);
-                    that.active = active;
-
-                    that.owner.visibleComponents[that.ownerEdge][that.ownerEdgeId] = active;
+                switch (that.type) {
+                    case ADDON_TYPES.CLEAR:
+                        visible = !!that.owner.currentValue;
+                        break;
+                    case ADDON_TYPES.SPINNER:
+                        visible = !!that.owner.currentRequest;
+                        break;
+                    default:
+                        visible = false;
                 }
-            }
 
-        };
-
-        var methods = {
-
-            createClearButton: function () {
-                this.clearButton = new ClearButton(this);
+                if (visible != that.visible) {
+                    that.visible = visible;
+                    if (visible) {
+                        that.show(immediate);
+                    } else {
+                        that.hide(immediate);
+                    }
+                }
             },
 
-            setClearButtonOptions: function () {
-                this.clearButton.checkActivity();
-            },
-
-            setClearButtonPosition: function (origin, elLayout) {
-                this.clearButton.fixPosition(origin, elLayout);
-            }
-
-        };
-
-        $.extend(defaultOptions, optionsUsed);
-
-        notificator
-            .on('initialize', methods.createClearButton)
-            .on('setOptions', methods.setClearButtonOptions)
-            .on('fixPosition', methods.setClearButtonPosition);
-
-    }());
-
-
-    (function(){
-        /**
-         * Methods related to PRELOADER component
-         */
-
-        var QUEUE_NAME = 'preloader',
-            BEFORE_SHOW_PRELOADER = 50,
-            BEFORE_RESTORE_PADDING = 1000;
-
-        var optionsUsed = {
-            usePreloader: true
-        };
-
-        var Preloader = function (owner) {
-            var that = this,
-                $el = $('<i class="suggestions-preloader"/>')
-                    .appendTo(owner.$wrapper);
-
-            that.owner = owner;
-            that.ownerEdge = 'right';
-            that.ownerEdgeId = 'preloader';
-            that.$el = $el;
-            that.visibleCount = 0;
-            that.height = $el.height();
-            that.width = $el.width();
-            that.initialPadding = null;
-        };
-
-        Preloader.prototype = {
-
-            isEnabled: function () {
+            show: function (immediate) {
                 var that = this,
-                    enabled = that.owner.options.usePreloader;
+                    style = {'opacity': 1};
 
-                // disable if other components are shown at the sae edge
-                if (enabled) {
-                    $.each(that.owner.visibleComponents[that.ownerEdge], function (id, visible) {
-                        if (visible && id != that.ownerEdgeId) {
-                            return enabled = false;
+                if (immediate) {
+                    that.$el
+                        .show()
+                        .css(style);
+                    that.showBackground(true);
+                } else {
+                    that.$el
+                        .stop(true, true)
+                        .delay(BEFORE_SHOW_ADDON)
+                        .queue(function () {
+                            that.$el.show();
+                            that.showBackground();
+                            that.$el.dequeue();
+                        })
+                        .animate(style, 'fast');
+                }
+            },
+
+            hide: function (immediate) {
+                var that = this,
+                    style = {'opacity': 0};
+
+                if (immediate) {
+                    that.$el
+                        .hide()
+                        .css(style);
+                }
+                that.$el
+                    .stop(true)
+                    .animate(style, {
+                        duration: 'fast',
+                        complete: function () {
+                            that.$el.hide();
+                            that.hideBackground();
                         }
                     });
-                }
-
-                return enabled;
-            },
-
-            show: function () {
-                var that = this;
-
-                if (that.isEnabled()) {
-                    if (!that.visibleCount++) {
-                        that.$el
-                            .stop(true, true)
-                            .delay(BEFORE_SHOW_PRELOADER)
-                            .queue(function () {
-                                that.showPreloaderBackground();
-                                that.$el.css('display','inline-block');
-                                that.$el.dequeue();
-                            })
-                            .animate({'opacity': 1}, 'fast');
-                    }
-                }
-            },
-
-            hide: function () {
-                var that = this;
-
-                if (that.isEnabled()) {
-                    if (!--that.visibleCount) {
-                        that.$el
-                            .stop(true)
-                            .animate({'opacity': 0}, {
-                                duration: 'fast',
-                                complete: function () {
-                                    that.$el.css('display','none');
-                                    that.hidePreloaderBackground();
-                                }
-                            });
-                    }
-                }
             },
 
             fixPosition: function(origin, elLayout){
-                var that = this;
+                var that = this,
+                    addonSize = elLayout.innerHeight;
 
+                that.checkType();
                 that.$el.css({
-                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - that.width - elLayout.paddingRight + 'px',
-                    top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.height) / 2) + 'px'
+                    left: origin.left + elLayout.borderLeft + elLayout.innerWidth - addonSize + 'px',
+                    top: origin.top + elLayout.borderTop + 'px',
+                    height: addonSize,
+                    width: addonSize
                 });
 
                 that.initialPadding = elLayout.paddingRight;
+                that.width = addonSize;
+                if (that.visible) {
+                    elLayout.componentsRight += addonSize;
+                }
             },
 
-            showPreloaderBackground: function () {
+            showBackground: function (immediate) {
                 var that = this,
-                    preloaderLeftSpacing = 4;
+                    $el = that.owner.el,
+                    style = {'paddingRight': that.width};
 
-                that.stopPreloaderBackground();
-                that.owner.el
-                    .animate({'padding-right': that.initialPadding + that.width + preloaderLeftSpacing}, {
-                        duration: 'fast',
-                        queue: QUEUE_NAME
-                    })
-                    .dequeue(QUEUE_NAME);
+                if (that.width > that.initialPadding) {
+                    that.stopBackground();
+                    if (immediate) {
+                        $el.css(style);
+                    } else {
+                        $el
+                            .animate(style, { duration: 'fast', queue: QUEUE_NAME })
+                            .dequeue(QUEUE_NAME);
+                    }
+                }
             },
 
-            hidePreloaderBackground: function () {
+            hideBackground: function (immediate) {
+                var that = this,
+                    $el = that.owner.el,
+                    style = {'paddingRight': that.initialPadding};
+
+                if (that.width > that.initialPadding) {
+                    that.stopBackground(true);
+                    if (immediate) {
+                        $el.css(style);
+                    } else {
+                        $el
+                            .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                            .animate(style, { duration: 'fast', queue: QUEUE_NAME })
+                            .dequeue(QUEUE_NAME);
+                    }
+                }
+            },
+
+            stopBackground: function (gotoEnd) {
+                this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
+            },
+
+            onClick: function (e) {
                 var that = this;
 
-                that.stopPreloaderBackground(true);
-                that.owner.el
-                    .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
-                    .animate({'padding-right': that.initialPadding}, {
-                        duration: 'fast',
-                        queue: QUEUE_NAME
-                    }).dequeue(QUEUE_NAME);
-            },
-
-            stopPreloaderBackground: function (gotoEnd) {
-                this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
+                if (that.type == ADDON_TYPES.CLEAR) {
+                    that.owner.clear();
+                }
             }
 
         };
 
         var methods = {
 
-            createPreloader: function () {
-                var that = this;
+            createAddon: function () {
+                var that = this,
+                    addon = new Addon(that);
 
-                that.preloader = new Preloader(that);
+                that.$wrapper.append(addon.$el);
+                that.addon = addon;
             },
 
-            setPreloaderOptions: function () {
-                var that = this;
-
-                that.preloader.enabled = that.options.usePreloader;
+            fixAddonPosition: function (origin, elLayout) {
+                this.addon.fixPosition(origin, elLayout);
             },
 
-            setPreloaderPosition: function (origin, elLayout) {
-                this.preloader.fixPosition(origin, elLayout);
+            checkAddonType: function () {
+                this.addon.checkType();
             },
 
-            stopPreloaderBackground: function () {
-                this.preloader.stopPreloaderBackground();
+            checkAddonVisibility: function () {
+                this.addon.toggle();
             },
 
-            showPreloader: function () {
-                this.preloader.show();
-            },
-
-            hidePreloader: function () {
-                this.preloader.hide();
+            stopBackground: function () {
+                this.addon.stopBackground();
             }
 
         };
@@ -2080,12 +2056,13 @@
         $.extend(defaultOptions, optionsUsed);
 
         notificator
-            .on('initialize', methods.createPreloader)
-            .on('setOptions', methods.setPreloaderOptions)
-            .on('fixPosition', methods.setPreloaderPosition)
-            .on('resetPosition', methods.stopPreloaderBackground)
-            .on('requestStart', methods.showPreloader)
-            .on('requestEnd', methods.hidePreloader);
+            .on('initialize', methods.createAddon)
+            .on('setOptions', methods.checkAddonType)
+            .on('fixPosition', methods.fixAddonPosition)
+            .on('clear', methods.checkAddonVisibility)
+            .on('valueChange', methods.checkAddonVisibility)
+            .on('request', methods.checkAddonVisibility)
+            .on('resetPosition', methods.stopBackground);
 
     }());
 

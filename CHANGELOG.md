@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### 16.10.2014 4.9.4
+
+* опции `usePreloader` и `showClear` заменены на `addon`
+
 ### 15.10.2014 4.9.3
 
 * при сериализации объекта адреса учитываются поля `region_with_type` - `street_with_type` 
