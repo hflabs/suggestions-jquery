@@ -22,7 +22,7 @@
             STOPWORDS: ADDRESS_STOPWORDS,
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
-            boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house', 'block', 'flat'],
+            boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             isDataComplete: function (data) {
                 var fields = [this.bounds.to || 'house'];
                 return utils.fieldsNotEmpty(data, fields) &&

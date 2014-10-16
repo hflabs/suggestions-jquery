@@ -24,12 +24,15 @@
                 boundTo = newBounds[newBounds.length - 1],
                 boundsOwn = [],
                 boundIsOwn,
-                boundsAll = [];
+                boundsAll = [],
+                indexTo;
 
             if ($.inArray(boundFrom, boundsAvailable) === -1) {
                 boundFrom = null;
             }
-            if ($.inArray(boundTo, boundsAvailable) === -1) {
+
+            indexTo = $.inArray(boundTo, boundsAvailable);
+            if (indexTo === -1 || indexTo === boundsAvailable.length - 1) {
                 boundTo = null;
             }
 
