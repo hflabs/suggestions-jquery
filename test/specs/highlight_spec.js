@@ -10,7 +10,7 @@ describe('Highlight suggestions', function () {
             serviceUrl: serviceUrl,
             type: 'NAME',
             // disable mobile view
-            mobileWidth: null
+            mobileWidth: NaN
         }).suggestions();
 
         this.server = sinon.fakeServer.create();
@@ -157,7 +157,7 @@ describe('Highlight suggestions', function () {
     it('Should drop the end of text if `maxLength` option specified', function () {
         this.instance.setOptions({
             type: 'PARTY',
-            mobileWidth: 0
+            mobileWidth: 20000
         });
         this.instance.isMobile = true;
         this.input.value = 'мфюа калмыц';
