@@ -351,8 +351,7 @@
                     data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
                     data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
                     data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
-                    utils.compact([data.house_type, data.house]).join(' '),
-                    utils.compact([data.block_type, data.block]).join(' '),
+                    utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' '),
                     data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
