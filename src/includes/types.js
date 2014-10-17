@@ -23,13 +23,20 @@
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
+            boundsFields: {
+                'region': ['region', 'region_type', 'region_type_full'],
+                'area': ['area', 'area_type', 'area_type_full'],
+                'city': ['city', 'city_type', 'city_type_full'],
+                'settlement': ['settlement', 'settlement_type', 'settlement_type_full'],
+                'street': ['street', 'street_type', 'street_type_full'],
+                'house': ['house', 'house_type', 'house_type_full', 'block', 'block_type']
+            },
             isDataComplete: function (data) {
                 var fields = [this.bounds.to || 'house'];
                 return utils.fieldsNotEmpty(data, fields) &&
                     (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
             composeValue: function (data) {
-                // TODO improve according with server logic
                 return utils.compact([
                     utils.compact([data.region, data.region_type]).join(' '),
                     utils.compact([data.area_type, data.area]).join(' '),
