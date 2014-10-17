@@ -60,6 +60,7 @@
                 }
 
                 if (that.areSuggestionsSame(suggestion, that.selection)) {
+                    onSelectionCompleted();
                     return;
                 }
 
