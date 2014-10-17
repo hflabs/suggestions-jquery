@@ -28,6 +28,9 @@
 
                         that.disableDropdown();
                         that.currentValue = suggestion.value;
+
+                        // prevent request abortation during onBlur
+                        that.currentRequestIsEnrich = true;
                         that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
                             .always(function () {
                                 that.enableDropdown();

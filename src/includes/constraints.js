@@ -96,12 +96,14 @@
                         that.unbindFromParent();
                         if (!$parent.is(that.el)) {
                             that.constraints = $parent;
-                            $parent.on([
+                            $parent.on(
+                                [
                                     'suggestions-select.' + that.uniqueId,
-                                    'suggestions-selectnothing.' + that.uniqueId,
                                     'suggestions-invalidateselection.' + that.uniqueId,
                                     'suggestions-clear.' + that.uniqueId
-                            ].join(' '), $.proxy(that.onParentSelectionChanged, that));
+                                ].join(' '),
+                                $.proxy(that.onParentSelectionChanged, that)
+                            );
                             $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
                         }
                     }

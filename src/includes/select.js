@@ -59,6 +59,10 @@
                     return;
                 }
 
+                if (that.areSuggestionsSame(suggestion, that.selection)) {
+                    return;
+                }
+
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);

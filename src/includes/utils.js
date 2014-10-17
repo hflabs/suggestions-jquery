@@ -54,6 +54,34 @@
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
             },
+
+            /**
+             * Compares two objects, but only fields that are set in both
+             * @param a
+             * @param b
+             * @returns {boolean}
+             */
+            areSame: function self(a, b) {
+                var same = true;
+
+                if (a == null || b == null) {
+                    return true;
+                }
+
+                if (typeof a != typeof b) {
+                    return false;
+                }
+
+                if (typeof a == 'object') {
+                    $.each(a, function (i, value) {
+                        return same = self(value, b[i]);
+                    });
+                    return same;
+                }
+
+                return a === b;
+            },
+
             /**
              * Returns array1 minus array2
              */

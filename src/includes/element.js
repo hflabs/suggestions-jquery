@@ -28,7 +28,9 @@
                     return;
                 }
                 that.selectCurrentValue({ trim: true, noSpace: true });
-                that.abortRequest();
+                if (!that.currentRequestIsEnrich) {
+                    that.abortRequest();
+                }
             },
 
             onElementFocus: function () {
