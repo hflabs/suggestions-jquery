@@ -532,6 +532,7 @@
 
             request.always(function () {
                 that.currentRequest = null;
+                that.currentRequestIsEnrich = false;
                 that.notify('request');
             });
 
@@ -643,6 +644,12 @@
             $.each(suggestions, function(i, suggestion) {
                 suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
             });
+        },
+
+        areSuggestionsSame: function (a, b) {
+            return a && b &&
+                a.value === b.value &&
+                utils.areSame(a.data, b.data);
         },
 
         findSuggestionIndex: function (query) {

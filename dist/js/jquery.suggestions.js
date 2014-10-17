@@ -145,6 +145,34 @@
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
             },
+
+            /**
+             * Compares two objects, but only fields that are set in both
+             * @param a
+             * @param b
+             * @returns {boolean}
+             */
+            areSame: function self(a, b) {
+                var same = true;
+
+                if (a == null || b == null) {
+                    return true;
+                }
+
+                if (typeof a != typeof b) {
+                    return false;
+                }
+
+                if (typeof a == 'object') {
+                    $.each(a, function (i, value) {
+                        return same = self(value, b[i]);
+                    });
+                    return same;
+                }
+
+                return a === b;
+            },
+
             /**
              * Returns array1 minus array2
              */
@@ -870,6 +898,7 @@
 
             request.always(function () {
                 that.currentRequest = null;
+                that.currentRequestIsEnrich = false;
                 that.notify('request');
             });
 
@@ -983,6 +1012,12 @@
             });
         },
 
+        areSuggestionsSame: function (a, b) {
+            return a && b &&
+                a.value === b.value &&
+                utils.areSame(a.data, b.data);
+        },
+
         findSuggestionIndex: function (query) {
             var that = this,
                 index = -1;
@@ -1028,7 +1063,9 @@
                     return;
                 }
                 that.selectCurrentValue({ trim: true, noSpace: true });
-                that.abortRequest();
+                if (!that.currentRequestIsEnrich) {
+                    that.abortRequest();
+                }
             },
 
             onElementFocus: function () {
@@ -1366,6 +1403,9 @@
 
                         that.disableDropdown();
                         that.currentValue = suggestion.value;
+
+                        // prevent request abortation during onBlur
+                        that.currentRequestIsEnrich = true;
                         that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
                             .always(function () {
                                 that.enableDropdown();
@@ -2163,12 +2203,14 @@
                         that.unbindFromParent();
                         if (!$parent.is(that.el)) {
                             that.constraints = $parent;
-                            $parent.on([
+                            $parent.on(
+                                [
                                     'suggestions-select.' + that.uniqueId,
-                                    'suggestions-selectnothing.' + that.uniqueId,
                                     'suggestions-invalidateselection.' + that.uniqueId,
                                     'suggestions-clear.' + that.uniqueId
-                            ].join(' '), $.proxy(that.onParentSelectionChanged, that));
+                                ].join(' '),
+                                $.proxy(that.onParentSelectionChanged, that)
+                            );
                             $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
                         }
                     }
@@ -2410,6 +2452,10 @@
                         that.triggerOnSelectNothing();
                     }
                     onSelectionCompleted();
+                    return;
+                }
+
+                if (that.areSuggestionsSame(suggestion, that.selection)) {
                     return;
                 }
 
