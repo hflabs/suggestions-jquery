@@ -85,15 +85,22 @@
         },
 
         copyBoundedData: function (data, boundsRange) {
-            var result = {};
+            var result = {},
+                boundsFields = this.type.boundsFields;
 
-            $.each(boundsRange, function (i, bound) {
-                $.each([bound, bound + '_type', bound + '_type_full', bound + '_with_type'], function (i, field) {
-                    if (data[field] != null) {
-                        result[field] = data[field];
+            if (boundsFields) {
+                $.each(boundsRange, function (i, bound) {
+                    var fields = boundsFields[bound];
+
+                    if (fields) {
+                        $.each(fields, function (i, field) {
+                            if (data[field] != null) {
+                                result[field] = data[field];
+                            }
+                        })
                     }
-                })
-            });
+                });
+            }
 
             return result;
         }
