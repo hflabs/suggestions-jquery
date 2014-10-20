@@ -53,6 +53,19 @@
             }).join(', ');
         }
 
+        function hasAnotherSuggestion (suggestions, suggestion) {
+            var result = false;
+
+            $.each(suggestions, function (i, s) {
+                result = s.value == suggestion.value && s != suggestion;
+                if (result) {
+                    return false;
+                }
+            });
+
+            return result;
+        }
+
         var methods = {
 
             createContainer: function () {
@@ -176,6 +189,8 @@
                 that.selectedIndex = -1;
                 // Build suggestions inner HTML:
                 $.each(that.suggestions, function (i, suggestion) {
+                    var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
+
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
@@ -183,9 +198,12 @@
                         '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
                             formatResult.call(that, suggestion.value, trimmedValue, suggestion, {
                                 unformattableTokens: that.type.STOPWORDS
-                            }) +
-                        '</div>'
+                            })
                     );
+                    if (labels) {
+                        html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+                    }
+                    html.push('</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -228,7 +246,7 @@
                     partialMatchers = $.map(partialTokens, function (token) {
                         return new RegExp('^(.*[' + wordPartsDelimeters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimeters + ']+)', 'i')
                     }),
-                    rWords = new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g'),
+                    rWords = utils.reWordExtractor(),
                     match, word;
 
                 tokens = withSubTokens(tokens);
@@ -299,6 +317,41 @@
                     }
                 }
 
+            },
+
+            makeSuggestionLabel: function (suggestions, suggestion) {
+                var that = this,
+                    fieldNames = that.type.fieldNames,
+                    nameData = {},
+                    rWords = utils.reWordExtractor(),
+                    match, word,
+                    labels = [];
+
+                if (fieldNames && hasAnotherSuggestion(suggestions, suggestion) && suggestion.data) {
+
+                    $.each(fieldNames, function (field) {
+                        var value = suggestion.data[field];
+                        if (value) {
+                            nameData[field] = formatToken(value);
+                        }
+                    });
+
+                    if (!$.isEmptyObject(nameData)) {
+                        while ((match = rWords.exec(formatToken(suggestion.value))) && (word = match[1])) {
+                            $.each(nameData, function (i, value) {
+                                if (value == word) {
+                                    labels.push(fieldNames[i]);
+                                    delete nameData[i];
+                                    return false;
+                                }
+                            });
+                        }
+
+                        if (labels.length) {
+                            return labels.join(', ');
+                        }
+                    }
+                }
             },
 
             hide: function () {

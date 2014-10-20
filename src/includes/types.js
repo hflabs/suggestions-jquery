@@ -15,7 +15,12 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio'
+            urlSuffix: 'fio',
+            fieldNames: {
+                surname: 'фамилия',
+                name: 'имя',
+                patronymic: 'отчество'
+            }
         };
 
         types['ADDRESS'] = {

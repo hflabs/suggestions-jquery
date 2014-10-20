@@ -130,6 +130,9 @@
                     step = path.shift();
 
                 return obj && (path.length ? utils.getDeepValue(obj[step], path.join('.')) : obj[step]);
+            },
+            reWordExtractor: function () {
+                return new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g');
             }
         };
     }());

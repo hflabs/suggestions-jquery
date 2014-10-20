@@ -131,6 +131,7 @@
             subtext: 'suggestions-subtext',
             subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
             subtext_delimiter: 'suggestions-subtext-delimiter',
+            subtext_label: 'suggestions-subtext suggestions-subtext_label',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;

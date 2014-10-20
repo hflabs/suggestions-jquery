@@ -176,4 +176,38 @@ describe('Highlight suggestions', function () {
         expect($item.html()).toEqual('Филиал <strong>КАЛМЫЦ</strong>КИЙ ФИЛИАЛ АККРЕДИТОВАННОГО ОБРАЗОВАТ...');
     });
 
+    it('Should show labels for same-looking suggestions', function () {
+        this.instance.setOptions({
+            type: 'NAME'
+        });
+
+        this.input.value = 'А';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'Антон Николаевич',
+                data: {
+                    name: 'Антон',
+                    surname: null,
+                    patronymic: 'Николаевич'
+                }
+            },
+            {
+                value: 'Антон Николаевич',
+                data: {
+                    name: 'Антон',
+                    surname: 'Николаевич',
+                    patronymic: null
+                }
+            }
+        ]));
+
+        var $items = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($items.length).toEqual(2);
+        expect($items.eq(0).html()).toContain('<span class="suggestions-subtext suggestions-subtext_label">имя, отчество</span>');
+        expect($items.eq(1).html()).toContain('<span class="suggestions-subtext suggestions-subtext_label">имя, фамилия</span>');
+    });
+
 });

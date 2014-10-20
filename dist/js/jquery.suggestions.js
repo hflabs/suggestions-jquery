@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.4
+ * DaData.ru Suggestions jQuery plugin, version 4.9.5
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -221,6 +221,9 @@
                     step = path.shift();
 
                 return obj && (path.length ? utils.getDeepValue(obj[step], path.join('.')) : obj[step]);
+            },
+            reWordExtractor: function () {
+                return new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g');
             }
         };
     }());
@@ -358,7 +361,12 @@
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
-            urlSuffix: 'fio'
+            urlSuffix: 'fio',
+            fieldNames: {
+                surname: 'фамилия',
+                name: 'имя',
+                patronymic: 'отчество'
+            }
         };
 
         types['ADDRESS'] = {
@@ -504,6 +512,7 @@
             subtext: 'suggestions-subtext',
             subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
             subtext_delimiter: 'suggestions-subtext-delimiter',
+            subtext_label: 'suggestions-subtext suggestions-subtext_label',
             removeConstraint: 'suggestions-remove'
         };
         that.selection = null;
@@ -519,7 +528,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.4';
+    Suggestions.version = '4.9.5';
 
     $.Suggestions = Suggestions;
 
@@ -1515,6 +1524,19 @@
             }).join(', ');
         }
 
+        function hasAnotherSuggestion (suggestions, suggestion) {
+            var result = false;
+
+            $.each(suggestions, function (i, s) {
+                result = s.value == suggestion.value && s != suggestion;
+                if (result) {
+                    return false;
+                }
+            });
+
+            return result;
+        }
+
         var methods = {
 
             createContainer: function () {
@@ -1638,6 +1660,8 @@
                 that.selectedIndex = -1;
                 // Build suggestions inner HTML:
                 $.each(that.suggestions, function (i, suggestion) {
+                    var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
+
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
@@ -1645,9 +1669,12 @@
                         '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
                             formatResult.call(that, suggestion.value, trimmedValue, suggestion, {
                                 unformattableTokens: that.type.STOPWORDS
-                            }) +
-                        '</div>'
+                            })
                     );
+                    if (labels) {
+                        html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+                    }
+                    html.push('</div>');
                 });
 
                 that.$container.html(html.join(''));
@@ -1690,7 +1717,7 @@
                     partialMatchers = $.map(partialTokens, function (token) {
                         return new RegExp('^(.*[' + wordPartsDelimeters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimeters + ']+)', 'i')
                     }),
-                    rWords = new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g'),
+                    rWords = utils.reWordExtractor(),
                     match, word;
 
                 tokens = withSubTokens(tokens);
@@ -1761,6 +1788,41 @@
                     }
                 }
 
+            },
+
+            makeSuggestionLabel: function (suggestions, suggestion) {
+                var that = this,
+                    fieldNames = that.type.fieldNames,
+                    nameData = {},
+                    rWords = utils.reWordExtractor(),
+                    match, word,
+                    labels = [];
+
+                if (fieldNames && hasAnotherSuggestion(suggestions, suggestion) && suggestion.data) {
+
+                    $.each(fieldNames, function (field) {
+                        var value = suggestion.data[field];
+                        if (value) {
+                            nameData[field] = formatToken(value);
+                        }
+                    });
+
+                    if (!$.isEmptyObject(nameData)) {
+                        while ((match = rWords.exec(formatToken(suggestion.value))) && (word = match[1])) {
+                            $.each(nameData, function (i, value) {
+                                if (value == word) {
+                                    labels.push(fieldNames[i]);
+                                    delete nameData[i];
+                                    return false;
+                                }
+                            });
+                        }
+
+                        if (labels.length) {
+                            return labels.join(', ');
+                        }
+                    }
+                }
             },
 
             hide: function () {
