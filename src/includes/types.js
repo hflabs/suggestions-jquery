@@ -111,6 +111,14 @@
             }
         };
 
+        types['EMAIL'] = {
+            urlSuffix: 'email',
+            matchers: [matchers.matchByNormalizedQuery],
+            isDataComplete: function (data) {
+                return true;
+            }
+        };
+
         function parseInn (data) {
             var innPattern = {
                     'LEGAL': /(\d{2})(\d{2})(\d{5})(\d+)/,

@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.5
+ * DaData.ru Suggestions jQuery plugin, version 4.9.6
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -457,6 +457,14 @@
             }
         };
 
+        types['EMAIL'] = {
+            urlSuffix: 'email',
+            matchers: [matchers.matchByNormalizedQuery],
+            isDataComplete: function (data) {
+                return true;
+            }
+        };
+
         function parseInn (data) {
             var innPattern = {
                     'LEGAL': /(\d{2})(\d{2})(\d{5})(\d+)/,
@@ -528,7 +536,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.5';
+    Suggestions.version = '4.9.6';
 
     $.Suggestions = Suggestions;
 
