@@ -1504,7 +1504,11 @@
 
         function highlightMatches(chunks) {
             return $.map(chunks, function (chunk) {
-                var text = utils.escapeHtml(chunk.wordOriginal);
+                var text = '';
+
+                if (chunk.wordOriginal) {
+                    text += utils.escapeHtml(chunk.wordOriginal);
+                }
 
                 if (text && chunk.matched) {
                     text = '<strong>' + text + '</strong>';
