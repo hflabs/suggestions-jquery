@@ -216,11 +216,11 @@
                 });
                 return result;
             },
-            getDeepValue: function(obj, name) {
+            getDeepValue: function self(obj, name) {
                 var path = name.split('.'),
                     step = path.shift();
 
-                return obj && (path.length ? utils.getDeepValue(obj[step], path.join('.')) : obj[step]);
+                return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
             },
             reWordExtractor: function () {
                 return new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g');
@@ -462,6 +462,9 @@
             matchers: [matchers.matchByNormalizedQuery],
             isDataComplete: function (data) {
                 return true;
+            },
+            isQueryRequestable: function (query) {
+                return this.options.suggest_local || query.indexOf('@') >= 0;
             }
         };
 
@@ -474,6 +477,10 @@
 
             return inn && inn.slice(1);
         }
+
+        $.extend(defaultOptions, {
+            suggest_local: true
+        });
 
     }());
 
@@ -753,7 +760,7 @@
                 value = that.el.val(),
                 query = that.getQuery(value);
 
-            if (query.length >= that.options.minChars) {
+            if (this.isQueryRequestable(query)) {
                 that.updateSuggestions(query);
             } else {
                 that.hide();
@@ -829,13 +836,28 @@
             return $.trim(parts[parts.length - 1]);
         },
 
-        constructRequestParams: function(query, customParams){
+        isQueryRequestable: function (query) {
+            var that = this,
+                result;
+
+            result = query.length >= that.options.minChars;
+            if (that.type.isQueryRequestable) {
+                result = result && that.type.isQueryRequestable.call(that, query);
+            }
+
+            return result;
+        },
+
+        constructRequestParams: function (query, customParams){
             var that = this,
                 options = that.options,
                 params = $.isFunction(options.params)
                     ? options.params.call(that.element, query)
                     : $.extend({}, options.params);
 
+            if (that.type.constructRequestParams) {
+                $.extend(params, that.type.constructRequestParams.call(that));
+            }
             $.each(that.notify('requestParams'), function(i, hookParams){
                 $.extend(params, hookParams);
             });

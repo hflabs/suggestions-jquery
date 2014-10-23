@@ -289,4 +289,16 @@ describe('Common features', function () {
         expect(this.server.requests[0].requestHeaders['X-Version']).toEqual($.Suggestions.version);
     });
 
+    it('Should not request until @ typed for emails', function () {
+        this.instance.setOptions({
+            type: 'EMAIL',
+            suggest_local: false
+        });
+
+        this.input.value = 'jam';
+        this.instance.onValueChange();
+
+        expect(this.server.requests.length).toEqual(0);
+    });
+
 });

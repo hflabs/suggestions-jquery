@@ -116,6 +116,9 @@
             matchers: [matchers.matchByNormalizedQuery],
             isDataComplete: function (data) {
                 return true;
+            },
+            isQueryRequestable: function (query) {
+                return this.options.suggest_local || query.indexOf('@') >= 0;
             }
         };
 
@@ -128,5 +131,9 @@
 
             return inn && inn.slice(1);
         }
+
+        $.extend(defaultOptions, {
+            suggest_local: true
+        });
 
     }());

@@ -125,11 +125,11 @@
                 });
                 return result;
             },
-            getDeepValue: function(obj, name) {
+            getDeepValue: function self(obj, name) {
                 var path = name.split('.'),
                     step = path.shift();
 
-                return obj && (path.length ? utils.getDeepValue(obj[step], path.join('.')) : obj[step]);
+                return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
             },
             reWordExtractor: function () {
                 return new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g');

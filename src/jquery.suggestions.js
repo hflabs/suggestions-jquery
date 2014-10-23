@@ -364,7 +364,7 @@
                 value = that.el.val(),
                 query = that.getQuery(value);
 
-            if (query.length >= that.options.minChars) {
+            if (this.isQueryRequestable(query)) {
                 that.updateSuggestions(query);
             } else {
                 that.hide();
@@ -440,13 +440,28 @@
             return $.trim(parts[parts.length - 1]);
         },
 
-        constructRequestParams: function(query, customParams){
+        isQueryRequestable: function (query) {
+            var that = this,
+                result;
+
+            result = query.length >= that.options.minChars;
+            if (that.type.isQueryRequestable) {
+                result = result && that.type.isQueryRequestable.call(that, query);
+            }
+
+            return result;
+        },
+
+        constructRequestParams: function (query, customParams){
             var that = this,
                 options = that.options,
                 params = $.isFunction(options.params)
                     ? options.params.call(that.element, query)
                     : $.extend({}, options.params);
 
+            if (that.type.constructRequestParams) {
+                $.extend(params, that.type.constructRequestParams.call(that));
+            }
             $.each(that.notify('requestParams'), function(i, hookParams){
                 $.extend(params, hookParams);
             });
