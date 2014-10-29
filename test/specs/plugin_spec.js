@@ -61,6 +61,27 @@ describe('Common features', function () {
         expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]));
     });
 
+    it('Should invoke formatSelected callback', function () {
+        this.instance.setOptions({
+            formatSelected: function(suggestion){
+                return suggestion.data.customValue;
+            }
+        });
+        this.input.value = 'A';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'A',
+                data: {
+                    customValue: 'custom value'
+                }
+            }
+        ]));
+        this.instance.select(0);
+
+        expect(this.input.value).toEqual('custom value ');
+    });
+
     it('Should convert suggestions format', function () {
         this.input.value = 'A';
         this.instance.onValueChange();

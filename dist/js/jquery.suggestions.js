@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.6
+ * DaData.ru Suggestions jQuery plugin, version 4.9.7
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -363,11 +363,15 @@
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
             urlSuffix: 'fio',
+
+            // names for labels, describing which fields are displayed
             fieldNames: {
                 surname: 'фамилия',
                 name: 'имя',
                 patronymic: 'отчество'
-            }
+            },
+            // try to suggest even if a suggestion has been selected manually
+            alwaysContinueSelecting: true
         };
 
         types['ADDRESS'] = {
@@ -544,7 +548,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.6';
+    Suggestions.version = '4.9.7';
 
     $.Suggestions = Suggestions;
 
@@ -2566,18 +2570,26 @@
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
-                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
+                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data),
+                            formattedValue;
+
+                        if (that.type.alwaysContinueSelecting) {
+                            continueSelecting = true;
+                        }
 
                         if (assumeDataComplete) {
                             continueSelecting = false;
                         }
 
                         that.checkValueBounds(enrichedSuggestion);
-                        if ($.isFunction(that.options['formatSelected'])) {
-                            that.currentValue = that.options['formatSelected'].apply(that, [enrichedSuggestion]);
-                        } else {
-                            that.currentValue = enrichedSuggestion.value;
+                        if ($.isFunction(that.options.formatSelected)) {
+                            formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);
                         }
+
+                        that.currentValue = (typeof formattedValue === 'string' && formattedValue.length)
+                            ? formattedValue
+                            : enrichedSuggestion.value;
+
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                         }

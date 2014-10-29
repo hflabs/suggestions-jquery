@@ -16,11 +16,15 @@
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
             },
             urlSuffix: 'fio',
+
+            // names for labels, describing which fields are displayed
             fieldNames: {
                 surname: 'фамилия',
                 name: 'имя',
                 patronymic: 'отчество'
-            }
+            },
+            // try to suggest even if a suggestion has been selected manually
+            alwaysContinueSelecting: true
         };
 
         types['ADDRESS'] = {

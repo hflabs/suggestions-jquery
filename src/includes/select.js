@@ -66,18 +66,26 @@
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
-                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
+                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data),
+                            formattedValue;
+
+                        if (that.type.alwaysContinueSelecting) {
+                            continueSelecting = true;
+                        }
 
                         if (assumeDataComplete) {
                             continueSelecting = false;
                         }
 
                         that.checkValueBounds(enrichedSuggestion);
-                        if ($.isFunction(that.options['formatSelected'])) {
-                            that.currentValue = that.options['formatSelected'].apply(that, [enrichedSuggestion]);
-                        } else {
-                            that.currentValue = enrichedSuggestion.value;
+                        if ($.isFunction(that.options.formatSelected)) {
+                            formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);
                         }
+
+                        that.currentValue = (typeof formattedValue === 'string' && formattedValue.length)
+                            ? formattedValue
+                            : enrichedSuggestion.value;
+
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                         }
