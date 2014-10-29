@@ -52,6 +52,7 @@
             params: {},
             paramName: 'query',
             formatResult: null,
+            formatSelected: null,
             delimiter: null,
             noCache: false,
             containerClass: 'suggestions-suggestions',

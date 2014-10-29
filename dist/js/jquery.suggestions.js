@@ -59,6 +59,7 @@
             params: {},
             paramName: 'query',
             formatResult: null,
+            formatSelected: null,
             delimiter: null,
             noCache: false,
             containerClass: 'suggestions-suggestions',
@@ -2572,7 +2573,11 @@
                         }
 
                         that.checkValueBounds(enrichedSuggestion);
-                        that.currentValue = enrichedSuggestion.value;
+                        if ($.isFunction(that.options['formatSelected'])) {
+                            that.currentValue = that.options['formatSelected'].apply(that, [enrichedSuggestion]);
+                        } else {
+                            that.currentValue = enrichedSuggestion.value;
+                        }
                         if (!noSpace && !assumeDataComplete || addSpace) {
                             that.currentValue += ' ';
                         }
