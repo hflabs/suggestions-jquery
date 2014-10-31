@@ -132,7 +132,7 @@
                 return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
             },
             reWordExtractor: function () {
-                return new RegExp('([^' + wordDelimeters + ']*)([' + wordDelimeters + ']*)', 'g');
+                return new RegExp('([^' + wordDelimiters + ']*)([' + wordDelimiters + ']*)', 'g');
             }
         };
     }());

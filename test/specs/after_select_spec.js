@@ -78,6 +78,37 @@ describe('After selecting', function () {
         expect(this.instance.hide).toHaveBeenCalled();
     });
 
+    it('Should hide dropdown if selected NAME suggestion with name and surname filled for IOF', function () {
+        var suggestions = [
+            {
+                value: 'Николай Александрович',
+                data: {
+                    surname: 'Александрович',
+                    name: 'Николай',
+                    patronymic: null,
+                    gender: 'MALE'
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'NAME'
+        });
+
+        this.input.value = 'Н';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+
+        spyOn(this.instance, 'getSuggestions');
+        spyOn(this.instance, 'hide');
+
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        expect(this.instance.getSuggestions).not.toHaveBeenCalled();
+        expect(this.instance.hide).toHaveBeenCalled();
+    });
+
     it('Should hide dropdown if selected ADDRESS suggestion with `house` field filled', function () {
         var suggestions = [
             {

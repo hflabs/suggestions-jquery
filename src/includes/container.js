@@ -181,7 +181,6 @@
                 var that = this,
                     options = that.options,
                     formatResult = options.formatResult || that.type.formatResult || that.formatResult,
-                    trimmedValue = $.trim(that.getQuery(that.currentValue)),
                     beforeRender = options.beforeRender,
                     html = [],
                     index;
@@ -200,7 +199,7 @@
                     }
                     html.push(
                         '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
-                            formatResult.call(that, suggestion.value, trimmedValue, suggestion, {
+                            formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
                                 unformattableTokens: that.type.STOPWORDS
                             })
                     );
@@ -248,7 +247,7 @@
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
                     partialMatchers = $.map(partialTokens, function (token) {
-                        return new RegExp('^(.*[' + wordPartsDelimeters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimeters + ']+)', 'i')
+                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimiters + ']+)', 'i')
                     }),
                     rWords = utils.reWordExtractor(),
                     match, word;
@@ -459,7 +458,7 @@
                     }
                 }
 
-                that.el.val(that.getValue(that.suggestions[index].value));
+                that.el.val(that.suggestions[index].value);
             }
 
         };

@@ -33,10 +33,10 @@
             BAD: 6,
             FOREIGN: 7
         },
-        wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
-        wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
-        wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
-        wordPartsSplitter = new RegExp('[' + wordPartsDelimeters + ']+', 'g'),
+        wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
+        wordSplitter = new RegExp('[' + wordDelimiters + ']+', 'g'),
+        wordPartsDelimiters = '\\-\\+\\/\\\\\\?!@#$%^&',
+        wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
         defaultOptions = {
             autoSelectFirst: false,
             serviceUrl: null,
@@ -53,7 +53,6 @@
             paramName: 'query',
             formatResult: null,
             formatSelected: null,
-            delimiter: null,
             noCache: false,
             containerClass: 'suggestions-suggestions',
             tabDisabled: false,
@@ -362,8 +361,7 @@
 
         update: function () {
             var that = this,
-                value = that.el.val(),
-                query = that.getQuery(value);
+                query = that.el.val();
 
             if (this.isQueryRequestable(query)) {
                 that.updateSuggestions(query);
@@ -428,17 +426,6 @@
             params.url = serviceUrl;
 
             return $.extend(params, custom);
-        },
-
-        getQuery: function (value) {
-            var delimiter = this.options.delimiter,
-                parts;
-
-            if (!delimiter) {
-                return value;
-            }
-            parts = value.split(delimiter);
-            return $.trim(parts[parts.length - 1]);
         },
 
         isQueryRequestable: function (query) {
@@ -600,7 +587,7 @@
             }
 
             // Return if originalQuery is not matching current query:
-            if (originalQuery !== that.getQuery(that.currentValue)) {
+            if (originalQuery !== that.currentValue) {
                 return false;
             }
 
@@ -619,26 +606,6 @@
             var that = this;
             that.suggestions = suggestions;
             that.notify('assignSuggestions', query);
-        },
-
-        getValue: function (value) {
-            var that = this,
-                delimiter = that.options.delimiter,
-                currentValue,
-                parts;
-
-            if (!delimiter) {
-                return value;
-            }
-
-            currentValue = that.currentValue;
-            parts = currentValue.split(delimiter);
-
-            if (parts.length === 1) {
-                return value;
-            }
-
-            return currentValue.substr(0, currentValue.length - parts[parts.length - 1].length) + value;
         },
 
         shouldRestrictValues: function() {

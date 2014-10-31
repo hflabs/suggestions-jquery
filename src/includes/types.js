@@ -2,14 +2,34 @@
 
         var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
+        function valueStartsWith (suggestion, field){
+            var fieldValue = suggestion.data && suggestion.data[field];
+
+            return fieldValue &&
+                new RegExp('^' + utils.escapeRegExChars(fieldValue) + '([' + wordDelimiters + ']|$)','i')
+                    .test(suggestion.value);
+        }
+
         types['NAME'] = {
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
-            isDataComplete: function (data) {
+            isDataComplete: function (suggestion) {
                 var that = this,
                     params = that.options.params,
-                    fields = $.map(params && params.parts || ['surname', 'name', 'patronymic'], function (part) {
+                    data = suggestion.data,
+                    fields;
+
+                if (params && params.parts) {
+                    fields = $.map(params.parts, function (part) {
                         return part.toLowerCase();
                     });
+                } else {
+                    // when NAME is first, patronymic is mot mandatory
+                    fields = ['surname', 'name'];
+                    // when SURNAME is first, it is
+                    if (valueStartsWith(suggestion, 'surname')) {
+                        fields.push('patronymic');
+                    }
+                }
                 return utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
@@ -38,10 +58,13 @@
                 'city': ['city', 'city_type', 'city_type_full', 'city_with_type'],
                 'settlement': ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
                 'street': ['street', 'street_type', 'street_type_full', 'street_with_type'],
-                'house': ['house', 'house_type', 'house_type_full', 'block', 'block_type']
+                'house': ['house', 'house_type', 'house_type_full',
+                    'block', 'block_type']
             },
-            isDataComplete: function (data) {
-                var fields = [this.bounds.to || 'house'];
+            isDataComplete: function (suggestion) {
+                var fields = [this.bounds.to || 'house'],
+                    data = suggestion.data;
+
                 return utils.fieldsNotEmpty(data, fields) &&
                     (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
             },
@@ -73,7 +96,7 @@
                 'opf.short': null
             },
             matchers: [matchers.matchByFields],
-            isDataComplete: function (data) {
+            isDataComplete: function (suggestion) {
                 return true;
             },
             // composeValue not needed
@@ -94,9 +117,9 @@
                     address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
                     if (that.isMobile) {
                         // keep only two first words
-                        address = address.replace(new RegExp('^([^' + wordDelimeters + ']+[' + wordDelimeters + ']+[^' + wordDelimeters + ']+).*'), '$1');
+                        address = address.replace(new RegExp('^([^' + wordDelimiters + ']+[' + wordDelimiters + ']+[^' + wordDelimiters + ']+).*'), '$1');
                     } else {
-                        address =that.formatResult(address, currentValue, suggestion, {
+                        address = that.formatResult(address, currentValue, suggestion, {
                             unformattableTokens: ADDRESS_STOPWORDS
                         });
                     }
@@ -118,7 +141,7 @@
         types['EMAIL'] = {
             urlSuffix: 'email',
             matchers: [matchers.matchByNormalizedQuery],
-            isDataComplete: function (data) {
+            isDataComplete: function (suggestion) {
                 return true;
             },
             isQueryRequestable: function (query) {

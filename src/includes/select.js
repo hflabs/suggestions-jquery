@@ -23,16 +23,18 @@
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,
-                    trim = selectionOptions && selectionOptions.trim;
+                    trim = selectionOptions && selectionOptions.trim,
+                    value;
 
                 if (index === -1) {
-                    var value = that.getQuery(that.el.val());
+                    value = that.el.val();
                     if (trim) {
                         value = $.trim(value);
                     }
                     index = that.findSuggestionIndex(value);
                 }
                 that.select(index, selectionOptions);
+
                 return index;
             },
 
@@ -66,7 +68,7 @@
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
                     .done(function (enrichedSuggestion) {
-                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data),
+                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue;
 
                         if (that.type.alwaysContinueSelecting) {
