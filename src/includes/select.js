@@ -66,7 +66,7 @@
                     return;
                 }
 
-                that.enrichService.enrichSuggestion.call(that, suggestion)
+                that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue;

@@ -100,7 +100,7 @@
                 return true;
             },
             // composeValue not needed
-            enrichServiceName: 'default',
+            dontEnrich: true,
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,

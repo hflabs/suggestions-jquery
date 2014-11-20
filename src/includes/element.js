@@ -94,7 +94,10 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            var hasBeenSelected = that.selectCurrentValue({continueSelecting: true}) !== -1;
+                            var hasBeenSelected = that.selectCurrentValue({
+                                continueSelecting: true,
+                                dontEnrich: true
+                            }) !== -1;
 
                             // set this flag to seek and select matched suggestion when server responds
                             that._waitingForTriggerSelectOnSpace = !hasBeenSelected;
