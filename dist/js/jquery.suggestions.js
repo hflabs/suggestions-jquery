@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.7
+ * DaData.ru Suggestions jQuery plugin, version 4.9.8
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -446,7 +446,7 @@
                 return true;
             },
             // composeValue not needed
-            enrichServiceName: 'default',
+            dontEnrich: true,
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -570,7 +570,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.7';
+    Suggestions.version = '4.9.8';
 
     $.Suggestions = Suggestions;
 
@@ -1170,7 +1170,10 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            var hasBeenSelected = that.selectCurrentValue({continueSelecting: true}) !== -1;
+                            var hasBeenSelected = that.selectCurrentValue({
+                                continueSelecting: true,
+                                dontEnrich: true
+                            }) !== -1;
 
                             // set this flag to seek and select matched suggestion when server responds
                             that._waitingForTriggerSelectOnSpace = !hasBeenSelected;
@@ -1425,72 +1428,55 @@
             return suggestion && suggestion.data && suggestion.data.qc === QC_VALUES.CORRECT;
         }
 
-        var enrichServices = {
-            'default': {
-                enrichSuggestion: function (suggestion) {
-                    return $.Deferred().resolve(suggestion);
-                }
-            },
-            'dadata': (function () {
-                return {
-                    enrichSuggestion: function (suggestion) {
-                        var that = this,
-                            resolver = $.Deferred();
-
-                        // if current suggestion is already enriched, use it
-                        if (suggestion.data && suggestion.data.qc != null) {
-                            return resolver.resolve(suggestion);
-                        }
-
-                        that.disableDropdown();
-                        that.currentValue = suggestion.value;
-
-                        // prevent request abortation during onBlur
-                        that.currentRequestIsEnrich = true;
-                        that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
-                            .always(function () {
-                                that.enableDropdown();
-                            })
-                            .done(function (suggestions) {
-                                var serverSuggestion = suggestions[0];
-                                if (suggestionIsEnriched(serverSuggestion)) {
-                                    // return suggestion from dadata
-                                    resolver.resolve(serverSuggestion);
-                                } else {
-                                    // dadata is turned off on the server, ignore response
-                                    // and use suggestion selected by the user
-                                    resolver.resolve(suggestion);
-                                }
-                            })
-                            .fail(function () {
-                                resolver.resolve(suggestion);
-                            });
-                        return resolver;
-                    }
-                }
-            }())
-        };
-
         var methods = {
-            selectEnrichService: function () {
-                var that = this,
-                    type = that.options.type,
-                    token = $.trim(that.options.token);
 
-                if (that.options.useDadata && type && types[type] && token) {
-                    that.enrichService = enrichServices[types[type].enrichServiceName || 'dadata'];
-                } else {
-                    that.enrichService = enrichServices['default'];
+            enrichSuggestion: function (suggestion, selectionOptions) {
+                var that = this,
+                    token = $.trim(that.options.token),
+                    resolver = $.Deferred();
+
+                if (!that.options.useDadata || !token || that.type.dontEnrich  || selectionOptions && selectionOptions.dontEnrich) {
+                    return resolver.resolve(suggestion);
                 }
+
+                // if current suggestion is already enriched, use it
+                if (suggestion.data && suggestion.data.qc != null) {
+                    return resolver.resolve(suggestion);
+                }
+
+                that.disableDropdown();
+                that.currentValue = suggestion.value;
+
+                // prevent request abortation during onBlur
+                that.currentRequestIsEnrich = true;
+                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
+                    .always(function () {
+                        that.enableDropdown();
+                    })
+                    .done(function (suggestions) {
+                        var serverSuggestion = suggestions[0];
+                        if (suggestionIsEnriched(serverSuggestion)) {
+                            // return suggestion from dadata
+                            resolver.resolve(serverSuggestion);
+                        } else {
+                            // dadata is turned off on the server, ignore response
+                            // and use suggestion selected by the user
+                            resolver.resolve(suggestion);
+                        }
+                    })
+                    .fail(function () {
+                        resolver.resolve(suggestion);
+                    });
+                return resolver;
             }
+
         };
 
         $.extend(defaultOptions, {
             useDadata: true
         });
 
-        notificator
-            .on('setOptions', methods.selectEnrichService);
+        $.extend(Suggestions.prototype, methods);
 
     }());
 
@@ -2559,7 +2545,7 @@
                     return;
                 }
 
-                that.enrichService.enrichSuggestion.call(that, suggestion)
+                that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue;
