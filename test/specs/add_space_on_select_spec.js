@@ -225,6 +225,52 @@ describe('Adding space on selecting', function () {
             expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10 ');
         });
 
+        it('Should not add SPACE at the end if HOUSE specified, FLAT is empty and enrichment is off', function () {
+            this.instance.setOptions({
+                useDadata: true,
+                token: '123'
+            });
+
+            // select address
+            this.input.value = 'Р';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([{
+                value: 'Россия, г Москва, ул Арбат, дом 10',
+                data: {
+                    country: 'Россия',
+                    city: 'Москва',
+                    city_type: 'г',
+                    street: 'Арбат',
+                    street_type: 'ул',
+                    house: '10',
+                    house_type: 'дом'
+                }
+            }]));
+
+            this.server.requests.length = 0;
+            this.instance.selectedIndex = 0;
+            helpers.hitEnter(this.input);
+
+            // enriched answers
+            expect(this.server.requests.length).toEqual(1);
+            this.server.respond(helpers.responseFor([{
+                value: 'Россия, г Москва, ул Арбат, дом 10',
+                data: {
+                    country: 'Россия',
+                    city: 'Москва',
+                    city_type: 'г',
+                    street: 'Арбат',
+                    street_type: 'ул',
+                    house: '10',
+                    house_type: 'дом',
+                    qc: null,
+                    qc_complete: null // suggestion has not been enriched
+                }
+            }]));
+
+            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10');
+        });
+
     });
 
 });
