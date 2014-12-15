@@ -40,7 +40,7 @@
             BAD: 6,
             FOREIGN: 7
         },
-        wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
+        wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№',
         wordSplitter = new RegExp('[' + wordDelimiters + ']+', 'g'),
         wordPartsDelimiters = '\\-\\+\\/\\\\\\?!@#$%^&',
         wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
@@ -450,7 +450,7 @@
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
-                    inn = suggestion.data && parseInn(suggestion.data),
+                    formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
                     address = utils.getDeepValue(suggestion, 'data.address.value');
 
                 if (that.isMobile) {
@@ -471,16 +471,44 @@
                     }
                 }
 
-                if (inn || address) {
+                if (formattedInn || address) {
                     value +=
                         '<div class="' + that.classes.subtext + '">' +
-                        '<span class="' + that.classes.subtext_inline + '">' +
-                        (inn && inn.join('<span class="' + that.classes.subtext_delimiter + '"></span>') || '') +
-                        '</span>' +
+                        '<span class="' + that.classes.subtext_inline + '">' + (formattedInn || '') + '</span>' +
                         (address || '') +
                         '</div>';
                 }
                 return value;
+            },
+            innPartsLength: {
+                'LEGAL': [2, 2, 5, 1],
+                'INDIVIDUAL': [2, 2, 6, 2]
+            },
+            formatResultInn: function(suggestion, currentValue) {
+                var that = this,
+                    inn = suggestion.data && suggestion.data.inn,
+                    innPartsLength = that.type.innPartsLength[suggestion.data && suggestion.data.type],
+                    innParts,
+                    formattedInn,
+                    rDigit = /^\d$/;
+
+                if (inn) {
+                    formattedInn = that.formatResult(inn, currentValue, suggestion);
+                    formattedInn = formattedInn.split('');
+                    innParts = $.map(innPartsLength, function(partLength){
+                        var formattedPart = '',
+                            char;
+
+                        while (partLength && (char = formattedInn.shift())) {
+                            formattedPart += char;
+                            if (rDigit.test(char)) partLength--;
+                        }
+
+                        return formattedPart;
+                    });
+
+                    return innParts.join('<span class="' + that.classes.subtext_delimiter + '"></span>');
+                }
             }
         };
 
@@ -494,16 +522,6 @@
                 return this.options.suggest_local || query.indexOf('@') >= 0;
             }
         };
-
-        function parseInn (data) {
-            var innPattern = {
-                    'LEGAL': /(\d{2})(\d{2})(\d{5})(\d+)/,
-                    'INDIVIDUAL': /(\d{2})(\d{2})(\d{6})(\d+)/
-                }[data.type],
-                inn = data.inn && innPattern && innPattern.exec(data.inn);
-
-            return inn && inn.slice(1);
-        }
 
         $.extend(defaultOptions, {
             suggest_local: true
@@ -1729,7 +1747,7 @@
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
                     partialMatchers = $.map(partialTokens, function (token) {
-                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimiters + ']+)', 'i')
+                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')', 'i')
                     }),
                     rWords = utils.reWordExtractor(),
                     match, word;

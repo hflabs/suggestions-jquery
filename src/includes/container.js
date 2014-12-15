@@ -247,7 +247,7 @@
                     tokens = formatToken(currentValue).split(wordSplitter),
                     partialTokens = withSubTokens([tokens[tokens.length -1]]),
                     partialMatchers = $.map(partialTokens, function (token) {
-                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')(?=[^' + wordDelimiters + ']+)', 'i')
+                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')', 'i')
                     }),
                     rWords = utils.reWordExtractor(),
                     match, word;

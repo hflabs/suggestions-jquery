@@ -33,7 +33,7 @@
             BAD: 6,
             FOREIGN: 7
         },
-        wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
+        wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№',
         wordSplitter = new RegExp('[' + wordDelimiters + ']+', 'g'),
         wordPartsDelimiters = '\\-\\+\\/\\\\\\?!@#$%^&',
         wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
