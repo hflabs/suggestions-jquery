@@ -134,6 +134,64 @@ describe('Highlight suggestions', function () {
         expect(html).not.toContain('<strong>КРА</strong>Й');
     });
 
+    it('Should highlight INN in parties (full match)', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = '5403233085';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ЗАО Ромашка',
+                data: {
+                    address: {
+                        value: 'Новосибирская',
+                        data: null
+                    },
+                    inn: '5403233085',
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+       var $item = this.instance.$container.children('.suggestions-suggestion'),
+           html = $item.html(),
+           pattern = '<strong>54 03 23308 5</strong>'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('<span class="suggestions-subtext suggestions-subtext_inline">' + pattern + '</span>');
+    });
+
+    it('Should highlight INN in parties (partial match)', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = '540323';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ЗАО Ромашка',
+                data: {
+                    address: {
+                        value: 'Новосибирская',
+                        data: null
+                    },
+                    inn: '5403233085',
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+       var $item = this.instance.$container.children('.suggestions-suggestion'),
+           html = $item.html(),
+           pattern = '<strong>54 03 23</strong>308 5'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('<span class="suggestions-subtext suggestions-subtext_inline">' + pattern + '</span>');
+    });
+
     it('Should escape html entries', function () {
         this.instance.setOptions({
             type: 'PARTY'

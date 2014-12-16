@@ -143,24 +143,28 @@
                     innPartsLength = that.type.innPartsLength[suggestion.data && suggestion.data.type],
                     innParts,
                     formattedInn,
-                    rDigit = /^\d$/;
+                    rDigit = /\d/;
 
                 if (inn) {
                     formattedInn = that.formatResult(inn, currentValue, suggestion);
-                    formattedInn = formattedInn.split('');
-                    innParts = $.map(innPartsLength, function(partLength){
-                        var formattedPart = '',
-                            char;
+                    if (innPartsLength) {
+                        formattedInn = formattedInn.split('');
+                        innParts = $.map(innPartsLength, function (partLength) {
+                            var formattedPart = '',
+                                char;
 
-                        while (partLength && (char = formattedInn.shift())) {
-                            formattedPart += char;
-                            if (rDigit.test(char)) partLength--;
-                        }
+                            while (partLength && (char = formattedInn.shift())) {
+                                formattedPart += char;
+                                if (rDigit.test(char)) partLength--;
+                            }
 
-                        return formattedPart;
-                    });
+                            return formattedPart;
+                        });
+                        formattedInn = innParts.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
+                            formattedInn.join('');
+                    }
 
-                    return innParts.join('<span class="' + that.classes.subtext_delimiter + '"></span>');
+                    return formattedInn;
                 }
             }
         };
