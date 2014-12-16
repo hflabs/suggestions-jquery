@@ -408,14 +408,10 @@
                     'block', 'block_type']
             },
             isDataComplete: function (suggestion) {
-                var fields = [this.bounds.to || 'house'],
+                var fields = [this.bounds.to || 'flat'],
                     data = suggestion.data;
 
-                if (!$.isPlainObject(data)) return true;
-
-                return data.qc_complete != null
-                    ? data.qc_complete === QC_COMPLETE.OK
-                    : utils.fieldsNotEmpty(data, fields);
+                return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
                 return utils.compact([

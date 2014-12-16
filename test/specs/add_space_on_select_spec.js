@@ -137,138 +137,50 @@ describe('Adding space on selecting', function () {
             expect(this.input.value).toEqual('Россия ');
         });
 
-        it('Should add SPACE at the end if only COUNTRY, CITY and STREET specified', function () {
+        it('Should add SPACE at the end if COUNTRY..HOUSE specified', function () {
             this.input.value = 'Р';
             this.instance.onValueChange();
             this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат',
+                value: 'Россия, г Москва, ул Арбат, д 1',
                 data: {
                     country: 'Россия',
                     city: 'Москва',
                     city_type: 'г',
                     street: 'Арбат',
-                    street_type: 'ул'
+                    street_type: 'ул',
+                    house_type: 'д',
+                    house: '1'
                 }
             }]));
 
             this.instance.selectedIndex = 0;
             helpers.hitEnter(this.input);
 
-            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат ');
+            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, д 1 ');
         });
 
-        it('Should not add SPACE at the end if COUNTRY, CITY, STREET and HOUSE specified', function () {
+        it('Should not add SPACE at the end if FLAT specified', function () {
             this.input.value = 'Р';
             this.instance.onValueChange();
             this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат, дом 10',
+                value: 'Россия, г Москва, ул Арбат, д 1, кв 22',
                 data: {
                     country: 'Россия',
                     city: 'Москва',
                     city_type: 'г',
                     street: 'Арбат',
                     street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом'
+                    house: '1',
+                    house_type: 'д',
+                    flat: '22',
+                    flat_type: 'кв'
                 }
             }]));
 
             this.instance.selectedIndex = 0;
             helpers.hitEnter(this.input);
 
-            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10');
-        });
-
-        it('Should add SPACE at the end if COUNTRY, CITY, STREET and HOUSE specified but flat is expected', function () {
-            this.instance.setOptions({
-                useDadata: true,
-                token: '123'
-            });
-
-            // select address
-            this.input.value = 'Р';
-            this.instance.onValueChange();
-            this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат, дом 10',
-                data: {
-                    country: 'Россия',
-                    city: 'Москва',
-                    city_type: 'г',
-                    street: 'Арбат',
-                    street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом'
-                }
-            }]));
-
-            this.server.requests.length = 0;
-            this.instance.selectedIndex = 0;
-            helpers.hitEnter(this.input);
-
-            // enriched answers
-            expect(this.server.requests.length).toEqual(1);
-            this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат, дом 10',
-                data: {
-                    country: 'Россия',
-                    city: 'Москва',
-                    city_type: 'г',
-                    street: 'Арбат',
-                    street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом',
-                    qc: 0,
-                    qc_complete: 5 // means flat expected
-                }
-            }]));
-
-            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10 ');
-        });
-
-        it('Should not add SPACE at the end if HOUSE specified, FLAT is empty and enrichment is off', function () {
-            this.instance.setOptions({
-                useDadata: true,
-                token: '123'
-            });
-
-            // select address
-            this.input.value = 'Р';
-            this.instance.onValueChange();
-            this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат, дом 10',
-                data: {
-                    country: 'Россия',
-                    city: 'Москва',
-                    city_type: 'г',
-                    street: 'Арбат',
-                    street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом'
-                }
-            }]));
-
-            this.server.requests.length = 0;
-            this.instance.selectedIndex = 0;
-            helpers.hitEnter(this.input);
-
-            // enriched answers
-            expect(this.server.requests.length).toEqual(1);
-            this.server.respond(helpers.responseFor([{
-                value: 'Россия, г Москва, ул Арбат, дом 10',
-                data: {
-                    country: 'Россия',
-                    city: 'Москва',
-                    city_type: 'г',
-                    street: 'Арбат',
-                    street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом',
-                    qc: null,
-                    qc_complete: null // suggestion has not been enriched
-                }
-            }]));
-
-            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10');
+            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, д 1, кв 22');
         });
 
     });
