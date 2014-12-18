@@ -23,16 +23,6 @@
         types = {},
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
-        QC_COMPLETE = {
-            OK: 0,
-            NO_REGION: 1,
-            NO_CITY: 2,
-            NO_STREET: 3,
-            NO_HOUSE: 4,
-            NO_FLAT: 5,
-            BAD: 6,
-            FOREIGN: 7
-        },
         wordDelimiters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№',
         wordSplitter = new RegExp('[' + wordDelimiters + ']+', 'g'),
         wordPartsDelimiters = '\\-\\+\\/\\\\\\?!@#$%^&',
