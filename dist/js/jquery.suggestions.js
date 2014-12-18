@@ -1200,7 +1200,7 @@
                             that._waitingForTriggerSelectOnSpace = !hasBeenSelected;
 
                             // prevent actual adding space char until enrich request complete
-                            if (hasBeenSelected) {
+                            if (hasBeenSelected && that.currentRequest) {
                                 e.preventDefault();
                             }
                         }
