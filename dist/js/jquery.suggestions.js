@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.7.3
+ * DaData.ru Suggestions jQuery plugin, version 4.7.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -37,16 +37,6 @@
         assignSuggestionsHooks = [],
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
-        QC_COMPLETE = {
-            OK: 0,
-            NO_REGION: 1,
-            NO_CITY: 2,
-            NO_STREET: 3,
-            NO_HOUSE: 4,
-            NO_FLAT: 5,
-            BAD: 6,
-            FOREIGN: 7
-        },
         rWordBreak = '[\\s\"-]+',
         rWordPart = '[^\\s\"-]+',
         defaultOptions = {
@@ -260,8 +250,7 @@
             geoEnabled: true,
             isDataComplete: function (data) {
                 var fields = ['house'];
-                return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
+                return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
                 return utils.compact([
@@ -378,7 +367,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.7.3';
+    Suggestions.version = '4.7.4';
 
     $.Suggestions = Suggestions;
 
@@ -1185,12 +1174,6 @@
                         var that = this,
                             resolver = $.Deferred();
 
-                        function suggestionIsDefined(suggestion) {
-                            return suggestion && suggestion.data
-                                && suggestion.data.hasOwnProperty('qc')
-                                && suggestion.data.qc !== null;
-                        }
-
                         // if current suggestion is already enriched, use it
                         if (suggestion.data && suggestion.data.qc != null) {
                             return resolver.resolve(suggestion);
@@ -1202,15 +1185,7 @@
                                 that.enableDropdown();
                             })
                             .done(function (suggestions) {
-                                var serverSuggestion = suggestions[0];
-                                if (suggestionIsDefined(serverSuggestion)) {
-                                    // return suggestion from dadata
-                                    resolver.resolve(serverSuggestion);
-                                } else {
-                                    // dadata is turned off on the server, ignore response
-                                    // and use suggestion selected by the user
-                                    resolver.resolve(suggestion);
-                                }
+                                resolver.resolve(suggestions && suggestions[0] || suggestion);
                             })
                             .fail(function () {
                                 resolver.resolve(suggestion);
