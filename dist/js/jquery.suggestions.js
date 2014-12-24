@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.7
+ * DaData.ru Suggestions jQuery plugin, version 4.8.8
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -30,16 +30,6 @@
         types = {},
         eventNS = '.suggestions',
         dataAttrKey = 'suggestions',
-        QC_COMPLETE = {
-            OK: 0,
-            NO_REGION: 1,
-            NO_CITY: 2,
-            NO_STREET: 3,
-            NO_HOUSE: 4,
-            NO_FLAT: 5,
-            BAD: 6,
-            FOREIGN: 7
-        },
         wordDelimeters = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>',
         wordSplitter = new RegExp('[' + wordDelimeters + ']+', 'g'),
         wordPartsDelimeters = '\\-\\+\\/\\\\\\?!@#$%^&',
@@ -376,8 +366,7 @@
             },
             isDataComplete: function (data) {
                 var fields = [this.bounds.to || 'house'];
-                return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
+                return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
                 return utils.compact([
@@ -519,7 +508,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.7';
+    Suggestions.version = '4.8.8';
 
     $.Suggestions = Suggestions;
 
@@ -1418,15 +1407,7 @@
                                 that.enableDropdown();
                             })
                             .done(function (suggestions) {
-                                var serverSuggestion = suggestions[0];
-                                if (suggestionIsEnriched(serverSuggestion)) {
-                                    // return suggestion from dadata
-                                    resolver.resolve(serverSuggestion);
-                                } else {
-                                    // dadata is turned off on the server, ignore response
-                                    // and use suggestion selected by the user
-                                    resolver.resolve(suggestion);
-                                }
+                                resolver.resolve(suggestions && suggestions[0] || suggestion);
                             })
                             .fail(function () {
                                 resolver.resolve(suggestion);

@@ -36,15 +36,7 @@
                                 that.enableDropdown();
                             })
                             .done(function (suggestions) {
-                                var serverSuggestion = suggestions[0];
-                                if (suggestionIsEnriched(serverSuggestion)) {
-                                    // return suggestion from dadata
-                                    resolver.resolve(serverSuggestion);
-                                } else {
-                                    // dadata is turned off on the server, ignore response
-                                    // and use suggestion selected by the user
-                                    resolver.resolve(suggestion);
-                                }
+                                resolver.resolve(suggestions && suggestions[0] || suggestion);
                             })
                             .fail(function () {
                                 resolver.resolve(suggestion);

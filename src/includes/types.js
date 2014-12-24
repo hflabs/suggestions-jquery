@@ -33,8 +33,7 @@
             },
             isDataComplete: function (data) {
                 var fields = [this.bounds.to || 'house'];
-                return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
+                return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
                 return utils.compact([

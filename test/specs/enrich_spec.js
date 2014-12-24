@@ -22,16 +22,6 @@ describe('Enrich', function () {
                     gender: 'MALE',
                     qc: 0
                 }
-            }],
-            enrichedUnsure: [{
-                value: 'Романов Иван Петрович',
-                data: {
-                    name: 'Иван',
-                    patronymic: 'Петрович',
-                    surname: 'Романов',
-                    gender: 'MALE',
-                    qc: 1
-                }
             }]
         };
 
@@ -100,23 +90,6 @@ describe('Enrich', function () {
 
         // request for enriched suggestion not sent
         expect(this.server.requests.length).toEqual(0);
-    });
-
-    it('Should NOT enrich a suggestion if server is not sure', function () {
-
-        // select address
-        this.input.value = 'Р';
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(fixtures.poor));
-
-        this.server.requests.length = 0;
-        this.instance.selectedIndex = 0;
-        helpers.hitEnter(this.input);
-
-        expect(this.server.requests.length).toEqual(1);
-        this.server.respond(helpers.responseFor(fixtures.enrichedUnsure));
-
-        expect(this.instance.selection).toEqual(helpers.appendUnrestrictedValue(fixtures.poor[0]));
     });
 
 });
