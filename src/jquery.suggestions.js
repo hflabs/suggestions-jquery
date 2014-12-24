@@ -265,7 +265,7 @@
         }
 
         function shouldOverrideField(field, data) {
-            return !(field in data) || field === 'house' || (field === 'okato' && data[field] === "");
+            return !data[field];
         }
 
         return {
@@ -274,7 +274,7 @@
                     resolver = $.Deferred();
 
                 // if current suggestion is from dadata, use it
-                if (suggestion.data && 'qc' in suggestion.data) {
+                if (suggestion.data && suggestion.data.qc != null) {
                     return resolver.resolve(suggestion);
                 }
 

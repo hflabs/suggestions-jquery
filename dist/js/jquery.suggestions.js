@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.3.4
+ * DaData.ru Suggestions jQuery plugin, version 4.3.5
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -272,7 +272,7 @@
         }
 
         function shouldOverrideField(field, data) {
-            return !(field in data) || field === 'house' || (field === 'okato' && data[field] === "");
+            return !data[field];
         }
 
         return {
@@ -281,7 +281,7 @@
                     resolver = $.Deferred();
 
                 // if current suggestion is from dadata, use it
-                if (suggestion.data && 'qc' in suggestion.data) {
+                if (suggestion.data && suggestion.data.qc != null) {
                     return resolver.resolve(suggestion);
                 }
 
