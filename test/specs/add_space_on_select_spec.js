@@ -221,7 +221,7 @@ describe('Adding space on selecting', function () {
                 }
             }]));
 
-            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10 ');
+            expect(this.input.value).toEqual('Россия, г Москва, ул Арбат, дом 10');
         });
 
     });
