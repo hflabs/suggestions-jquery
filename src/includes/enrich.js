@@ -1,14 +1,5 @@
     (function(){
 
-        var QC_VALUES = {
-            CORRECT: 0,
-            INCORRECT: 1
-        };
-
-        function suggestionIsEnriched(suggestion) {
-            return suggestion && suggestion.data && suggestion.data.qc === QC_VALUES.CORRECT;
-        }
-
         var methods = {
 
             enrichSuggestion: function (suggestion, selectionOptions) {
@@ -35,15 +26,7 @@
                         that.enableDropdown();
                     })
                     .done(function (suggestions) {
-                        var serverSuggestion = suggestions[0];
-                        if (suggestionIsEnriched(serverSuggestion)) {
-                            // return suggestion from dadata
-                            resolver.resolve(serverSuggestion);
-                        } else {
-                            // dadata is turned off on the server, ignore response
-                            // and use suggestion selected by the user
-                            resolver.resolve(suggestion);
-                        }
+                        resolver.resolve(suggestions && suggestions[0] || suggestion);
                     })
                     .fail(function () {
                         resolver.resolve(suggestion);

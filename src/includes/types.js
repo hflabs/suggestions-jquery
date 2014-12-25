@@ -65,8 +65,7 @@
                 var fields = [this.bounds.to || 'house'],
                     data = suggestion.data;
 
-                return utils.fieldsNotEmpty(data, fields) &&
-                    (!('qc_complete' in data) || data.qc_complete !== QC_COMPLETE.NO_FLAT);
+                return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
             composeValue: function (data) {
                 return utils.compact([
