@@ -1,4 +1,4 @@
-﻿
+
 describe('Authorization features', function () {
     'use strict';
     
