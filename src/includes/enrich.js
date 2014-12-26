@@ -37,10 +37,10 @@
         var methods = {
             selectEnrichService: function () {
                 var that = this,
-                    type = that.options.type,
+                    type = types[that.options.type],
                     token = $.trim(that.options.token);
 
-                if (that.options.useDadata && type && types[type] && token) {
+                if (that.options.useDadata && type && type.enrichmentEnabled && token) {
                     that.enrichService = enrichServices['dadata'];
                 } else {
                     that.enrichService = enrichServices['default'];

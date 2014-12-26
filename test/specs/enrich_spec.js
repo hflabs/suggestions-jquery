@@ -3,7 +3,7 @@ describe('Enrich', function () {
 
     var serviceUrl = 'some/url',
         fixtures = {
-            poor: [{
+            poorName: [{
                 value: 'Романов Иван Петрович',
                 data: {
                     name: 'Иван',
@@ -13,13 +13,17 @@ describe('Enrich', function () {
                     qc: null
                 }
             }],
-            enriched: [{
-                value: 'Романов Иван Петрович',
+            poorAddress: [{
+                value: 'Москва',
                 data: {
-                    name: 'Иван',
-                    patronymic: 'Петрович',
-                    surname: 'Романов',
-                    gender: 'MALE',
+                    city: 'Москва',
+                    qc: null
+                }
+            }],
+            enriched: [{
+                value: 'Москва',
+                data: {
+                    city: 'Москва',
                     qc: 0
                 }
             }]
@@ -30,7 +34,7 @@ describe('Enrich', function () {
         this.$input = $(this.input);
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME',
+            type: 'ADDRESS',
             token: '123'
         }).suggestions();
 
@@ -42,12 +46,30 @@ describe('Enrich', function () {
         this.instance.dispose()
     });
 
-    it('Should enrich a suggestion when selected', function () {
+    it('Should NOT enrich a suggestion for names', function () {
+        this.instance.setOptions({
+            type: 'NAME'
+        });
 
         // select address
         this.input.value = 'Р';
         this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(fixtures.poor));
+        this.server.respond(helpers.responseFor(fixtures.poorName));
+
+        this.server.requests.length = 0;
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        // request for enriched suggestion not sent
+        expect(this.server.requests.length).toEqual(0);
+    });
+
+    it('Should enrich address when selected', function () {
+
+        // select address
+        this.input.value = 'М';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(fixtures.poorAddress));
 
         this.server.requests.length = 0;
         this.instance.selectedIndex = 0;
@@ -56,7 +78,7 @@ describe('Enrich', function () {
         // request for enriched suggestion
         expect(this.server.requests.length).toEqual(1);
         expect(this.server.requests[0].requestBody).toContain('"count":1');
-        expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poor[0].value + '"');
+        expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poorAddress[0].value + '"');
     });
 
     it('Should NOT enrich a suggestion when useDadata set to `false`', function () {
@@ -65,9 +87,9 @@ describe('Enrich', function () {
         });
 
         // select address
-        this.input.value = 'Р';
+        this.input.value = 'М';
         this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(fixtures.poor));
+        this.server.respond(helpers.responseFor(fixtures.poorAddress));
 
         this.server.requests.length = 0;
         this.instance.selectedIndex = 0;
@@ -80,7 +102,7 @@ describe('Enrich', function () {
     it('Should NOT enrich a suggestion with specified qc', function () {
 
         // select address
-        this.input.value = 'Р';
+        this.input.value = 'М';
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(fixtures.enriched));
 
