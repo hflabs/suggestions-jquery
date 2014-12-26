@@ -22,6 +22,7 @@
             STOPWORDS: ADDRESS_STOPWORDS,
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
+            enrichmentEnabled: true,
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             boundsFields: {
                 'region': ['region', 'region_type', 'region_type_full'],
@@ -67,7 +68,6 @@
                 return true;
             },
             // composeValue not needed
-            enrichServiceName: 'default',
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,

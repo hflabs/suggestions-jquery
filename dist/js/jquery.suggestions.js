@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.8.8
+ * DaData.ru Suggestions jQuery plugin, version 4.8.9
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -355,6 +355,7 @@
             STOPWORDS: ADDRESS_STOPWORDS,
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
+            enrichmentEnabled: true,
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             boundsFields: {
                 'region': ['region', 'region_type', 'region_type_full'],
@@ -400,7 +401,6 @@
                 return true;
             },
             // composeValue not needed
-            enrichServiceName: 'default',
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -508,7 +508,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.8.8';
+    Suggestions.version = '4.8.9';
 
     $.Suggestions = Suggestions;
 
@@ -1421,11 +1421,11 @@
         var methods = {
             selectEnrichService: function () {
                 var that = this,
-                    type = that.options.type,
+                    type = types[that.options.type],
                     token = $.trim(that.options.token);
 
-                if (that.options.useDadata && type && types[type] && token) {
-                    that.enrichService = enrichServices[types[type].enrichServiceName || 'dadata'];
+                if (that.options.useDadata && type && type.enrichmentEnabled && token) {
+                    that.enrichService = enrichServices['dadata'];
                 } else {
                     that.enrichService = enrichServices['default'];
                 }

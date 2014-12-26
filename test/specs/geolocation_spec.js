@@ -4,6 +4,7 @@ describe('Geolocation', function(){
     var serviceUrl = '/some/url';
 
     beforeEach(function(){
+        $.Suggestions.resetLocation();
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
