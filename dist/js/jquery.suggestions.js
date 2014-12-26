@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.9
+ * DaData.ru Suggestions jQuery plugin, version 4.9.10
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -387,6 +387,7 @@
             STOPWORDS: ADDRESS_STOPWORDS,
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
             geoEnabled: true,
+            enrichmentEnabled: true,
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             boundsFields: {
                 'region': ['region', 'region_type', 'region_type_full', 'region_with_type'],
@@ -435,7 +436,6 @@
                 return true;
             },
             // composeValue not needed
-            dontEnrich: true,
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -559,7 +559,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.9';
+    Suggestions.version = '4.9.10';
 
     $.Suggestions = Suggestions;
 
@@ -1415,7 +1415,7 @@
                     token = $.trim(that.options.token),
                     resolver = $.Deferred();
 
-                if (!that.options.useDadata || !token || that.type.dontEnrich  || selectionOptions && selectionOptions.dontEnrich) {
+                if (!that.options.useDadata || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
                     return resolver.resolve(suggestion);
                 }
 
