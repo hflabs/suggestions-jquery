@@ -108,6 +108,7 @@
         that.currentValue = that.element.value;
         that.intervalId = 0;
         that.cachedResponse = {};
+        that.enrichmentCache = {};
         that.currentRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
@@ -321,6 +322,7 @@
 
         clearCache: function () {
             this.cachedResponse = {};
+            this.enrichmentCache = {};
             this.badQueries = [];
         },
 
@@ -464,18 +466,20 @@
          * Get suggestions from cache or from server
          * @param {String} query
          * @param {Object} customParams parameters specified here will be passed to request body
-         * @param {Object} requestOptions if contains noCallbacks flag, request completance callbacks will not be invoked
+         * @param {Object} requestOptions
+         *          - noCallbacks flag, request competence callbacks will not be invoked
+         *          - useEnrichmentCache flag
          * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
          */
         getSuggestions: function (query, customParams, requestOptions) {
             var response,
                 that = this,
                 options = that.options,
-                serviceUrl = options.serviceUrl,
+                noCallbacks = requestOptions && requestOptions.noCallbacks,
+                useEnrichmentCache = requestOptions && requestOptions.useEnrichmentCache,
                 params = that.constructRequestParams(query, customParams),
-                cacheKey = serviceUrl + '?' + $.param(params || {}),
-                resolver = $.Deferred(),
-                noCallbacks = requestOptions && requestOptions.noCallbacks;
+                cacheKey = $.param(params || {}),
+                resolver = $.Deferred();
 
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
@@ -489,7 +493,22 @@
                     } else {
                         that.doGetSuggestions(params)
                             .done(function (response) {
-                                if (that.processResponse(response, query, cacheKey)) {
+                                // if response is correct and current value has not been changed
+                                if (that.processResponse(response) && query == that.currentValue) {
+
+                                    // Cache results if cache is not disabled:
+                                    if (!options.noCache) {
+                                        if (useEnrichmentCache) {
+                                            that.enrichmentCache[query] = response.suggestions[0];
+                                        } else {
+                                            that.enrichResponse(response, query);
+                                            that.cachedResponse[cacheKey] = response;
+                                            if (options.preventBadQueries && response.suggestions.length === 0) {
+                                                that.badQueries.push(query);
+                                            }
+                                        }
+                                    }
+
                                     resolver.resolve(response.suggestions);
                                 } else {
                                     resolver.reject();
@@ -554,12 +573,11 @@
         },
 
         /**
-         * Checks response format and data, puts it in cache
+         * Checks response format and data
          * @return {Boolean} response contains acceptable data
          */
-        processResponse: function (response, originalQuery, cacheKey) {
-            var that = this,
-                options = that.options;
+        processResponse: function (response) {
+            var that = this;
 
             if (!response || !$.isArray(response.suggestions)) {
                 return false;
@@ -567,19 +585,6 @@
 
             that.verifySuggestionsFormat(response.suggestions);
             that.setUnrestrictedValues(response.suggestions);
-
-            // Cache results if cache is not disabled:
-            if (!options.noCache) {
-                that.cachedResponse[cacheKey] = response;
-                if (options.preventBadQueries && response.suggestions.length === 0) {
-                    that.badQueries.push(originalQuery);
-                }
-            }
-
-            // Return if originalQuery is not matching current query:
-            if (originalQuery !== that.currentValue) {
-                return false;
-            }
 
             return true;
         },
