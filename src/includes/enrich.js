@@ -19,19 +19,40 @@
                 that.disableDropdown();
                 that.currentValue = suggestion.value;
 
-                // prevent request abortation during onBlur
+                // prevent request abortion during onBlur
                 that.currentRequestIsEnrich = true;
-                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
+                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                     .always(function () {
                         that.enableDropdown();
                     })
                     .done(function (suggestions) {
-                        resolver.resolve(suggestions && suggestions[0] || suggestion);
+                        var enrichedSuggestion = suggestions && suggestions[0];
+
+                        resolver.resolve(enrichedSuggestion || suggestion, !!enrichedSuggestion);
                     })
                     .fail(function () {
                         resolver.resolve(suggestion);
                     });
                 return resolver;
+            },
+
+            /**
+             * Injects enriched suggestion into response
+             * @param response
+             * @param query
+             */
+            enrichResponse: function (response, query) {
+                var that = this,
+                    enrichedSuggestion = that.enrichmentCache[query];
+
+                if (enrichedSuggestion) {
+                    $.each(response.suggestions, function(i, suggestion){
+                        if (suggestion.value === query) {
+                            response.suggestions[i] = enrichedSuggestion;
+                            return false;
+                        }
+                    });
+                }
             }
 
         };
