@@ -67,7 +67,7 @@
                 }
 
                 that.enrichSuggestion(suggestion, selectionOptions)
-                    .done(function (enrichedSuggestion) {
+                    .done(function (enrichedSuggestion, hasBeenEnriched) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue;
 
@@ -79,6 +79,9 @@
                             continueSelecting = false;
                         }
 
+                        if (hasBeenEnriched) {
+                            that.suggestions[index] = enrichedSuggestion;
+                        }
                         that.checkValueBounds(enrichedSuggestion);
                         if ($.isFunction(that.options.formatSelected)) {
                             formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);

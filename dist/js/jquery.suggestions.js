@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.9.10
+ * DaData.ru Suggestions jQuery plugin, version 4.9.11
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -530,6 +530,7 @@
         that.currentValue = that.element.value;
         that.intervalId = 0;
         that.cachedResponse = {};
+        that.enrichmentCache = {};
         that.currentRequest = null;
         that.onChangeTimeout = null;
         that.$wrapper = null;
@@ -559,7 +560,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.9.10';
+    Suggestions.version = '4.9.11';
 
     $.Suggestions = Suggestions;
 
@@ -743,6 +744,7 @@
 
         clearCache: function () {
             this.cachedResponse = {};
+            this.enrichmentCache = {};
             this.badQueries = [];
         },
 
@@ -886,18 +888,20 @@
          * Get suggestions from cache or from server
          * @param {String} query
          * @param {Object} customParams parameters specified here will be passed to request body
-         * @param {Object} requestOptions if contains noCallbacks flag, request completance callbacks will not be invoked
+         * @param {Object} requestOptions
+         *          - noCallbacks flag, request competence callbacks will not be invoked
+         *          - useEnrichmentCache flag
          * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
          */
         getSuggestions: function (query, customParams, requestOptions) {
             var response,
                 that = this,
                 options = that.options,
-                serviceUrl = options.serviceUrl,
+                noCallbacks = requestOptions && requestOptions.noCallbacks,
+                useEnrichmentCache = requestOptions && requestOptions.useEnrichmentCache,
                 params = that.constructRequestParams(query, customParams),
-                cacheKey = serviceUrl + '?' + $.param(params || {}),
-                resolver = $.Deferred(),
-                noCallbacks = requestOptions && requestOptions.noCallbacks;
+                cacheKey = $.param(params || {}),
+                resolver = $.Deferred();
 
             response = that.cachedResponse[cacheKey];
             if (response && $.isArray(response.suggestions)) {
@@ -911,7 +915,22 @@
                     } else {
                         that.doGetSuggestions(params)
                             .done(function (response) {
-                                if (that.processResponse(response, query, cacheKey)) {
+                                // if response is correct and current value has not been changed
+                                if (that.processResponse(response) && query == that.currentValue) {
+
+                                    // Cache results if cache is not disabled:
+                                    if (!options.noCache) {
+                                        if (useEnrichmentCache) {
+                                            that.enrichmentCache[query] = response.suggestions[0];
+                                        } else {
+                                            that.enrichResponse(response, query);
+                                            that.cachedResponse[cacheKey] = response;
+                                            if (options.preventBadQueries && response.suggestions.length === 0) {
+                                                that.badQueries.push(query);
+                                            }
+                                        }
+                                    }
+
                                     resolver.resolve(response.suggestions);
                                 } else {
                                     resolver.reject();
@@ -976,12 +995,11 @@
         },
 
         /**
-         * Checks response format and data, puts it in cache
+         * Checks response format and data
          * @return {Boolean} response contains acceptable data
          */
-        processResponse: function (response, originalQuery, cacheKey) {
-            var that = this,
-                options = that.options;
+        processResponse: function (response) {
+            var that = this;
 
             if (!response || !$.isArray(response.suggestions)) {
                 return false;
@@ -989,19 +1007,6 @@
 
             that.verifySuggestionsFormat(response.suggestions);
             that.setUnrestrictedValues(response.suggestions);
-
-            // Cache results if cache is not disabled:
-            if (!options.noCache) {
-                that.cachedResponse[cacheKey] = response;
-                if (options.preventBadQueries && response.suggestions.length === 0) {
-                    that.badQueries.push(originalQuery);
-                }
-            }
-
-            // Return if originalQuery is not matching current query:
-            if (originalQuery !== that.currentValue) {
-                return false;
-            }
 
             return true;
         },
@@ -1427,19 +1432,40 @@
                 that.disableDropdown();
                 that.currentValue = suggestion.value;
 
-                // prevent request abortation during onBlur
+                // prevent request abortion during onBlur
                 that.currentRequestIsEnrich = true;
-                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
+                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                     .always(function () {
                         that.enableDropdown();
                     })
                     .done(function (suggestions) {
-                        resolver.resolve(suggestions && suggestions[0] || suggestion);
+                        var enrichedSuggestion = suggestions && suggestions[0];
+
+                        resolver.resolve(enrichedSuggestion || suggestion, !!enrichedSuggestion);
                     })
                     .fail(function () {
                         resolver.resolve(suggestion);
                     });
                 return resolver;
+            },
+
+            /**
+             * Injects enriched suggestion into response
+             * @param response
+             * @param query
+             */
+            enrichResponse: function (response, query) {
+                var that = this,
+                    enrichedSuggestion = that.enrichmentCache[query];
+
+                if (enrichedSuggestion) {
+                    $.each(response.suggestions, function(i, suggestion){
+                        if (suggestion.value === query) {
+                            response.suggestions[i] = enrichedSuggestion;
+                            return false;
+                        }
+                    });
+                }
             }
 
         };
@@ -2518,7 +2544,7 @@
                 }
 
                 that.enrichSuggestion(suggestion, selectionOptions)
-                    .done(function (enrichedSuggestion) {
+                    .done(function (enrichedSuggestion, hasBeenEnriched) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue;
 
@@ -2530,6 +2556,9 @@
                             continueSelecting = false;
                         }
 
+                        if (hasBeenEnriched) {
+                            that.suggestions[index] = enrichedSuggestion;
+                        }
                         that.checkValueBounds(enrichedSuggestion);
                         if ($.isFunction(that.options.formatSelected)) {
                             formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);
