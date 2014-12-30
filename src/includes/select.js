@@ -65,13 +65,16 @@
                 }
 
                 that.enrichService.enrichSuggestion.call(that, suggestion)
-                    .done(function (enrichedSuggestion) {
+                    .done(function (enrichedSuggestion, hasBeenEnriched) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion.data);
 
                         if (assumeDataComplete) {
                             continueSelecting = false;
                         }
 
+                        if (hasBeenEnriched) {
+                            that.suggestions[index] = enrichedSuggestion;
+                        }
                         that.checkValueBounds(enrichedSuggestion);
                         that.currentValue = enrichedSuggestion.value;
                         if (!noSpace && !assumeDataComplete || addSpace) {

@@ -1,14 +1,5 @@
     (function(){
 
-        var QC_VALUES = {
-            CORRECT: 0,
-            INCORRECT: 1
-        };
-
-        function suggestionIsEnriched(suggestion) {
-            return suggestion && suggestion.data && suggestion.data.qc === QC_VALUES.CORRECT;
-        }
-
         var enrichServices = {
             'default': {
                 enrichSuggestion: function (suggestion) {
@@ -29,14 +20,16 @@
                         that.disableDropdown();
                         that.currentValue = suggestion.value;
 
-                        // prevent request abortation during onBlur
+                        // prevent request abortion during onBlur
                         that.currentRequestIsEnrich = true;
-                        that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true })
+                        that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                             .always(function () {
                                 that.enableDropdown();
                             })
                             .done(function (suggestions) {
-                                resolver.resolve(suggestions && suggestions[0] || suggestion);
+                                var enrichedSuggestion = suggestions && suggestions[0];
+
+                                resolver.resolve(enrichedSuggestion || suggestion, !!enrichedSuggestion);
                             })
                             .fail(function () {
                                 resolver.resolve(suggestion);
@@ -58,12 +51,33 @@
                 } else {
                     that.enrichService = enrichServices['default'];
                 }
+            },
+
+            /**
+             * Injects enriched suggestion into response
+             * @param response
+             * @param query
+             */
+            enrichResponse: function (response, query) {
+                var that = this,
+                    enrichedSuggestion = that.enrichmentCache[query];
+
+                if (enrichedSuggestion) {
+                    $.each(response.suggestions, function(i, suggestion){
+                        if (suggestion.value === query) {
+                            response.suggestions[i] = enrichedSuggestion;
+                            return false;
+                        }
+                    });
+                }
             }
         };
 
         $.extend(defaultOptions, {
             useDadata: true
         });
+
+        $.extend(Suggestions.prototype, methods);
 
         notificator
             .on('setOptions', methods.selectEnrichService);
