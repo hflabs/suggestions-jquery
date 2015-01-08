@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.10.5
+ * DaData.ru Suggestions jQuery plugin, version 4.10.6
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -582,7 +582,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.10.5';
+    Suggestions.version = '4.10.6';
 
     $.Suggestions = Suggestions;
 
@@ -1102,7 +1102,7 @@
 
                 that.el.on('keydown' + eventNS, $.proxy(that.onElementKeyDown, that));
                 // IE is buggy, it doesn't trigger `input` on text deletion, so use following events
-                that.el.on(['keyup' + eventNS, 'cut' + eventNS, 'paste' + eventNS].join(' '), $.proxy(that.onElementKeyUp, that));
+                that.el.on(['keyup' + eventNS, 'cut' + eventNS, 'paste' + eventNS, 'input' + eventNS].join(' '), $.proxy(that.onElementKeyUp, that));
                 that.el.on('blur' + eventNS, $.proxy(that.onElementBlur, that));
                 that.el.on('focus' + eventNS, $.proxy(that.onElementFocus, that));
             },
