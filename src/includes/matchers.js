@@ -84,7 +84,7 @@
             matchByFields: function (query, suggestions) {
                 var stopwords = this.STOPWORDS,
                     fieldsStopwords = this.fieldsStopwords,
-                    queryWords = utils.getWords(query.toLowerCase(), stopwords),
+                    tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
                     matches = [];
 
                 $.each(suggestions, function(i, suggestion) {
@@ -93,7 +93,7 @@
                     if (fieldsStopwords) {
                         $.each(fieldsStopwords, function (field, stopwords) {
                             var fieldValue = utils.getDeepValue(suggestion.data, field),
-                                fieldWords = fieldValue && utils.getWords(fieldValue.toLowerCase(), stopwords);
+                                fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
 
                             if (fieldWords && fieldWords.length) {
                                 suggestionWords = suggestionWords.concat(fieldWords);
@@ -101,7 +101,7 @@
                         });
                     }
 
-                    if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
+                    if (utils.arrayMinus(tokens, suggestionWords).length === 0) {
                         matches.push(i);
                     }
                 });

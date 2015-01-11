@@ -95,7 +95,7 @@
                 str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
                     .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
 
-                var words = this.compact(str.split(/[.,\s"\(\)]+/g)),
+                var words = this.compact(str.split(wordSplitter)),
                     lastWord = words.pop(),
                     goodWords = this.arrayMinus(words, stopwords);
 
@@ -133,6 +133,24 @@
             },
             reWordExtractor: function () {
                 return new RegExp('([^' + wordDelimiters + ']*)([' + wordDelimiters + ']*)', 'g');
+            },
+            formatToken: function (token) {
+                return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
+            },
+            withSubTokens: function (tokens) {
+                var result = [];
+
+                $.each(tokens, function (i, token) {
+                    var subtokens = token.split(wordPartsSplitter);
+
+                    result.push(token);
+
+                    if (subtokens.length > 1) {
+                        result = result.concat(utils.compact(subtokens));
+                    }
+                });
+
+                return result;
             }
         };
     }());
