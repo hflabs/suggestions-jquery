@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.10.6
+ * DaData.ru Suggestions jQuery plugin, version 4.10.7
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -176,7 +176,7 @@
                 str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
                     .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
 
-                var words = this.compact(str.split(/[.,\s"\(\)]+/g)),
+                var words = this.compact(str.split(wordSplitter)),
                     lastWord = words.pop(),
                     goodWords = this.arrayMinus(words, stopwords);
 
@@ -214,6 +214,24 @@
             },
             reWordExtractor: function () {
                 return new RegExp('([^' + wordDelimiters + ']*)([' + wordDelimiters + ']*)', 'g');
+            },
+            formatToken: function (token) {
+                return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
+            },
+            withSubTokens: function (tokens) {
+                var result = [];
+
+                $.each(tokens, function (i, token) {
+                    var subtokens = token.split(wordPartsSplitter);
+
+                    result.push(token);
+
+                    if (subtokens.length > 1) {
+                        result = result.concat(utils.compact(subtokens));
+                    }
+                });
+
+                return result;
             }
         };
     }());
@@ -305,7 +323,7 @@
             matchByFields: function (query, suggestions) {
                 var stopwords = this.STOPWORDS,
                     fieldsStopwords = this.fieldsStopwords,
-                    queryWords = utils.getWords(query.toLowerCase(), stopwords),
+                    tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
                     matches = [];
 
                 $.each(suggestions, function(i, suggestion) {
@@ -314,7 +332,7 @@
                     if (fieldsStopwords) {
                         $.each(fieldsStopwords, function (field, stopwords) {
                             var fieldValue = utils.getDeepValue(suggestion.data, field),
-                                fieldWords = fieldValue && utils.getWords(fieldValue.toLowerCase(), stopwords);
+                                fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
 
                             if (fieldWords && fieldWords.length) {
                                 suggestionWords = suggestionWords.concat(fieldWords);
@@ -322,7 +340,7 @@
                         });
                     }
 
-                    if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
+                    if (utils.arrayMinus(tokens, suggestionWords).length === 0) {
                         matches.push(i);
                     }
                 });
@@ -582,7 +600,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.10.6';
+    Suggestions.version = '4.10.7';
 
     $.Suggestions = Suggestions;
 
@@ -1505,44 +1523,13 @@
          * Methods related to suggestions dropdown list
          */
 
-        function formatToken(token) {
-            return token.toLowerCase().replace(/[ёЁ]/g, 'е');
-        }
-
-        function withSubTokens(tokens) {
-            var result = [];
-
-            $.each(tokens, function (i, token) {
-                var subtokens = token.split(wordPartsSplitter);
-
-                result.push(token);
-
-                if (subtokens.length > 1) {
-                    result = result.concat(subtokens);
-                }
-            });
-
-            return result;
-        }
-
         function highlightMatches(chunks) {
             return $.map(chunks, function (chunk) {
-                var text = '';
-
-                if (chunk.wordOriginal) {
-                    text += utils.escapeHtml(chunk.wordOriginal);
-                }
+                var text = utils.escapeHtml(chunk.text);
 
                 if (text && chunk.matched) {
                     text = '<strong>' + text + '</strong>';
                 }
-                if (chunk.before) {
-                    text = utils.escapeHtml(chunk.before) + text;
-                }
-                if (chunk.after) {
-                    text += utils.escapeHtml(chunk.after);
-                }
-
                 return text;
             }).join('');
         }
@@ -1745,83 +1732,108 @@
                 var that = this,
                     chunks = [],
                     unformattableTokens = options && options.unformattableTokens,
-                    maxLength = options && options.maxLength || value.length,
-                    tokens = formatToken(currentValue).split(wordSplitter),
-                    partialTokens = withSubTokens([tokens[tokens.length -1]]),
-                    partialMatchers = $.map(partialTokens, function (token) {
-                        return new RegExp('^(.*[' + wordPartsDelimiters+ ']+)?(' + utils.escapeRegExChars(token) + ')', 'i')
-                    }),
+                    maxLength = options && options.maxLength,
+                    tokens, tokenMatchers,
                     rWords = utils.reWordExtractor(),
-                    match, word;
+                    match, i, chunk, formattedStr;
 
-                tokens = withSubTokens(tokens);
+                tokens = utils.formatToken(currentValue).split(wordSplitter);
+                tokens = utils.arrayMinus(utils.withSubTokens(tokens), unformattableTokens);
 
-                // check for matching whole words
+                tokenMatchers = $.map(tokens, function (token) {
+                    return new RegExp('^((.*)([' + wordPartsDelimiters + ']+))?' +
+                        '(' + utils.escapeRegExChars(token) + ')' +
+                        '([^' + wordPartsDelimiters + ']*[' + wordPartsDelimiters + ']*)', 'i');
+                });
+
+                // parse string by words
                 while ((match = rWords.exec(value)) && match[0]) {
-                    word = match[1] && formatToken(match[1]);
-                    if (word) {
+                    chunks.push({
+                        text: match[1],
+                        formatted: utils.formatToken(match[1]),
+                        matchable: true
+                    });
+                    if (match[2]) {
                         chunks.push({
-                            before: null,
-
-                            wordFormatted: word,
-                            wordOriginal: match[1],
-                            matched: $.inArray(word, unformattableTokens) === -1 && $.inArray(word, tokens) >= 0,
-
-                            after: match[2],
-                            length: match[0].length
-                        });
-                    } else {
-                        chunks.push({
-                            after: match[0]
+                            text: match[2]
                         });
                     }
                 }
 
-                // check for partial match
-                $.each(chunks, function (i, chunk) {
-                    if (!chunk.matched && chunk.wordFormatted && $.inArray(chunk.wordFormatted, unformattableTokens) === -1) {
-                        $.each(partialMatchers, function (i, matcher) {
-                            var match = matcher.exec(chunk.wordFormatted),
-                                beforeLength;
+                // use simple loop because length can change
+                for (i = 0; i < chunks.length; i++) {
+                    chunk = chunks[i];
+                    if (chunk.matchable && !chunk.matched && $.inArray(chunk.formatted, unformattableTokens) === -1) {
+                        $.each(tokenMatchers, function (j, matcher) {
+                            var tokenMatch = matcher.exec(chunk.formatted),
+                                length, nextIndex = i + 1;
 
-                            if (match && match[2]) {
-                                beforeLength = match[1] == null ? 0 : match[1].length;
+                            if (tokenMatch) {
+                                tokenMatch = {
+                                    before: tokenMatch[1] || '',
+                                    beforeText: tokenMatch[2] || '',
+                                    beforeDelimiter: tokenMatch[3] || '',
+                                    text: tokenMatch[4] || '',
+                                    after: tokenMatch[5] || ''
+                                };
+
+                                if (tokenMatch.before) {
+                                    // insert chunk before current
+                                    chunks.splice(i, 0, {
+                                        text: chunk.text.substr(0, tokenMatch.beforeText.length),
+                                        formatted: tokenMatch.beforeText,
+                                        matchable: true
+                                    }, {
+                                        text: tokenMatch.beforeDelimiter
+                                    });
+                                    nextIndex += 2;
+
+                                    length = tokenMatch.before.length;
+                                    chunk.text = chunk.text.substr(length);
+                                    chunk.formatted = chunk.formatted.substr(length);
+                                    i--;
+                                }
+
+                                length = tokenMatch.text.length + tokenMatch.after.length;
+                                if (chunk.formatted.length > length) {
+                                    chunks.splice(nextIndex, 0, {
+                                        text: chunk.text.substr(length),
+                                        formatted: chunk.formatted.substr(length),
+                                        matchable: true
+                                    });
+                                    chunk.text = chunk.text.substr(0, length);
+                                    chunk.formatted = chunk.formatted.substr(0, length);
+                                }
+
+                                if (tokenMatch.after) {
+                                    length = tokenMatch.text.length;
+                                    chunks.splice(nextIndex, 0, {
+                                        text: chunk.text.substr(length),
+                                        formatted: chunk.formatted.substr(length)
+                                    });
+                                    chunk.text = chunk.text.substr(0, length);
+                                    chunk.formatted = chunk.formatted.substr(0, length);
+                                }
                                 chunk.matched = true;
-                                chunk.before = chunk.wordOriginal.substr(0, beforeLength);
-                                chunk.after = chunk.wordOriginal.substr(beforeLength + match[2].length) + chunk.after;
-                                chunk.wordOriginal = chunk.wordOriginal.substr(beforeLength, match[2].length);
                                 return false;
                             }
                         });
                     }
-
-                    maxLength -= chunk.length;
-                    if (maxLength < 0) {
-                        checkChunkField(chunk, 'after');
-                        checkChunkField(chunk, 'wordOriginal');
-                        checkChunkField(chunk, 'before');
-
-                        chunks.length = i + 1;
-                        return false;
-                    }
-                });
-
-                var formattedStr = highlightMatches(chunks);
-                return nowrapLinkedParts(formattedStr, that.classes.nowrap);
-
-                function checkChunkField (chunk, field) {
-                    var length;
-
-                    if (chunk[field]) {
-                        length = chunk[field].length;
-                        maxLength += length;
-                        chunk[field] = chunk[field].substr(0, maxLength);
-                        if (maxLength > 0 && maxLength < length) {
-                            chunk[field] += '...';
-                        }
-                    }
                 }
 
+                if (maxLength) {
+                    for (i = 0; i < chunks.length && maxLength >= 0; i++) {
+                        chunk = chunks[i];
+                        maxLength -= chunk.text.length;
+                        if (maxLength < 0) {
+                            chunk.text = chunk.text.substr(0, chunk.text.length + maxLength) + '...';
+                        }
+                    }
+                    chunks.length = i;
+                }
+
+                formattedStr = highlightMatches(chunks);
+                return nowrapLinkedParts(formattedStr, that.classes.nowrap);
             },
 
             makeSuggestionLabel: function (suggestions, suggestion) {
@@ -1837,12 +1849,12 @@
                     $.each(fieldNames, function (field) {
                         var value = suggestion.data[field];
                         if (value) {
-                            nameData[field] = formatToken(value);
+                            nameData[field] = utils.formatToken(value);
                         }
                     });
 
                     if (!$.isEmptyObject(nameData)) {
-                        while ((match = rWords.exec(formatToken(suggestion.value))) && (word = match[1])) {
+                        while ((match = rWords.exec(utils.formatToken(suggestion.value))) && (word = match[1])) {
                             $.each(nameData, function (i, value) {
                                 if (value == word) {
                                     labels.push(fieldNames[i]);

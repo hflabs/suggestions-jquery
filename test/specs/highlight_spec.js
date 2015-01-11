@@ -70,6 +70,31 @@ describe('Highlight suggestions', function () {
         expect($item.html()).toContain('Ростов-<strong>на-Дон<\/strong>у');
     });
 
+    it('Should highlight words of search phrase within complex word', function () {
+        this.input.value = 'ростов-на дон';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['Ростовская обл, г Ростов-на-Дону']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toContain('<strong>Ростов-на</strong>-<strong>Дон<\/strong>у');
+    });
+
+    it('Should highlight words of search phrase within complex word, example 2', function () {
+        this.instance.setOptions({ type: 'PARTY' });
+        this.input.value = 'альфа банк';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['ОАО АЛЬФА-БАНК']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+        expect($item.html()).toContain('ОАО <strong>АЛЬФА</strong>-<strong>БАНК<\/strong>');
+    });
+
     it('Should highlight search phrase in quotes', function () {
         this.instance.setOptions({
             type: 'PARTY'
@@ -101,7 +126,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Пе<\/strong>тров <strong>Петр<\/strong> <strong>Иванович</strong>');
+        expect($item.html()).toEqual('<strong>Петр<\/strong>ов <strong>Петр<\/strong> <strong>Иванович</strong>');
     });
 
     it('Should highlight address in parties, ignoring address components types', function () {
