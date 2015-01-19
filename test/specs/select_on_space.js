@@ -80,17 +80,27 @@ describe('Select on Space', function () {
     });
 
     it('Should keep SPACE if selecting has been caused by space', function () {
-        var suggestions = [{ value: 'name', data: {name: 'name', surname: 'surname', patronymic: 'patronymic'} }],
+        var suggestions = [
+                {
+                    value: 'name',
+                    data: {name: 'name'}
+                },
+                {
+                    value: 'name surname',
+                    data: {name: 'name', surname: 'surname'}
+                }
+            ],
             options = { onSelect: $.noop };
 
         spyOn(options, 'onSelect');
         this.instance.setOptions(options);
-        this.instance.setSuggestion(suggestions[0]);
 
-        helpers.keydown(this.input, 32);
-        this.input.value += ' ';
-        helpers.keyup(this.input, 32);
+        this.input.value = 'name';
+        this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
+
+        this.instance.selectedIndex = 0;
+        helpers.keydown(this.input, 32);
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(this.input.value).toEqual('name ');

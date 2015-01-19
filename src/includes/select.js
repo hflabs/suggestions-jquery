@@ -16,11 +16,31 @@
             },
 
             /**
+             * Selects current or first matched suggestion, but firstly waits for data ready
+             * @param selectionOptions
+             * @returns {$.Deferred} promise, resolved with index of selected suggestion
+             */
+            selectCurrentValue: function (selectionOptions) {
+                var that = this,
+                    result = $.Deferred();
+
+                // force onValueChange to be executed if it has been deferred
+                that.inputPhase.resolve();
+
+                that.dataPhase
+                    .done(function () {
+                        result.resolve(that.doSelectCurrentValue(selectionOptions));
+                    });
+
+                return result;
+            },
+
+            /**
              * Selects current or first matched suggestion
              * @param selectionOptions
              * @returns {number} index of found suggestion
              */
-            selectCurrentValue: function (selectionOptions) {
+            doSelectCurrentValue: function(selectionOptions) {
                 var that = this,
                     index = that.selectedIndex,
                     trim = selectionOptions && selectionOptions.trim,
@@ -49,27 +69,22 @@
                 var that = this,
                     suggestion = that.suggestions[index],
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace,
-                    addSpace = selectionOptions && selectionOptions.addSpace;
+                    noSpace = selectionOptions && selectionOptions.noSpace;
 
                 // if no suggestion to select
                 if (!suggestion) {
                     if (!continueSelecting && !that.selection) {
                         that.triggerOnSelectNothing();
                     }
-                    onSelectionCompleted();
-                    return;
-                }
-
-                if (that.areSuggestionsSame(suggestion, that.selection)) {
-                    onSelectionCompleted();
+                    that.onSelectComplete(continueSelecting);
                     return;
                 }
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
                         var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
-                            formattedValue;
+                            formattedValue,
+                            currentSelection = that.selection;
 
                         if (that.type.alwaysContinueSelecting) {
                             continueSelecting = true;
@@ -91,26 +106,30 @@
                             ? formattedValue
                             : enrichedSuggestion.value;
 
-                        if (!noSpace && !assumeDataComplete || addSpace) {
+                        if (!noSpace && !assumeDataComplete) {
                             that.currentValue += ' ';
                         }
                         that.el.val(that.currentValue);
                         that.selection = enrichedSuggestion;
 
-                        that.trigger('Select', enrichedSuggestion);
-                        onSelectionCompleted();
+                        if (!that.areSuggestionsSame(suggestion, currentSelection)) {
+                            that.trigger('Select', enrichedSuggestion);
+                        }
+                        that.onSelectComplete(continueSelecting);
                         that.shareWithParent(enrichedSuggestion);
                     });
 
-                function onSelectionCompleted() {
-                    if (continueSelecting) {
-                        that.selectedIndex = -1;
-                        that.updateSuggestions(that.currentValue);
-                    } else {
-                        that.hide();
-                    }
-                }
+            },
 
+            onSelectComplete: function (continueSelecting) {
+                var that = this;
+
+                if (continueSelecting) {
+                    that.selectedIndex = -1;
+                    that.updateSuggestions(that.currentValue);
+                } else {
+                    that.hide();
+                }
             },
 
             triggerOnSelectNothing: function() {
@@ -126,30 +145,10 @@
                     callback.apply(that.element, args);
                 }
                 that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
-            },
-
-            trySelectOnSpace: function (value) {
-                var that = this,
-                    rLastSpace = /\s$/,
-                    index;
-
-                if (that.options.triggerSelectOnSpace &&
-                    that._waitingForTriggerSelectOnSpace &&
-                    rLastSpace.test(value)
-                    ) {
-                    index = that.findSuggestionIndex($.trim(value));
-                    if (index !== -1) {
-                        that._waitingForTriggerSelectOnSpace = false;
-                        that.select(index, {continueSelecting: true, addSpace: true});
-                    }
-                }
             }
 
         };
 
         $.extend(Suggestions.prototype, methods);
-
-        notificator
-            .on('assignSuggestions', methods.trySelectOnSpace);
 
     }());

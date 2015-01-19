@@ -110,6 +110,8 @@
         that.cachedResponse = {};
         that.enrichmentCache = {};
         that.currentRequest = null;
+        that.inputPhase = $.Deferred();
+        that.dataPhase = $.Deferred();
         that.onChangeTimeout = null;
         that.$wrapper = null;
         that.options = $.extend({}, defaultOptions, options);
@@ -456,7 +458,7 @@
         updateSuggestions: function (query) {
             var that = this;
 
-            that.getSuggestions(query)
+            that.dataPhase = that.getSuggestions(query)
                 .done(function(suggestions){
                     that.assignSuggestions(suggestions, query);
                 })
