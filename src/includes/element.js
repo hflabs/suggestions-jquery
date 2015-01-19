@@ -38,14 +38,7 @@
 
                 if (!that.cancelFocus) {
                     // defer methods to allow browser update input's style before
-                    utils.delay(function () {
-                        that.fixPosition();
-                        that.update();
-                        if (that.isMobile) {
-                            that.setCursorAtEnd();
-                            that.scrollToTop();
-                        }
-                    });
+                    utils.delay($.proxy(that.completeOnFocus, that));
                 }
                 that.cancelFocus = false;
             },
@@ -57,8 +50,6 @@
                     return;
                 }
 
-                that._waitingForTriggerSelectOnSpace = false;
-
                 if (!that.visible) {
                     switch (e.which) {
                         // If suggestions are hidden and user presses arrow down, display suggestions
@@ -69,8 +60,6 @@
                         case keys.RETURN:
                             that.triggerOnSelectNothing();
                             break;
-                        case keys.SPACE:
-                            that._waitingForTriggerSelectOnSpace = true;
                     }
                     return;
                 }
@@ -94,18 +83,19 @@
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
-                            var hasBeenSelected = that.selectCurrentValue({
+                            e.preventDefault();
+                            that.selectCurrentValue({
                                 continueSelecting: true,
                                 dontEnrich: true
-                            }) !== -1;
-
-                            // set this flag to seek and select matched suggestion when server responds
-                            that._waitingForTriggerSelectOnSpace = !hasBeenSelected;
-
-                            // prevent actual adding space char until enrich request complete
-                            if (hasBeenSelected && that.currentRequest) {
-                                e.preventDefault();
-                            }
+                            })
+                                .done(function (index) {
+                                    // If all data fetched but nothing selected
+                                    if (index === -1) {
+                                        that.currentValue += ' ';
+                                        that.el.val(that.currentValue);
+                                        that.update();
+                                    }
+                                });
                         }
                         return;
                     case keys.UP:
@@ -136,16 +126,22 @@
                         return;
                 }
 
+                // Cancel pending change
                 clearTimeout(that.onChangeTimeout);
+                that.inputPhase.reject();
 
                 if (that.currentValue !== that.el.val()) {
+
+                    that.inputPhase = $.Deferred()
+                        .done($.proxy(that.onValueChange, that));
+
                     if (that.options.deferRequestBy > 0) {
                         // Defer lookup in case when value changes very quickly:
                         that.onChangeTimeout = utils.delay(function () {
-                            that.onValueChange();
+                            that.inputPhase.resolve();
                         }, that.options.deferRequestBy);
                     } else {
-                        that.onValueChange();
+                        that.inputPhase.resolve();
                     }
                 }
             },
@@ -159,12 +155,24 @@
                     that.selection = null;
                 }
 
-                clearTimeout(that.onChangeTimeout);
                 that.currentValue = value;
                 that.selectedIndex = -1;
 
                 that.update();
                 that.notify('valueChange');
+            },
+
+            completeOnFocus: function () {
+                var that = this;
+
+                if (document.activeElement === that.element) {
+                    that.fixPosition();
+                    that.update();
+                    if (that.isMobile) {
+                        that.setCursorAtEnd();
+                        that.scrollToTop();
+                    }
+                }
             },
 
             isCursorAtEnd: function () {
