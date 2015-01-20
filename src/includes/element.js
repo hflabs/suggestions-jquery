@@ -148,14 +148,15 @@
 
             onValueChange: function () {
                 var that = this,
-                    value = that.el.val();
+                    currentSelection;
 
                 if (that.selection) {
-                    that.trigger('InvalidateSelection', that.selection);
+                    currentSelection = that.selection;
                     that.selection = null;
+                    that.trigger('InvalidateSelection', currentSelection);
                 }
 
-                that.currentValue = value;
+                that.currentValue = that.el.val();
                 that.selectedIndex = -1;
 
                 that.update();
@@ -165,7 +166,7 @@
             completeOnFocus: function () {
                 var that = this;
 
-                if (document.activeElement === that.element) {
+                if (that.isElementFocused()) {
                     that.fixPosition();
                     that.update();
                     if (that.isMobile) {
@@ -173,6 +174,10 @@
                         that.scrollToTop();
                     }
                 }
+            },
+
+            isElementFocused: function () {
+                return document.activeElement === this.element;
             },
 
             isCursorAtEnd: function () {

@@ -113,6 +113,7 @@
         that.inputPhase = $.Deferred();
         that.dataPhase = $.Deferred();
         that.onChangeTimeout = null;
+        that.triggering = {};
         that.$wrapper = null;
         that.options = $.extend({}, defaultOptions, options);
         that.classes = {

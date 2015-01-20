@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 4.10.7
+ * DaData.ru Suggestions jQuery plugin, version 15.1.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -575,6 +575,7 @@
         that.inputPhase = $.Deferred();
         that.dataPhase = $.Deferred();
         that.onChangeTimeout = null;
+        that.triggering = {};
         that.$wrapper = null;
         that.options = $.extend({}, defaultOptions, options);
         that.classes = {
@@ -602,7 +603,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '4.10.7';
+    Suggestions.version = '15.1.1';
 
     $.Suggestions = Suggestions;
 
@@ -1260,14 +1261,15 @@
 
             onValueChange: function () {
                 var that = this,
-                    value = that.el.val();
+                    currentSelection;
 
                 if (that.selection) {
-                    that.trigger('InvalidateSelection', that.selection);
+                    currentSelection = that.selection;
                     that.selection = null;
+                    that.trigger('InvalidateSelection', currentSelection);
                 }
 
-                that.currentValue = value;
+                that.currentValue = that.el.val();
                 that.selectedIndex = -1;
 
                 that.update();
@@ -1277,7 +1279,7 @@
             completeOnFocus: function () {
                 var that = this;
 
-                if (document.activeElement === that.element) {
+                if (that.isElementFocused()) {
                     that.fixPosition();
                     that.update();
                     if (that.isMobile) {
@@ -1285,6 +1287,10 @@
                         that.scrollToTop();
                     }
                 }
+            },
+
+            isElementFocused: function () {
+                return document.activeElement === this.element;
             },
 
             isCursorAtEnd: function () {
@@ -2592,6 +2598,10 @@
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
                     noSpace = selectionOptions && selectionOptions.noSpace;
 
+                // Prevent recursive execution
+                if (that.triggering['Select'])
+                    return;
+
                 // if no suggestion to select
                 if (!suggestion) {
                     if (!continueSelecting && !that.selection) {
@@ -2653,19 +2663,25 @@
                 }
             },
 
-            triggerOnSelectNothing: function() {
-                this.trigger('SelectNothing', this.currentValue);
+            triggerOnSelectNothing: function () {
+                var that = this;
+
+                if (!that.triggering['SelectNothing']) {
+                    that.trigger('SelectNothing', that.currentValue);
+                }
             },
 
-            trigger: function(event) {
+            trigger: function (event) {
                 var that = this,
                     args = utils.slice(arguments, 1),
                     callback = that.options['on' + event];
 
+                that.triggering[event] = true;
                 if ($.isFunction(callback)) {
                     callback.apply(that.element, args);
                 }
                 that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
+                that.triggering[event] = false;
             }
 
         };

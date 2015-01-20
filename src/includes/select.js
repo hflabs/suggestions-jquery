@@ -71,6 +71,10 @@
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
                     noSpace = selectionOptions && selectionOptions.noSpace;
 
+                // Prevent recursive execution
+                if (that.triggering['Select'])
+                    return;
+
                 // if no suggestion to select
                 if (!suggestion) {
                     if (!continueSelecting && !that.selection) {
@@ -132,19 +136,25 @@
                 }
             },
 
-            triggerOnSelectNothing: function() {
-                this.trigger('SelectNothing', this.currentValue);
+            triggerOnSelectNothing: function () {
+                var that = this;
+
+                if (!that.triggering['SelectNothing']) {
+                    that.trigger('SelectNothing', that.currentValue);
+                }
             },
 
-            trigger: function(event) {
+            trigger: function (event) {
                 var that = this,
                     args = utils.slice(arguments, 1),
                     callback = that.options['on' + event];
 
+                that.triggering[event] = true;
                 if ($.isFunction(callback)) {
                     callback.apply(that.element, args);
                 }
                 that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
+                that.triggering[event] = false;
             }
 
         };
