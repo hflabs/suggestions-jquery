@@ -6,6 +6,7 @@ describe('Authorization features', function () {
         token = '1234';
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
@@ -29,14 +30,16 @@ describe('Authorization features', function () {
         expect(this.server.requests[0].requestHeaders.Authorization).toEqual('Token ' + token);
     });
 
-    it('Should deactivate plugin if authorization failed', function () {
-        this.server.respond([401, {}, 'Not Authorized']);
-        expect(this.instance.disabled).toBeTruthy();
-    });
+    it('Should invoke `onSearchError` callback if authorization failed', function () {
+        var options = {
+            onSearchError: $.noop
+        };
+        spyOn(options, 'onSearchError');
+        this.instance.setOptions(options);
 
-    it('Should stay enabled if request succesed', function () {
-        this.server.respond([200, {}, '{}']);
-        expect(this.instance.disabled).toBeFalsy();
+        this.server.respond([401, {}, 'Not Authorized']);
+
+        expect(options.onSearchError).toHaveBeenCalled();
     });
 
     describe('Several instances with the same token', function () {
@@ -59,11 +62,26 @@ describe('Authorization features', function () {
         it('Should use the same authorization query', function() {
             expect(this.server.requests.length).toEqual(1);
         });
-        
-        it('Should be enabled/disabled altogether', function(){
+
+        it('Should make another request for controls of different types', function() {
+            this.instance.setOptions({
+                type: 'ADDRESS',
+                geoLocation: false
+            });
+
+            expect(this.server.requests.length).toEqual(2);
+        });
+
+        it('Should invoke `onSearchError` callback on controls with same type and token', function(){
+            var options = {
+                onSearchError: $.noop
+            };
+            spyOn(options, 'onSearchError');
+            this.instance2.setOptions(options);
+
             this.server.respond([401, {}, 'Not Authorized']);
-            expect(this.instance.disabled).toEqual(true);
-            expect(this.instance2.disabled).toEqual(true);
+
+            expect(options.onSearchError).toHaveBeenCalled();
         });
     });
 
