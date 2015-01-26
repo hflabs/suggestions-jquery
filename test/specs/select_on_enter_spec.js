@@ -58,25 +58,25 @@ describe('Select on Enter', function () {
                 { value: 'г Москва, ул Енисейская, д 24', data: 0 },
                 { value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }
             ],
-            'хф 1057746629115': [
+            'хф 7707545900': [
                 {
                     value:'ООО ХФ ЛАБС',
                     data: {
                         name: {
                             full: 'ХФ ЛАБС'
                         },
-                        ogrn: '1057746629115'
+                        inn: '7707545900'
                     }
                 }
             ],
-            'хф 1057746629': [
+            'хф 770754': [
                 {
                     value:'ООО ХФ ЛАБС',
                     data: {
                         name: {
                             full: 'ХФ ЛАБС'
                         },
-                        ogrn: '1057746629115'
+                        inn: '7707545900'
                     }
                 }
             ],
@@ -434,7 +434,7 @@ describe('Select on Enter', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
-    it('Should trigger when fields (ogrn) match single suggestion', function () {
+    it('Should trigger when fields (inn) match single suggestion', function () {
 
         var options = {
             type: 'PARTY',
@@ -445,17 +445,17 @@ describe('Select on Enter', function () {
         this.instance.setOptions(options);
         this.instance.selectedIndex = -1;
 
-        this.input.value = 'хф 1057746629115';
+        this.input.value = 'хф 7707545900';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(fixtures['хф 1057746629115'][0])
+            helpers.appendUnrestrictedValue(fixtures['хф 7707545900'][0])
         );
     });
 
-    it('Should NOT trigger when fields (ogrn) partially match single suggestion', function () {
+    it('Should NOT trigger when fields (inn) partially match single suggestion', function () {
 
         var options = {
             type: 'PARTY',
@@ -466,7 +466,7 @@ describe('Select on Enter', function () {
         this.instance.setOptions(options);
         this.instance.selectedIndex = -1;
 
-        this.input.value = 'хф 1057746629';
+        this.input.value = 'хф 770754';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);

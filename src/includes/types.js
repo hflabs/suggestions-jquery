@@ -86,14 +86,9 @@
         types['PARTY'] = {
             // These fields of suggestion's `data` used by by-words matcher
             fieldsStopwords: {
-                'address.value': ADDRESS_STOPWORDS,
-                'inn': null,
-                'ogrn': null,
-                'name.full': null,
-                'name.short': null,
-                'name.latin': null,
-                'opf.full': null,
-                'opf.short': null
+                'value': null,
+                'data.address.value': ADDRESS_STOPWORDS,
+                'data.inn': null
             },
             matchers: [matchers.matchByFields],
             isDataComplete: function (suggestion) {

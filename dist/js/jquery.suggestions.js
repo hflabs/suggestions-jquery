@@ -239,6 +239,8 @@
 
     /**
      * Methods for selecting a suggestion
+     *
+     * Matchers return index of suitable suggestion
      */
     var matchers = function() {
 
@@ -324,14 +326,12 @@
                 var stopwords = this.STOPWORDS,
                     fieldsStopwords = this.fieldsStopwords,
                     tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
-                    matches = [];
+                    suggestionWords = [];
 
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestionWords = [];
-
+                if (suggestions.length === 1) {
                     if (fieldsStopwords) {
                         $.each(fieldsStopwords, function (field, stopwords) {
-                            var fieldValue = utils.getDeepValue(suggestion.data, field),
+                            var fieldValue = utils.getDeepValue(suggestions[0], field),
                                 fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
 
                             if (fieldWords && fieldWords.length) {
@@ -341,11 +341,11 @@
                     }
 
                     if (utils.arrayMinus(tokens, suggestionWords).length === 0) {
-                        matches.push(i);
+                        return 0;
                     }
-                });
+                }
 
-                return matches.length == 1 ? matches[0] : -1;
+                return -1;
             }
 
         };
@@ -440,14 +440,9 @@
         types['PARTY'] = {
             // These fields of suggestion's `data` used by by-words matcher
             fieldsStopwords: {
-                'address.value': ADDRESS_STOPWORDS,
-                'inn': null,
-                'ogrn': null,
-                'name.full': null,
-                'name.short': null,
-                'name.latin': null,
-                'opf.full': null,
-                'opf.short': null
+                'value': null,
+                'data.address.value': ADDRESS_STOPWORDS,
+                'data.inn': null
             },
             matchers: [matchers.matchByFields],
             isDataComplete: function (suggestion) {
