@@ -983,7 +983,7 @@
                                 }
                             }).fail(function (jqXHR, textStatus, errorThrown) {
                                 resolver.reject();
-                                if (!noCallbacks) {
+                                if (!noCallbacks && textStatus !== 'abort') {
                                     options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
                                 }
                             });
