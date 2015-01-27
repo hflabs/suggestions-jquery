@@ -1139,7 +1139,11 @@
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({ trim: true, noSpace: true });
+                that.selectCurrentValue({ trim: true, noSpace: true })
+                    .done(function (index) {
+                        // For NAMEs selecting keeps suggestions list visible, so hide it
+                        that.hide();
+                    });
                 if (!that.currentRequestIsEnrich) {
                     that.abortRequest();
                 }
