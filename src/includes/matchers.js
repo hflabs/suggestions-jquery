@@ -59,10 +59,12 @@
             matchByWords: function (query, suggestions) {
                 var stopwords = this.STOPWORDS,
                     queryLowerCase = query.toLowerCase(),
-                    queryWords = utils.getWords(queryLowerCase, stopwords),
+                    queryTokens,
                     index = -1;
 
                 if (haveSameParent(suggestions)) {
+                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+
                     $.each(suggestions, function(i, suggestion) {
                         var suggestedValue = suggestion.value.toLowerCase();
 
@@ -71,9 +73,9 @@
                         }
 
                         // check if query words are a subset of suggested words
-                        var suggestionWords = utils.getWords(suggestedValue, stopwords);
+                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
 
-                        if (utils.arrayMinus(queryWords, suggestionWords).length === 0) {
+                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
                             index = i;
                             return false;
                         }

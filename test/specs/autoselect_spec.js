@@ -7,7 +7,9 @@ describe('Autoselect', function () {
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME'
+            type: 'ADDRESS',
+            useDadata: false,
+            geoLocation: false
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });

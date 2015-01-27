@@ -111,10 +111,7 @@ describe('Select on Enter', function () {
             xhr.respond(
                 200,
                 {'Content-type':'application/json'},
-                JSON.stringify(query ?
-                    {
-                        suggestions: fixtures[query]
-                    } : {})
+                JSON.stringify(query ? { suggestions: fixtures[query] } : {})
             );
         });
 
