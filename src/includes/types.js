@@ -175,6 +175,14 @@
             }
         };
 
+        types['BANK'] = {
+            urlSuffix: 'bank',
+            matchers: [matchers.matchByWords],
+            isDataComplete: function (suggestion) {
+                return true;
+            }
+        };
+
         $.extend(defaultOptions, {
             suggest_local: true
         });
