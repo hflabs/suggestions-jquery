@@ -17,6 +17,8 @@
                 }
 
                 that.disableDropdown();
+
+                // Set `currentValue` to make `processResponse` to consider enrichment response valid
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
