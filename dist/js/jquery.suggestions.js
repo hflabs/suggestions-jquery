@@ -20,6 +20,7 @@
 
     var
         keys = {
+            ENTER: 13,
             ESC: 27,
             TAB: 9,
             RETURN: 13,
@@ -447,10 +448,6 @@
                 'data.inn': null
             },
             matchers: [matchers.matchByFields],
-            isDataComplete: function (suggestion) {
-                return true;
-            },
-            // composeValue not needed
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -523,9 +520,6 @@
         types['EMAIL'] = {
             urlSuffix: 'email',
             matchers: [matchers.matchByNormalizedQuery],
-            isDataComplete: function (suggestion) {
-                return true;
-            },
             isQueryRequestable: function (query) {
                 return this.options.suggest_local || query.indexOf('@') >= 0;
             }
@@ -1237,6 +1231,7 @@
                 switch (e.which) {
                     case keys.UP:
                     case keys.DOWN:
+                    case keys.ENTER:
                         return;
                 }
 
@@ -1495,6 +1490,8 @@
                 }
 
                 that.disableDropdown();
+
+                // Set `currentValue` to make `processResponse` to consider enrichment response valid
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
@@ -2622,7 +2619,7 @@
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
-                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
+                        var assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue,
                             currentSelection = that.selection;
 

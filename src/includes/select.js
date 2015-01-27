@@ -86,7 +86,7 @@
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
-                        var assumeDataComplete = that.type.isDataComplete.call(that, enrichedSuggestion),
+                        var assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, enrichedSuggestion),
                             formattedValue,
                             currentSelection = that.selection;
 

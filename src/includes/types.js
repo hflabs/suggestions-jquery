@@ -91,10 +91,6 @@
                 'data.inn': null
             },
             matchers: [matchers.matchByFields],
-            isDataComplete: function (suggestion) {
-                return true;
-            },
-            // composeValue not needed
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -167,9 +163,6 @@
         types['EMAIL'] = {
             urlSuffix: 'email',
             matchers: [matchers.matchByNormalizedQuery],
-            isDataComplete: function (suggestion) {
-                return true;
-            },
             isQueryRequestable: function (query) {
                 return this.options.suggest_local || query.indexOf('@') >= 0;
             }
