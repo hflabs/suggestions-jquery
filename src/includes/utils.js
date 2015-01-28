@@ -64,15 +64,11 @@
             areSame: function self(a, b) {
                 var same = true;
 
-                if (a == null || b == null) {
-                    return true;
-                }
-
                 if (typeof a != typeof b) {
                     return false;
                 }
 
-                if (typeof a == 'object') {
+                if (typeof a == 'object' && a != null && b != null) {
                     $.each(a, function (i, value) {
                         return same = self(value, b[i]);
                     });

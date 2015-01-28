@@ -112,7 +112,7 @@
                         that.el.val(that.currentValue);
                         that.selection = enrichedSuggestion;
 
-                        if (!that.areSuggestionsSame(suggestion, currentSelection)) {
+                        if (!that.areSuggestionsSame(enrichedSuggestion, currentSelection)) {
                             that.trigger('Select', enrichedSuggestion);
                         }
                         that.onSelectComplete(continueSelecting);

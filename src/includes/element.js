@@ -127,6 +127,7 @@
                 switch (e.which) {
                     case keys.UP:
                     case keys.DOWN:
+                    case keys.ENTER:
                         return;
                 }
 
