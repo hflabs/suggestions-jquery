@@ -62,7 +62,7 @@
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
                 });
 
-                elLayout.componentsLeft += that.$constraints.outerWidth(true);
+                elLayout.componentsLeft += that.$constraints.outerWidth(true) + elLayout.paddingLeft;
             },
 
             onConstraintRemoveClick: function (e) {
