@@ -734,10 +734,10 @@
 
             that.notify('fixPosition', origin, elLayout);
 
-            if (elLayout.componentsLeft) {
+            if (elLayout.componentsLeft > elLayout.paddingLeft) {
                 that.el.css('paddingLeft', elLayout.componentsLeft + 'px');
             }
-            if (elLayout.componentsRight) {
+            if (elLayout.componentsRight > elLayout.paddingRight) {
                 that.el.css('paddingRight', elLayout.componentsRight + 'px');
             }
         },
@@ -2250,7 +2250,7 @@
                     top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
                 });
 
-                elLayout.componentsLeft += that.$constraints.outerWidth(true);
+                elLayout.componentsLeft += that.$constraints.outerWidth(true) + elLayout.paddingLeft;
             },
 
             onConstraintRemoveClick: function (e) {
