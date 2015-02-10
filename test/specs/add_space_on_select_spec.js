@@ -99,6 +99,56 @@ describe('Adding space on selecting', function () {
             expect(this.input.value).toEqual('Surname Name Patronymic');
         });
 
+        it('Should not add SPACE if only part expected', function () {
+            this.instance.setOptions({
+                params: {
+                    parts: ['SURNAME']
+                }
+            });
+            this.input.value = 'S';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([{
+                value: 'Surname',
+                data: {
+                    surname: 'Surname',
+                    name: null,
+                    patronymic: null,
+                    gender: 'UNKNOWN'
+                }
+            }]));
+
+            this.instance.selectedIndex = 0;
+            helpers.keydown(this.input, 13);
+
+            expect(this.input.value).toEqual('Surname');
+        });
+
+        it('Should not add SPACE if only part expected (params set as function)', function () {
+            this.instance.setOptions({
+                params: function(query) {
+                    return {
+                        parts: ['SURNAME']
+                    };
+                }
+            });
+            this.input.value = 'S';
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor([{
+                value: 'Surname',
+                data: {
+                    surname: 'Surname',
+                    name: null,
+                    patronymic: null,
+                    gender: 'UNKNOWN'
+                }
+            }]));
+
+            this.instance.selectedIndex = 0;
+            helpers.keydown(this.input, 13);
+
+            expect(this.input.value).toEqual('Surname');
+        });
+
     });
 
     describe('For ADDRESS controls', function(){

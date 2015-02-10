@@ -371,6 +371,9 @@
                     data = suggestion.data,
                     fields;
 
+                if ($.isFunction(params)) {
+                    params = params.call(that.element, suggestion.value);
+                }
                 if (params && params.parts) {
                     fields = $.map(params.parts, function (part) {
                         return part.toLowerCase();
