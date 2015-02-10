@@ -101,14 +101,9 @@
                         if (hasBeenEnriched) {
                             that.suggestions[index] = enrichedSuggestion;
                         }
-                        that.checkValueBounds(enrichedSuggestion);
-                        if ($.isFunction(that.options.formatSelected)) {
-                            formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);
-                        }
 
-                        that.currentValue = (typeof formattedValue === 'string' && formattedValue.length)
-                            ? formattedValue
-                            : enrichedSuggestion.value;
+                        that.checkValueBounds(enrichedSuggestion);
+                        that.currentValue = that.getSuggestionValue(enrichedSuggestion);
 
                         if (!noSpace && !assumeDataComplete) {
                             that.currentValue += ' ';

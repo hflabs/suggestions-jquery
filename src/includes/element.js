@@ -161,7 +161,6 @@
                     that.trigger('InvalidateSelection', currentSelection);
                 }
 
-                that.currentValue = that.el.val();
                 that.selectedIndex = -1;
 
                 that.update();

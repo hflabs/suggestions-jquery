@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.2.1
+ * DaData.ru Suggestions jQuery plugin, version 15.2.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -595,7 +595,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.2.1';
+    Suggestions.version = '15.2.2';
 
     $.Suggestions = Suggestions;
 
@@ -631,11 +631,11 @@
             that.el.trigger('suggestions-dispose');
         },
 
-        notify: function(chainName) {
+        notify: function (chainName) {
             var that = this,
                 args = utils.slice(arguments, 1);
 
-            return $.map(notificator.get(chainName), function(method){
+            return $.map(notificator.get(chainName), function (method) {
                 return method.apply(that, args);
             });
         },
@@ -684,7 +684,7 @@
                             .add(that.$wrapper)
                             .add(that.options.$helpers);
 
-                        $elements = $elements.filter(function(){
+                        $elements = $elements.filter(function () {
                             return this === event.target || $.contains(this, event.target);
                         });
 
@@ -729,7 +729,9 @@
             that.type = types[that.options.type];
             if (!that.type) {
                 that.disable();
-                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function(i, type){ return '"' + type + '"'; }).join(', ');
+                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function (i, type) {
+                    return '"' + type + '"';
+                }).join(', ');
             }
 
             that.notify('setOptions');
@@ -785,7 +787,7 @@
 
         clear: function () {
             var that = this;
-            
+
             that.clearCache();
             that.currentValue = '';
             that.selection = null;
@@ -812,14 +814,15 @@
             var that = this,
                 query = that.el.val();
 
-            if (this.isQueryRequestable(query)) {
+            if (that.isQueryRequestable(query)) {
+                that.currentValue = query;
                 that.updateSuggestions(query);
             } else {
                 that.hide();
             }
         },
 
-        setSuggestion: function(suggestion){
+        setSuggestion: function (suggestion) {
             var that = this,
                 value;
 
@@ -833,7 +836,72 @@
             }
         },
 
+        /**
+         * Fetch full object for current INPUT's value
+         * if no suitable object found, clean input element
+         *
+         * @param fixParentData flag to invoke parent's `fixData` method
+         */
+        fixData: function (fixParentData) {
+            var that = this,
+                query = that.el.val(),
+                fullQuery,
+                resolver = $.Deferred(),
+                parentInstance;
+
+            resolver
+                .done(function (suggestion) {
+                    that.checkValueBounds(suggestion);
+                    that.selection = suggestion;
+                    that.currentValue = that.getSuggestionValue(suggestion);
+                    that.el.val(that.currentValue);
+                })
+                .fail(function () {
+                    that.selection = null;
+                    that.currentValue = '';
+                    that.el.val(that.currentValue);
+                });
+
+            if (that.isQueryRequestable(query)) {
+                fullQuery = that.extendedCurrentValue();
+                that.currentValue = fullQuery;
+                that.getSuggestions(fullQuery, { count: 1 })
+                    .done(function (suggestions) {
+                        // data fetched
+                        var suggestion = suggestions[0];
+                        if (suggestion) {
+                            resolver.resolve(suggestion);
+                        } else {
+                            resolver.reject();
+                        }
+                    })
+                    .fail(function () {
+                        // no data fetched
+                        resolver.reject();
+                    });
+            } else {
+                resolver.reject();
+            }
+
+            if (fixParentData && (parentInstance = that.getParentInstance())) {
+                parentInstance.fixData(fixParentData);
+            }
+        },
+
         // Querying related methods
+
+        /**
+         * Looks up parent instances
+         * @returns current value prepended by parents' values
+         */
+        extendedCurrentValue: function () {
+            var that = this,
+                parentInstance = that.getParentInstance(),
+                parentValue = parentInstance && parentInstance.extendedCurrentValue(),
+                currentValue = $.trim(that.el.val());
+
+            return utils.compact([parentValue, currentValue]).join(' ');
+        },
 
         getAjaxParams: function (method, custom) {
             var that = this,
@@ -882,14 +950,15 @@
                 result;
 
             result = query.length >= that.options.minChars;
-            if (that.type.isQueryRequestable) {
-                result = result && that.type.isQueryRequestable.call(that, query);
+
+            if (result && that.type.isQueryRequestable) {
+                result = that.type.isQueryRequestable.call(that, query);
             }
 
             return result;
         },
 
-        constructRequestParams: function (query, customParams){
+        constructRequestParams: function (query, customParams) {
             var that = this,
                 options = that.options,
                 params = $.isFunction(options.params)
@@ -899,7 +968,7 @@
             if (that.type.constructRequestParams) {
                 $.extend(params, that.type.constructRequestParams.call(that));
             }
-            $.each(that.notify('requestParams'), function(i, hookParams){
+            $.each(that.notify('requestParams'), function (i, hookParams) {
                 $.extend(params, hookParams);
             });
             params[options.paramName] = query;
@@ -914,7 +983,7 @@
             var that = this;
 
             that.dataPhase = that.getSuggestions(query)
-                .done(function(suggestions){
+                .done(function (suggestions) {
                     that.assignSuggestions(suggestions, query);
                 })
         },
@@ -990,7 +1059,7 @@
          * @param {Object} params request params
          * @returns {$.Deferred} response promise
          */
-        doGetSuggestions: function(params) {
+        doGetSuggestions: function (params) {
             var that = this,
                 request = $.ajax(
                     that.getAjaxParams('suggest', { data: utils.serialize(params) })
@@ -1048,19 +1117,34 @@
 
         verifySuggestionsFormat: function (suggestions) {
             if (typeof suggestions[0] === 'string') {
-                $.each(suggestions, function(i, value){
+                $.each(suggestions, function (i, value) {
                     suggestions[i] = { value: value, data: null };
                 });
             }
         },
 
-        assignSuggestions: function(suggestions, query) {
+        getSuggestionValue: function (suggestion) {
+            var that = this,
+                formattedValue;
+
+            if ($.isFunction(that.options.formatSelected)) {
+                formattedValue = that.options.formatSelected.call(that, suggestion);
+            }
+
+            if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
+                formattedValue = suggestion.value;
+            }
+
+            return formattedValue;
+        },
+
+        assignSuggestions: function (suggestions, query) {
             var that = this;
             that.suggestions = suggestions;
             that.notify('assignSuggestions', query);
         },
 
-        shouldRestrictValues: function() {
+        shouldRestrictValues: function () {
             var that = this;
             // treat suggestions value as restricted only if there is one constraint
             // and restrict_value is true
@@ -1072,12 +1156,12 @@
         /**
          * Fills suggestion.unrestricted_value property
          */
-        setUnrestrictedValues: function(suggestions) {
+        setUnrestrictedValues: function (suggestions) {
             var that = this,
                 shouldRestrict = that.shouldRestrictValues(),
                 label = that.getFirstConstraintLabel();
 
-            $.each(suggestions, function(i, suggestion) {
+            $.each(suggestions, function (i, suggestion) {
                 suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
             });
         },
@@ -1093,7 +1177,7 @@
                 index = -1;
 
             if ($.trim(query) !== '') {
-                $.each(that.type.matchers, function(i, matcher) {
+                $.each(that.type.matchers, function (i, matcher) {
                     index = matcher.call(that.type, query, that.suggestions);
                     return index === -1;
                 });
@@ -1266,7 +1350,6 @@
                     that.trigger('InvalidateSelection', currentSelection);
                 }
 
-                that.currentValue = that.el.val();
                 that.selectedIndex = -1;
 
                 that.update();
@@ -2475,10 +2558,11 @@
             },
 
             unbindFromParent: function  () {
-                var $parent = this.constraints;
+                var that = this,
+                    $parent = that.constraints;
 
                 if ($parent instanceof $) {
-                    $parent.off('.' + this.uniqueId);
+                    $parent.off('.' + that.uniqueId);
                 }
             },
 
@@ -2490,9 +2574,13 @@
                 this.unbindFromParent();
             },
 
+            getParentInstance: function () {
+                return this.constraints instanceof $ && this.constraints.suggestions();
+            },
+
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
-                var that = this.constraints instanceof $ && this.constraints.suggestions(),
+                var that = this.getParentInstance(),
                     parentValueData;
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
@@ -2635,14 +2723,9 @@
                         if (hasBeenEnriched) {
                             that.suggestions[index] = enrichedSuggestion;
                         }
-                        that.checkValueBounds(enrichedSuggestion);
-                        if ($.isFunction(that.options.formatSelected)) {
-                            formattedValue = that.options.formatSelected.call(that, enrichedSuggestion);
-                        }
 
-                        that.currentValue = (typeof formattedValue === 'string' && formattedValue.length)
-                            ? formattedValue
-                            : enrichedSuggestion.value;
+                        that.checkValueBounds(enrichedSuggestion);
+                        that.currentValue = that.getSuggestionValue(enrichedSuggestion);
 
                         if (!noSpace && !assumeDataComplete) {
                             that.currentValue += ' ';

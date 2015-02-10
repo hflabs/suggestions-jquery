@@ -230,10 +230,11 @@
             },
 
             unbindFromParent: function  () {
-                var $parent = this.constraints;
+                var that = this,
+                    $parent = that.constraints;
 
                 if ($parent instanceof $) {
-                    $parent.off('.' + this.uniqueId);
+                    $parent.off('.' + that.uniqueId);
                 }
             },
 
@@ -245,9 +246,13 @@
                 this.unbindFromParent();
             },
 
+            getParentInstance: function () {
+                return this.constraints instanceof $ && this.constraints.suggestions();
+            },
+
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
-                var that = this.constraints instanceof $ && this.constraints.suggestions(),
+                var that = this.getParentInstance(),
                     parentValueData;
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
