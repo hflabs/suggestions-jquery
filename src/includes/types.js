@@ -20,8 +20,8 @@
 
         function formattedField (main, alt, currentValue, suggestion, options) {
             var that = this,
-                formattedMain = that.formatResult(main, currentValue, suggestion, options),
-                formattedAlt = that.formatResult(alt, currentValue, suggestion, options);
+                formattedMain = that.highlightMatches(main, currentValue, suggestion, options),
+                formattedAlt = that.highlightMatches(alt, currentValue, suggestion, options);
 
             return chooseFormattedField(formattedMain, formattedAlt);
         }
@@ -114,16 +114,17 @@
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
-                    formatterOGRN = that.formatResult(utils.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
+                    formatterOGRN = that.highlightMatches(utils.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
                     formattedInnOGRN = chooseFormattedField(formattedInn, formatterOGRN),
-                    formattedFIO = that.formatResult(utils.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
+                    formattedFIO = that.highlightMatches(utils.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
                     address = utils.getDeepValue(suggestion.data, 'address.value') || '';
 
                 if (that.isMobile) {
                     (options || (options = {})).maxLength = 50;
                 }
 
-                value = formattedField.call(that, suggestion.value, utils.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
+                value = formattedField.call(that, value, utils.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
+                value = that.wrapFormattedValue(value, suggestion);
 
                 if (address) {
                     address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
@@ -131,7 +132,7 @@
                         // keep only two first words
                         address = address.replace(new RegExp('^([^' + wordDelimiters + ']+[' + wordDelimiters + ']+[^' + wordDelimiters + ']+).*'), '$1');
                     } else {
-                        address = that.formatResult(address, currentValue, suggestion, {
+                        address = that.highlightMatches(address, currentValue, suggestion, {
                             unformattableTokens: ADDRESS_STOPWORDS
                         });
                     }
@@ -159,7 +160,7 @@
                     rDigit = /\d/;
 
                 if (inn) {
-                    formattedInn = that.formatResult(inn, currentValue, suggestion);
+                    formattedInn = that.highlightMatches(inn, currentValue, suggestion);
                     if (innPartsLength) {
                         formattedInn = formattedInn.split('');
                         innParts = $.map(innPartsLength, function (partLength) {
@@ -193,6 +194,35 @@
         types['BANK'] = {
             urlSuffix: 'bank',
             matchers: [matchers.matchByWords],
+            formatResult: function (value, currentValue, suggestion, options) {
+                var that = this,
+                    formattedBIC = that.highlightMatches(utils.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
+                    address = utils.getDeepValue(suggestion.data, 'address.value') || '';
+
+                value = that.highlightMatches(value, currentValue, suggestion, options);
+                value = that.wrapFormattedValue(value, suggestion);
+
+                if (address) {
+                    address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
+                    if (that.isMobile) {
+                        // keep only two first words
+                        address = address.replace(new RegExp('^([^' + wordDelimiters + ']+[' + wordDelimiters + ']+[^' + wordDelimiters + ']+).*'), '$1');
+                    } else {
+                        address = that.highlightMatches(address, currentValue, suggestion, {
+                            unformattableTokens: ADDRESS_STOPWORDS
+                        });
+                    }
+                }
+
+                if (formattedBIC || address) {
+                    value +=
+                        '<div class="' + that.classes.subtext + '">' +
+                        '<span class="' + that.classes.subtext_inline + '">' + formattedBIC + '</span>' +
+                        address +
+                        '</div>';
+                }
+                return value;
+            },
             formatSelected: function (suggestion) {
                 return utils.getDeepValue(suggestion, 'data.name.payment');
             }

@@ -178,4 +178,21 @@
         background: @subtext-label-color;
         font-size: 85%;
     }
+
+    .suggestions-value {
+        &[data-suggestion-status="LIQUIDATED"] {
+            position: relative;
+
+            &:after {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 50%;
+
+                border-top: 1px solid rgba(0, 0, 0, 0.4);
+
+                content: '';
+            }
+        }
+    }
 }

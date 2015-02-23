@@ -31,7 +31,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love nonjapaneese');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('<strong>Japa<\/strong>neese lives in <strong>Japa<\/strong>n and love nonjapaneese'));
     });
 
     it('Should highlight search phrase, in the middle of word, if surrounded by delimiters', function () {
@@ -43,7 +43,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Japa<\/strong>neese and non-<strong>japa<\/strong>neese');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('<strong>Japa<\/strong>neese and non-<strong>japa<\/strong>neese'));
     });
 
     it('Should highlight search phrase with delimiter in the middle', function () {
@@ -55,7 +55,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('г <strong>Санкт-Петер<\/strong>бург');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('г <strong>Санкт-Петер<\/strong>бург'));
     });
 
     it('Should highlight search phrase with delimiter in the middle, example 2', function () {
@@ -107,7 +107,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('ООО "<strong>Фирма</strong>"');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('ООО "<strong>Фирма</strong>"'));
     });
 
     it('Should highlight names regardless of parts order', function () {
@@ -126,7 +126,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('<strong>Петр<\/strong>ов <strong>Петр<\/strong> <strong>Иванович</strong>');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('<strong>Петр<\/strong>ов <strong>Петр<\/strong> <strong>Иванович</strong>'));
     });
 
     it('Should highlight address in parties, ignoring address components types', function () {
@@ -256,7 +256,7 @@ describe('Highlight suggestions', function () {
         var $item = this.instance.$container.children('.suggestions-suggestion');
 
         expect($item.length).toEqual(1);
-        expect($item.html()).toEqual('Филиал <strong>КАЛМЫЦ</strong>КИЙ ФИЛИАЛ АККРЕДИТОВАННОГО ОБРАЗОВАТ...');
+        expect($item.html()).toEqual(helpers.wrapFormattedValue('Филиал <strong>КАЛМЫЦ</strong>КИЙ ФИЛИАЛ АККРЕДИТОВАННОГО ОБРАЗОВАТ...'));
     });
 
     it('Should show labels for same-looking suggestions', function () {
@@ -375,6 +375,32 @@ describe('Highlight suggestions', function () {
 
         expect($item.length).toEqual(1);
         expect(html).toContain('</span><strong>Жура</strong>влев Дмитрий Сергеевич</div>');
+    });
+
+    it('Should show attribute with status', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'АМС';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ЗАО АМС',
+                data: {
+                    state: {
+                        status: 'LIQUIDATED'
+                    },
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html();
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain(' data-suggestion-status="LIQUIDATED"');
     });
 
 });

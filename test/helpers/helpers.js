@@ -28,6 +28,11 @@ this.helpers = (function () {
         },
         appendUnrestrictedValue: function(suggestion) {
             return $.extend({}, suggestion, {'unrestricted_value': suggestion.value});
+        },
+        wrapFormattedValue: function (value, status) {
+            return '<span class="suggestions-value"' + (status ? ' data-suggestion-status="' + status + '"' : '') + '>' +
+                value +
+                '</span>';
         }
     };
     return helpers;

@@ -197,6 +197,23 @@
                 that.setItemsPositions();
             },
 
+            wrapFormattedValue: function (value, suggestion) {
+                var that = this,
+                    status = utils.getDeepValue(suggestion.data, 'state.status');
+
+                return '<span class="' + that.classes.value + '"' + (status ? ' data-suggestion-status="' + status + '"' : '') + '>' +
+                    value +
+                    '</span>';
+            },
+
+            formatResult: function (value, currentValue, suggestion, options) {
+                var that = this;
+
+                value = that.highlightMatches(value, currentValue, suggestion, options);
+
+                return that.wrapFormattedValue(value, suggestion);
+            },
+
             /**
              * Makes HTML contents for suggestion item
              * @param {String} value string to be displayed as a value
@@ -207,7 +224,7 @@
              *          `maxLength` - if set, `value` is limited by this length
              * @returns {String} HTML to be inserted in the list
              */
-            formatResult: function (value, currentValue, suggestion, options) {
+            highlightMatches: function (value, currentValue, suggestion, options) {
 
                 var that = this,
                     chunks = [],
