@@ -14,12 +14,11 @@
     var
         keys = {
             ENTER: 13,
-            ESC: 27,
-            TAB: 9,
-            RETURN: 13,
+            ESC:   27,
+            TAB:   9,
             SPACE: 32,
-            UP: 38,
-            DOWN: 40
+            UP:    38,
+            DOWN:  40
         },
         types = {},
         eventNS = '.suggestions',
@@ -386,22 +385,15 @@
         /**
          * Fetch full object for current INPUT's value
          * if no suitable object found, clean input element
-         *
-         * @param fixParentData flag to invoke parent's `fixData` method
          */
-        fixData: function (fixParentData) {
+        fixData: function () {
             var that = this,
-                query = that.el.val(),
-                fullQuery,
-                resolver = $.Deferred(),
-                parentInstance;
+                fullQuery = that.extendedCurrentValue(),
+                resolver = $.Deferred();
 
             resolver
                 .done(function (suggestion) {
-                    that.checkValueBounds(suggestion);
-                    that.selection = suggestion;
-                    that.currentValue = that.getSuggestionValue(suggestion);
-                    that.el.val(that.currentValue);
+                    that.selectSuggestion(suggestion, 0, { hasBeenEnriched: true });
                 })
                 .fail(function () {
                     that.selection = null;
@@ -409,10 +401,9 @@
                     that.el.val(that.currentValue);
                 });
 
-            if (that.isQueryRequestable(query)) {
-                fullQuery = that.extendedCurrentValue();
+            if (that.isQueryRequestable(fullQuery)) {
                 that.currentValue = fullQuery;
-                that.getSuggestions(fullQuery, { count: 1 })
+                that.getSuggestions(fullQuery, { count: 1, from_bound: null, to_bound: null })
                     .done(function (suggestions) {
                         // data fetched
                         var suggestion = suggestions[0];
@@ -428,10 +419,6 @@
                     });
             } else {
                 resolver.reject();
-            }
-
-            if (fixParentData && (parentInstance = that.getParentInstance())) {
-                parentInstance.fixData(fixParentData);
             }
         },
 

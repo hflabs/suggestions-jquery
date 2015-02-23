@@ -61,7 +61,7 @@
                             that.suggest();
                             break;
                         // if no suggestions available and user pressed Enter
-                        case keys.RETURN:
+                        case keys.ENTER:
                             that.triggerOnSelectNothing();
                             break;
                     }
@@ -81,7 +81,7 @@
                         }
                         break;
 
-                    case keys.RETURN:
+                    case keys.ENTER:
                         that.selectCurrentValue({ trim: true });
                         break;
 

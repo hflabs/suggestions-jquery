@@ -68,8 +68,7 @@
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
-                    continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace;
+                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -86,38 +85,61 @@
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
-                        var assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, enrichedSuggestion),
-                            formattedValue,
-                            currentSelection = that.selection;
-
-                        if (that.type.alwaysContinueSelecting) {
-                            continueSelecting = true;
-                        }
-
-                        if (assumeDataComplete) {
-                            continueSelecting = false;
-                        }
-
-                        if (hasBeenEnriched) {
-                            that.suggestions[index] = enrichedSuggestion;
-                        }
-
-                        that.checkValueBounds(enrichedSuggestion);
-                        that.currentValue = that.getSuggestionValue(enrichedSuggestion);
-
-                        if (!noSpace && !assumeDataComplete) {
-                            that.currentValue += ' ';
-                        }
-                        that.el.val(that.currentValue);
-                        that.selection = enrichedSuggestion;
-
-                        if (!that.areSuggestionsSame(enrichedSuggestion, currentSelection)) {
-                            that.trigger('Select', enrichedSuggestion);
-                        }
-                        that.onSelectComplete(continueSelecting);
-                        that.shareWithParent(enrichedSuggestion);
+                        that.selectSuggestion(enrichedSuggestion, index, $.extend({
+                            hasBeenEnriched: hasBeenEnriched
+                        }, selectionOptions));
                     });
 
+            },
+
+            /**
+             * Formats and selects final (enriched) suggestion
+             * @param suggestion
+             * @param index
+             * @param selectionOptions
+             */
+            selectSuggestion: function (suggestion, index, selectionOptions) {
+                var that = this,
+                    continueSelecting = selectionOptions.continueSelecting,
+                    assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
+                    currentSelection = that.selection;
+
+                // Prevent recursive execution
+                if (that.triggering['Select'])
+                    return;
+
+                if (that.type.alwaysContinueSelecting) {
+                    continueSelecting = true;
+                }
+
+                if (assumeDataComplete) {
+                    continueSelecting = false;
+                }
+
+                if (selectionOptions.hasBeenEnriched) {
+                    that.suggestions[index] = suggestion;
+                }
+
+                that.checkValueBounds(suggestion);
+                that.currentValue = that.getSuggestionValue(suggestion);
+
+                if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
+                    that.currentValue += ' ';
+                }
+                that.el.val(that.currentValue);
+
+                if (that.currentValue) {
+                    that.selection = suggestion;
+                    if (!that.areSuggestionsSame(suggestion, currentSelection)) {
+                        that.trigger('Select', suggestion);
+                    }
+                    that.onSelectComplete(continueSelecting);
+                } else {
+                    that.selection = null;
+                    that.triggerOnSelectNothing();
+                }
+
+                that.shareWithParent(suggestion);
             },
 
             onSelectComplete: function (continueSelecting) {

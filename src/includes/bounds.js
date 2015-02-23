@@ -74,13 +74,12 @@
 
         checkValueBounds: function (suggestion) {
             var that = this,
-                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+                valueData;
 
-            if (!$.isEmptyObject(valueData) && that.type.composeValue) {
-                valueData = that.type.composeValue(valueData);
-                if (valueData) {
-                    suggestion.value = valueData;
-                }
+            // If any bounds set up
+            if (that.bounds.own.length && that.type.composeValue) {
+                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+                suggestion.value = that.type.composeValue(valueData);
             }
         },
 

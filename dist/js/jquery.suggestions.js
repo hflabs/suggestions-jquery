@@ -21,12 +21,11 @@
     var
         keys = {
             ENTER: 13,
-            ESC: 27,
-            TAB: 9,
-            RETURN: 13,
+            ESC:   27,
+            TAB:   9,
             SPACE: 32,
-            UP: 38,
-            DOWN: 40
+            UP:    38,
+            DOWN:  40
         },
         types = {},
         eventNS = '.suggestions',
@@ -842,22 +841,15 @@
         /**
          * Fetch full object for current INPUT's value
          * if no suitable object found, clean input element
-         *
-         * @param fixParentData flag to invoke parent's `fixData` method
          */
-        fixData: function (fixParentData) {
+        fixData: function () {
             var that = this,
-                query = that.el.val(),
-                fullQuery,
-                resolver = $.Deferred(),
-                parentInstance;
+                fullQuery = that.extendedCurrentValue(),
+                resolver = $.Deferred();
 
             resolver
                 .done(function (suggestion) {
-                    that.checkValueBounds(suggestion);
-                    that.selection = suggestion;
-                    that.currentValue = that.getSuggestionValue(suggestion);
-                    that.el.val(that.currentValue);
+                    that.selectSuggestion(suggestion, 0, { hasBeenEnriched: true });
                 })
                 .fail(function () {
                     that.selection = null;
@@ -865,10 +857,9 @@
                     that.el.val(that.currentValue);
                 });
 
-            if (that.isQueryRequestable(query)) {
-                fullQuery = that.extendedCurrentValue();
+            if (that.isQueryRequestable(fullQuery)) {
                 that.currentValue = fullQuery;
-                that.getSuggestions(fullQuery, { count: 1 })
+                that.getSuggestions(fullQuery, { count: 1, from_bound: null, to_bound: null })
                     .done(function (suggestions) {
                         // data fetched
                         var suggestion = suggestions[0];
@@ -884,10 +875,6 @@
                     });
             } else {
                 resolver.reject();
-            }
-
-            if (fixParentData && (parentInstance = that.getParentInstance())) {
-                parentInstance.fixData(fixParentData);
             }
         },
 
@@ -1253,7 +1240,7 @@
                             that.suggest();
                             break;
                         // if no suggestions available and user pressed Enter
-                        case keys.RETURN:
+                        case keys.ENTER:
                             that.triggerOnSelectNothing();
                             break;
                     }
@@ -1273,7 +1260,7 @@
                         }
                         break;
 
-                    case keys.RETURN:
+                    case keys.ENTER:
                         that.selectCurrentValue({ trim: true });
                         break;
 
@@ -2693,8 +2680,7 @@
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
-                    continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    noSpace = selectionOptions && selectionOptions.noSpace;
+                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -2711,38 +2697,61 @@
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
-                        var assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, enrichedSuggestion),
-                            formattedValue,
-                            currentSelection = that.selection;
-
-                        if (that.type.alwaysContinueSelecting) {
-                            continueSelecting = true;
-                        }
-
-                        if (assumeDataComplete) {
-                            continueSelecting = false;
-                        }
-
-                        if (hasBeenEnriched) {
-                            that.suggestions[index] = enrichedSuggestion;
-                        }
-
-                        that.checkValueBounds(enrichedSuggestion);
-                        that.currentValue = that.getSuggestionValue(enrichedSuggestion);
-
-                        if (!noSpace && !assumeDataComplete) {
-                            that.currentValue += ' ';
-                        }
-                        that.el.val(that.currentValue);
-                        that.selection = enrichedSuggestion;
-
-                        if (!that.areSuggestionsSame(enrichedSuggestion, currentSelection)) {
-                            that.trigger('Select', enrichedSuggestion);
-                        }
-                        that.onSelectComplete(continueSelecting);
-                        that.shareWithParent(enrichedSuggestion);
+                        that.selectSuggestion(enrichedSuggestion, index, $.extend({
+                            hasBeenEnriched: hasBeenEnriched
+                        }, selectionOptions));
                     });
 
+            },
+
+            /**
+             * Formats and selects final (enriched) suggestion
+             * @param suggestion
+             * @param index
+             * @param selectionOptions
+             */
+            selectSuggestion: function (suggestion, index, selectionOptions) {
+                var that = this,
+                    continueSelecting = selectionOptions.continueSelecting,
+                    assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
+                    currentSelection = that.selection;
+
+                // Prevent recursive execution
+                if (that.triggering['Select'])
+                    return;
+
+                if (that.type.alwaysContinueSelecting) {
+                    continueSelecting = true;
+                }
+
+                if (assumeDataComplete) {
+                    continueSelecting = false;
+                }
+
+                if (selectionOptions.hasBeenEnriched) {
+                    that.suggestions[index] = suggestion;
+                }
+
+                that.checkValueBounds(suggestion);
+                that.currentValue = that.getSuggestionValue(suggestion);
+
+                if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
+                    that.currentValue += ' ';
+                }
+                that.el.val(that.currentValue);
+
+                if (that.currentValue) {
+                    that.selection = suggestion;
+                    if (!that.areSuggestionsSame(suggestion, currentSelection)) {
+                        that.trigger('Select', suggestion);
+                    }
+                    that.onSelectComplete(continueSelecting);
+                } else {
+                    that.selection = null;
+                    that.triggerOnSelectNothing();
+                }
+
+                that.shareWithParent(suggestion);
             },
 
             onSelectComplete: function (continueSelecting) {
@@ -2860,13 +2869,12 @@
 
         checkValueBounds: function (suggestion) {
             var that = this,
-                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+                valueData;
 
-            if (!$.isEmptyObject(valueData) && that.type.composeValue) {
-                valueData = that.type.composeValue(valueData);
-                if (valueData) {
-                    suggestion.value = valueData;
-                }
+            // If any bounds set up
+            if (that.bounds.own.length && that.type.composeValue) {
+                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+                suggestion.value = that.type.composeValue(valueData);
             }
         },
 
