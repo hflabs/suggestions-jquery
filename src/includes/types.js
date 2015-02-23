@@ -173,7 +173,10 @@
 
         types['BANK'] = {
             urlSuffix: 'bank',
-            matchers: [matchers.matchByWords]
+            matchers: [matchers.matchByWords],
+            formatSelected: function (suggestion) {
+                return utils.getDeepValue(suggestion, 'data.name.payment');
+            }
         };
 
         $.extend(defaultOptions, {

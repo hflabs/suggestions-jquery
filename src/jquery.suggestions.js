@@ -659,10 +659,11 @@
 
         getSuggestionValue: function (suggestion) {
             var that = this,
+                formatSelected = that.options.formatSelected || that.type.formatSelected,
                 formattedValue;
 
-            if ($.isFunction(that.options.formatSelected)) {
-                formattedValue = that.options.formatSelected.call(that, suggestion);
+            if ($.isFunction(formatSelected)) {
+                formattedValue = formatSelected.call(that, suggestion);
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
