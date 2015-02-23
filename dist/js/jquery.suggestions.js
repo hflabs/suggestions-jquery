@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.2.3
+ * DaData.ru Suggestions jQuery plugin, version 15.2.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -354,12 +354,28 @@
 
         var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
+        var rHasMatch = /<strong>/;
+
         function valueStartsWith (suggestion, field){
             var fieldValue = suggestion.data && suggestion.data[field];
 
             return fieldValue &&
                 new RegExp('^' + utils.escapeRegExChars(fieldValue) + '([' + wordDelimiters + ']|$)','i')
                     .test(suggestion.value);
+        }
+
+        function chooseFormattedField (formattedMain, formattedAlt) {
+            return rHasMatch.test(formattedAlt) && !rHasMatch.test(formattedMain)
+                ? formattedAlt
+                : formattedMain;
+        }
+
+        function formattedField (main, alt, currentValue, suggestion, options) {
+            var that = this,
+                formattedMain = that.formatResult(main, currentValue, suggestion, options),
+                formattedAlt = that.formatResult(alt, currentValue, suggestion, options);
+
+            return chooseFormattedField(formattedMain, formattedAlt);
         }
 
         types['NAME'] = {
@@ -450,13 +466,16 @@
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
-                    address = utils.getDeepValue(suggestion, 'data.address.value');
+                    formatterOGRN = that.formatResult(utils.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
+                    formattedInnOGRN = chooseFormattedField(formattedInn, formatterOGRN),
+                    formattedFIO = that.formatResult(utils.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
+                    address = utils.getDeepValue(suggestion.data, 'address.value') || '';
 
                 if (that.isMobile) {
                     (options || (options = {})).maxLength = 50;
                 }
 
-                value = that.formatResult.call(that, value, currentValue, suggestion, options);
+                value = formattedField.call(that, suggestion.value, utils.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
 
                 if (address) {
                     address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
@@ -470,11 +489,11 @@
                     }
                 }
 
-                if (formattedInn || address) {
+                if (formattedInnOGRN || address || formattedFIO) {
                     value +=
                         '<div class="' + that.classes.subtext + '">' +
-                        '<span class="' + that.classes.subtext_inline + '">' + (formattedInn || '') + '</span>' +
-                        (address || '') +
+                        '<span class="' + that.classes.subtext_inline + '">' + formattedInnOGRN + '</span>' +
+                        chooseFormattedField(address, formattedFIO) +
                         '</div>';
                 }
                 return value;
@@ -600,7 +619,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.2.3';
+    Suggestions.version = '15.2.4';
 
     $.Suggestions = Suggestions;
 
@@ -1836,6 +1855,8 @@
                     tokens, tokenMatchers,
                     rWords = utils.reWordExtractor(),
                     match, i, chunk, formattedStr;
+
+                if (!value) return '';
 
                 tokens = utils.formatToken(currentValue).split(wordSplitter);
                 tokens = utils.arrayMinus(utils.withSubTokens(tokens), unformattableTokens);

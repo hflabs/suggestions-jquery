@@ -293,4 +293,88 @@ describe('Highlight suggestions', function () {
         expect($items.eq(1).html()).toContain('<span class="suggestions-subtext suggestions-subtext_label">имя, фамилия</span>');
     });
 
+    it('Should show OGRN instead of INN if match', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = '1095403';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ЗАО Ромашка',
+                data: {
+                    address: {
+                        value: 'Новосибирская',
+                        data: null
+                    },
+                    inn: '5403233085',
+                    ogrn: '1095403010900',
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html();
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('<span class="suggestions-subtext suggestions-subtext_inline"><strong>1095403</strong>010900</span>');
+    });
+
+    it('Should show latin name instead of regular name if match', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'ALFA';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ОАО Альфа-Техника',
+                data: {
+                    inn: '5403233085',
+                    name: {
+                        latin: 'JSC "ALFA-TECHNICA"'
+                    },
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html();
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('JSC "<strong>ALFA</strong>-TECHNICA"');
+    });
+
+    it('Should show director\'s name instead of address if match', function () {
+        this.instance.setOptions({
+            type: 'PARTY'
+        });
+        this.input.value = 'hf жура';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'ООО ХФ Лабс',
+                data: {
+                    inn: '5403233085',
+                    management: {
+                        name: 'Журавлев Дмитрий Сергеевич',
+                        post: 'Генеральный директор'
+                    },
+                    type: 'LEGAL'
+                }
+            }
+        ]));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html();
+
+        expect($item.length).toEqual(1);
+        expect(html).toContain('</span><strong>Жура</strong>влев Дмитрий Сергеевич</div>');
+    });
+
 });

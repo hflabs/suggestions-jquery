@@ -217,6 +217,8 @@
                     rWords = utils.reWordExtractor(),
                     match, i, chunk, formattedStr;
 
+                if (!value) return '';
+
                 tokens = utils.formatToken(currentValue).split(wordSplitter);
                 tokens = utils.arrayMinus(utils.withSubTokens(tokens), unformattableTokens);
 
