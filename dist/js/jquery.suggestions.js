@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.2.5
+ * DaData.ru Suggestions jQuery plugin, version 15.2.6
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -650,7 +650,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.2.5';
+    Suggestions.version = '15.2.6';
 
     $.Suggestions = Suggestions;
 
@@ -2487,15 +2487,7 @@
                         that.unbindFromParent();
                         if (!$parent.is(that.el)) {
                             that.constraints = $parent;
-                            $parent.on(
-                                [
-                                    'suggestions-select.' + that.uniqueId,
-                                    'suggestions-invalidateselection.' + that.uniqueId,
-                                    'suggestions-clear.' + that.uniqueId
-                                ].join(' '),
-                                $.proxy(that.onParentSelectionChanged, that)
-                            );
-                            $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+                            that.bindToParent();
                         }
                     }
                 } else {
@@ -2620,6 +2612,20 @@
                 return constraints_id ? that.constraints[constraints_id].label : '';
             },
 
+            bindToParent: function () {
+                var that = this;
+
+                that.constraints
+                    .on([
+                            'suggestions-select.' + that.uniqueId,
+                            'suggestions-invalidateselection.' + that.uniqueId,
+                            'suggestions-clear.' + that.uniqueId
+                        ].join(' '),
+                        $.proxy(that.onParentSelectionChanged, that)
+                    )
+                    .on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+            },
+
             unbindFromParent: function  () {
                 var that = this,
                     $parent = that.constraints;
@@ -2629,8 +2635,11 @@
                 }
             },
 
-            onParentSelectionChanged: function (e, suggestion) {
-                this.clear();
+            onParentSelectionChanged: function (e, suggestion, valueChanged) {
+                // Don't clear if parent has been just enriched
+                if (e.type !== 'suggestions-select' || valueChanged) {
+                    this.clear();
+                }
             },
 
             onParentDispose: function (e) {
@@ -2787,7 +2796,8 @@
                 var that = this,
                     continueSelecting = selectionOptions.continueSelecting,
                     assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
-                    currentSelection = that.selection;
+                    currentSelection = that.selection,
+                    currentValue = that.currentValue;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -2816,7 +2826,7 @@
                 if (that.currentValue) {
                     that.selection = suggestion;
                     if (!that.areSuggestionsSame(suggestion, currentSelection)) {
-                        that.trigger('Select', suggestion);
+                        that.trigger('Select', suggestion, that.currentValue != currentValue);
                     }
                     that.onSelectComplete(continueSelecting);
                 } else {
@@ -2855,7 +2865,7 @@
                 if ($.isFunction(callback)) {
                     callback.apply(that.element, args);
                 }
-                that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
+                that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
                 that.triggering[event] = false;
             }
 

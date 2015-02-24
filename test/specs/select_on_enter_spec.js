@@ -152,7 +152,8 @@ describe('Select on Enter', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'})
+            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'}),
+            true
         );
     });
 
@@ -173,7 +174,8 @@ describe('Select on Enter', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'Andorra', data: 'An' })
+            helpers.appendUnrestrictedValue({ value: 'Andorra', data: 'An' }),
+            true
         );
     });
 
@@ -230,7 +232,8 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 })
+            helpers.appendUnrestrictedValue({ value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 }),
+            true
         );
     });
 
@@ -249,7 +252,8 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'г Москва, г Зеленоград', data: 0 })
+            helpers.appendUnrestrictedValue({ value: 'г Москва, г Зеленоград', data: 0 }),
+            true
         );
     });
 
@@ -321,7 +325,8 @@ describe('Select on Enter', function () {
         expect(options.onSelect).toHaveBeenCalledWith(
             helpers.appendUnrestrictedValue(
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
-            )
+            ),
+            true
         );
     });
 
@@ -391,7 +396,8 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24', data: 0 })
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24', data: 0 }),
+            true
         );
     });
 
@@ -410,7 +416,8 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 })
+            helpers.appendUnrestrictedValue({ value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }),
+            true
         );
     });
 
@@ -448,7 +455,8 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(fixtures['хф 7707545900'][0])
+            helpers.appendUnrestrictedValue(fixtures['хф 7707545900'][0]),
+            true
         );
     });
 

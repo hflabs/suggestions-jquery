@@ -96,15 +96,7 @@
                         that.unbindFromParent();
                         if (!$parent.is(that.el)) {
                             that.constraints = $parent;
-                            $parent.on(
-                                [
-                                    'suggestions-select.' + that.uniqueId,
-                                    'suggestions-invalidateselection.' + that.uniqueId,
-                                    'suggestions-clear.' + that.uniqueId
-                                ].join(' '),
-                                $.proxy(that.onParentSelectionChanged, that)
-                            );
-                            $parent.on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+                            that.bindToParent();
                         }
                     }
                 } else {
@@ -229,6 +221,20 @@
                 return constraints_id ? that.constraints[constraints_id].label : '';
             },
 
+            bindToParent: function () {
+                var that = this;
+
+                that.constraints
+                    .on([
+                            'suggestions-select.' + that.uniqueId,
+                            'suggestions-invalidateselection.' + that.uniqueId,
+                            'suggestions-clear.' + that.uniqueId
+                        ].join(' '),
+                        $.proxy(that.onParentSelectionChanged, that)
+                    )
+                    .on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+            },
+
             unbindFromParent: function  () {
                 var that = this,
                     $parent = that.constraints;
@@ -238,8 +244,11 @@
                 }
             },
 
-            onParentSelectionChanged: function (e, suggestion) {
-                this.clear();
+            onParentSelectionChanged: function (e, suggestion, valueChanged) {
+                // Don't clear if parent has been just enriched
+                if (e.type !== 'suggestions-select' || valueChanged) {
+                    this.clear();
+                }
             },
 
             onParentDispose: function (e) {

@@ -102,7 +102,8 @@
                 var that = this,
                     continueSelecting = selectionOptions.continueSelecting,
                     assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
-                    currentSelection = that.selection;
+                    currentSelection = that.selection,
+                    currentValue = that.currentValue;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -131,7 +132,7 @@
                 if (that.currentValue) {
                     that.selection = suggestion;
                     if (!that.areSuggestionsSame(suggestion, currentSelection)) {
-                        that.trigger('Select', suggestion);
+                        that.trigger('Select', suggestion, that.currentValue != currentValue);
                     }
                     that.onSelectComplete(continueSelecting);
                 } else {
@@ -170,7 +171,7 @@
                 if ($.isFunction(callback)) {
                     callback.apply(that.element, args);
                 }
-                that.el.trigger.apply(that.el, ['suggestions-' + event.toLowerCase()].concat(args));
+                that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
                 that.triggering[event] = false;
             }
 

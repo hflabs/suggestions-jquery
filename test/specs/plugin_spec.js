@@ -58,7 +58,7 @@ describe('Common features', function () {
         this.instance.select(0);
 
         expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]));
+        expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]), true);
     });
 
     it('Should convert suggestions format', function () {

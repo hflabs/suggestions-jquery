@@ -39,7 +39,8 @@ describe('Select on blur', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[1])
+            helpers.appendUnrestrictedValue(suggestions[1]),
+            false
         );
     });
 
@@ -65,7 +66,8 @@ describe('Select on blur', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[2])
+            helpers.appendUnrestrictedValue(suggestions[2]),
+            true
         );
     });
 
