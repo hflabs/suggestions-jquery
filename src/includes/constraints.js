@@ -262,6 +262,7 @@
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
                 var that = this.getParentInstance(),
+                    parentData,
                     parentValueData;
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
@@ -274,9 +275,13 @@
                 parentValueData = that.type.composeValue(parentValueData);
 
                 if (parentValueData) {
+                    parentData = that.copyBoundedData(suggestion.data, that.bounds.all);
+                    if (suggestion.data.kladr_id) {
+                        parentData.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
+                    }
                     that.setSuggestion({
                         value: parentValueData,
-                        data: that.copyBoundedData(suggestion.data, that.bounds.all)
+                        data: parentData
                     });
                 }
             }

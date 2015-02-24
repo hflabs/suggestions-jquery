@@ -7,6 +7,16 @@
         bounds: null
     };
 
+    var KLADR_LENGTH = {
+            'region': { digits: 2, zeros: 11 },
+            'area': { digits: 5, zeros: 8 },
+            'city': { digits: 8, zeros: 5 },
+            'settlement': { digits: 11, zeros: 2 },
+            'street': { digits: 15, zeros: 2 },
+            'house': {digits: 19 }
+        },
+        KLADR_MIN_LENGTH = 11;
+
     var methods = {
 
         setupBounds: function () {
@@ -99,6 +109,18 @@
                         })
                     }
                 });
+            }
+
+            return result;
+        },
+
+        getBoundedKladrId: function (kladr_id, boundsRange) {
+            var boundTo = boundsRange[boundsRange.length - 1],
+                kladrLength = KLADR_LENGTH[boundTo],
+                result = kladr_id.substr(0, kladrLength.digits);
+
+            if (kladrLength.zeros) {
+                result += new Array(kladrLength.zeros + 1).join('0');
             }
 
             return result;
