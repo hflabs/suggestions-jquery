@@ -44,13 +44,13 @@ describe('Common features', function () {
         expect(this.instance.currentValue).toEqual('Jam');
     });
 
-    it('Verify onSelect callback', function () {
-        var suggestions = [{ value: 'A', data: 'B' }],
+    it('Verify onSelect callback (fully changed)', function () {
+        var suggestions = [{ value: 'Abcdef', data: 'B' }],
             options = {
                 onSelect: function(){}
             };
         spyOn(options, 'onSelect');
-        
+
         this.instance.setOptions(options);
         this.input.value = 'A';
         this.instance.onValueChange();
@@ -59,6 +59,29 @@ describe('Common features', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]), true);
+    });
+
+    it('Verify onSelect callback (just enriched)', function () {
+        var suggestions = [{
+                value: 'Abc',
+                data: {
+                    name: 'Name',
+                    surname: 'Surname',
+                    patronymic: 'Patronymic'
+                } }],
+            options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.input.value = 'Abc';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+        this.instance.select(0);
+
+        expect(options.onSelect.calls.count()).toEqual(1);
+        expect(options.onSelect).toHaveBeenCalledWith(helpers.appendUnrestrictedValue(suggestions[0]), false);
     });
 
     it('Should convert suggestions format', function () {

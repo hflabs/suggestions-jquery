@@ -68,7 +68,8 @@
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
-                    continueSelecting = selectionOptions && selectionOptions.continueSelecting;
+                    continueSelecting = selectionOptions && selectionOptions.continueSelecting,
+                    currentValue = that.currentValue;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -85,7 +86,7 @@
 
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
-                        that.selectSuggestion(enrichedSuggestion, index, $.extend({
+                        that.selectSuggestion(enrichedSuggestion, index, currentValue, $.extend({
                             hasBeenEnriched: hasBeenEnriched
                         }, selectionOptions));
                     });
@@ -96,14 +97,14 @@
              * Formats and selects final (enriched) suggestion
              * @param suggestion
              * @param index
+             * @param lastValue
              * @param selectionOptions
              */
-            selectSuggestion: function (suggestion, index, selectionOptions) {
+            selectSuggestion: function (suggestion, index, lastValue, selectionOptions) {
                 var that = this,
                     continueSelecting = selectionOptions.continueSelecting,
                     assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
-                    currentSelection = that.selection,
-                    currentValue = that.currentValue;
+                    currentSelection = that.selection;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -132,7 +133,7 @@
                 if (that.currentValue) {
                     that.selection = suggestion;
                     if (!that.areSuggestionsSame(suggestion, currentSelection)) {
-                        that.trigger('Select', suggestion, that.currentValue != currentValue);
+                        that.trigger('Select', suggestion, that.currentValue != lastValue);
                     }
                     that.onSelectComplete(continueSelecting);
                 } else {

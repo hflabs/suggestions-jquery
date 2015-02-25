@@ -390,11 +390,12 @@
         fixData: function () {
             var that = this,
                 fullQuery = that.extendedCurrentValue(),
+                currentValue = that.el.val(),
                 resolver = $.Deferred();
 
             resolver
                 .done(function (suggestion) {
-                    that.selectSuggestion(suggestion, 0, { hasBeenEnriched: true });
+                    that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
                 })
                 .fail(function () {
                     that.selection = null;
