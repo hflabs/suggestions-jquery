@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.2.6
+ * DaData.ru Suggestions jQuery plugin, version 15.3.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -44,7 +44,6 @@
             onSelectNothing: null,
             onInvalidateSelection: null,
             minChars: 1,
-            width: 'auto',
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
@@ -639,6 +638,7 @@
         };
         that.selection = null;
         that.$viewport = $(window);
+        that.$body = $(document.body);
         that.type = null;
 
         // Initialize and set options:
@@ -650,7 +650,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.2.6';
+    Suggestions.version = '15.3.1';
 
     $.Suggestions = Suggestions;
 
@@ -701,7 +701,7 @@
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
             that.el.after(that.$wrapper);
 
-            that.$wrapper.add(that.options.$helpers).on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
+            that.$wrapper.on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
         },
 
         removeWrapper: function () {
@@ -715,13 +715,13 @@
          * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
          * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
          */
-        onMousedown: function (event) {
+        onMousedown: function (e) {
             var that = this;
 
             // prevent moving focus out of the text field
-            event.preventDefault();
+            e.preventDefault();
 
-            // IE doesn't prevent moving focus even with event.preventDefault()
+            // IE doesn't prevent moving focus even with e.preventDefault()
             // so we set a flag to know when we should ignore the blur event
             that.cancelBlur = true;
             utils.delay(function () {
@@ -732,15 +732,19 @@
             // but we can't detect a mouseup or a click immediately afterward
             // so we have to track the next mousedown and close the menu if
             // the user clicks somewhere outside of the autocomplete
-            if (!$(event.target).closest(".ui-menu-item").length) {
+            if ($(e.target).closest(".ui-menu-item").length == 0) {
                 utils.delay(function () {
-                    $(document).one("mousedown", function (event) {
+                    $(document).one("mousedown", function (e) {
                         var $elements = that.el
                             .add(that.$wrapper)
                             .add(that.options.$helpers);
 
+                        if (that.options.floating) {
+                            $elements = $elements.add(that.$container);
+                        }
+
                         $elements = $elements.filter(function () {
-                            return this === event.target || $.contains(this, event.target);
+                            return this === e.target || $.contains(this, e.target);
                         });
 
                         if (!$elements.length) {
@@ -752,12 +756,18 @@
         },
 
         bindWindowEvents: function () {
-            var that = this;
-            that.$viewport.on('resize' + eventNS + that.uniqueId, $.proxy(that.fixPosition, that));
+            var that = this,
+                handler = $.proxy(that.fixPosition, that);
+
+            that.$viewport
+                .on('resize' + eventNS + that.uniqueId, handler)
+                .on('scroll' + eventNS + that.uniqueId, handler);
         },
 
         unbindWindowEvents: function () {
-            this.$viewport.off('resize' + eventNS + this.uniqueId);
+            this.$viewport
+                .off('resize' + eventNS + this.uniqueId)
+                .off('scroll' + eventNS + this.uniqueId);
         },
 
         scrollToTop: function () {
@@ -789,16 +799,23 @@
                 }).join(', ');
             }
 
+            $(that.options.$helpers)
+                .off(eventNS)
+                .on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
+
             that.notify('setOptions');
         },
 
         // Common public methods
 
-        fixPosition: function () {
+        fixPosition: function (e) {
             var that = this,
                 elLayout = {},
                 wrapperOffset,
                 origin;
+
+            if (e && e.type == 'scroll' && !that.options.floating) return;
+            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
 
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
@@ -1710,6 +1727,11 @@
             return result;
         }
 
+        var optionsUsed = {
+            width: 'auto',
+            floating: false
+        };
+
         var methods = {
 
             createContainer: function () {
@@ -1724,17 +1746,19 @@
                         });
 
                 that.$container = $container;
-                that.$wrapper.append($container);
-
-                // Only set width if it was provided:
-                if (options.width !== 'auto') {
-                    $container.width(options.width);
-                }
 
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
             },
 
-            // Dropdown event handlers
+            setContainerOptions: function () {
+                var that = this,
+                    mousedownEvent = 'mousedown' + eventNS;
+
+                that.$container.off(mousedownEvent);
+                if (that.options.floating) {
+                    that.$container.on(mousedownEvent, $.proxy(that.onMousedown, that));
+                }
+            },
 
             /**
              * Listen for click event on suggestions list:
@@ -1759,19 +1783,38 @@
             // Dropdown UI methods
 
             setDropdownPosition: function (origin, elLayout) {
-                var that = this;
+                var that = this,
+                    style;
 
-                that.$container
-                    .toggleClass(that.classes.mobile, that.isMobile)
-                    .css(that.isMobile ? {
+                if (that.isMobile) {
+                    style = {
                         left: origin.left - elLayout.left + 'px',
                         top: origin.top + elLayout.outerHeight + 'px',
                         width: that.$viewport.width() + 'px'
+                    };
+                } else {
+                    style = that.options.floating ? {
+                        left: elLayout.left + 'px',
+                        top: elLayout.top + elLayout.borderTop + elLayout.innerHeight + 'px'
                     } : {
                         left: origin.left + 'px',
-                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
-                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
+                    };
+
+                    // Defer to let body show scrollbars
+                    utils.delay(function () {
+                        var width = that.options.width;
+
+                        if (width === 'auto') {
+                            width = that.el.outerWidth();
+                        }
+                        that.$container.outerWidth(width);
                     });
+                }
+
+                that.$container
+                    .toggleClass(that.classes.mobile, that.isMobile)
+                    .css(style);
 
                 that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft;
             },
@@ -1865,6 +1908,7 @@
 
                 that.$container.show();
                 that.visible = true;
+                that.fixPosition();
                 that.setItemsPositions();
             },
 
@@ -2045,7 +2089,8 @@
                 var that = this;
                 that.visible = false;
                 that.selectedIndex = -1;
-                that.$container.hide()
+                that.$container
+                    .hide()
                     .empty();
             },
 
@@ -2147,10 +2192,13 @@
 
         };
 
+        $.extend(defaultOptions, optionsUsed);
+
         $.extend(Suggestions.prototype, methods);
 
         notificator
             .on('initialize', methods.createContainer)
+            .on('setOptions', methods.setContainerOptions)
             .on('fixPosition', methods.setDropdownPosition)
             .on('fixPosition', methods.setItemsPositions)
             .on('assignSuggestions', methods.suggest);

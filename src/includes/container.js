@@ -39,6 +39,11 @@
             return result;
         }
 
+        var optionsUsed = {
+            width: 'auto',
+            floating: false
+        };
+
         var methods = {
 
             createContainer: function () {
@@ -53,17 +58,19 @@
                         });
 
                 that.$container = $container;
-                that.$wrapper.append($container);
-
-                // Only set width if it was provided:
-                if (options.width !== 'auto') {
-                    $container.width(options.width);
-                }
 
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
             },
 
-            // Dropdown event handlers
+            setContainerOptions: function () {
+                var that = this,
+                    mousedownEvent = 'mousedown' + eventNS;
+
+                that.$container.off(mousedownEvent);
+                if (that.options.floating) {
+                    that.$container.on(mousedownEvent, $.proxy(that.onMousedown, that));
+                }
+            },
 
             /**
              * Listen for click event on suggestions list:
@@ -88,19 +95,38 @@
             // Dropdown UI methods
 
             setDropdownPosition: function (origin, elLayout) {
-                var that = this;
+                var that = this,
+                    style;
 
-                that.$container
-                    .toggleClass(that.classes.mobile, that.isMobile)
-                    .css(that.isMobile ? {
+                if (that.isMobile) {
+                    style = {
                         left: origin.left - elLayout.left + 'px',
                         top: origin.top + elLayout.outerHeight + 'px',
                         width: that.$viewport.width() + 'px'
+                    };
+                } else {
+                    style = that.options.floating ? {
+                        left: elLayout.left + 'px',
+                        top: elLayout.top + elLayout.borderTop + elLayout.innerHeight + 'px'
                     } : {
                         left: origin.left + 'px',
-                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px',
-                        width: (that.options.width === 'auto' ? that.el.outerWidth() : that.options.width) + 'px'
+                        top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
+                    };
+
+                    // Defer to let body show scrollbars
+                    utils.delay(function () {
+                        var width = that.options.width;
+
+                        if (width === 'auto') {
+                            width = that.el.outerWidth();
+                        }
+                        that.$container.outerWidth(width);
                     });
+                }
+
+                that.$container
+                    .toggleClass(that.classes.mobile, that.isMobile)
+                    .css(style);
 
                 that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft;
             },
@@ -194,6 +220,7 @@
 
                 that.$container.show();
                 that.visible = true;
+                that.fixPosition();
                 that.setItemsPositions();
             },
 
@@ -374,7 +401,8 @@
                 var that = this;
                 that.visible = false;
                 that.selectedIndex = -1;
-                that.$container.hide()
+                that.$container
+                    .hide()
                     .empty();
             },
 
@@ -476,10 +504,13 @@
 
         };
 
+        $.extend(defaultOptions, optionsUsed);
+
         $.extend(Suggestions.prototype, methods);
 
         notificator
             .on('initialize', methods.createContainer)
+            .on('setOptions', methods.setContainerOptions)
             .on('fixPosition', methods.setDropdownPosition)
             .on('fixPosition', methods.setItemsPositions)
             .on('assignSuggestions', methods.suggest);

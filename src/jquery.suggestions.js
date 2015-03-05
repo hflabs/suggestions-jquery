@@ -37,7 +37,6 @@
             onSelectNothing: null,
             onInvalidateSelection: null,
             minChars: 1,
-            width: 'auto',
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
@@ -131,6 +130,7 @@
         };
         that.selection = null;
         that.$viewport = $(window);
+        that.$body = $(document.body);
         that.type = null;
 
         // Initialize and set options:
@@ -193,7 +193,7 @@
             that.$wrapper = $('<div class="suggestions-wrapper"/>');
             that.el.after(that.$wrapper);
 
-            that.$wrapper.add(that.options.$helpers).on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
+            that.$wrapper.on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
         },
 
         removeWrapper: function () {
@@ -207,13 +207,13 @@
          * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
          * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
          */
-        onMousedown: function (event) {
+        onMousedown: function (e) {
             var that = this;
 
             // prevent moving focus out of the text field
-            event.preventDefault();
+            e.preventDefault();
 
-            // IE doesn't prevent moving focus even with event.preventDefault()
+            // IE doesn't prevent moving focus even with e.preventDefault()
             // so we set a flag to know when we should ignore the blur event
             that.cancelBlur = true;
             utils.delay(function () {
@@ -224,15 +224,19 @@
             // but we can't detect a mouseup or a click immediately afterward
             // so we have to track the next mousedown and close the menu if
             // the user clicks somewhere outside of the autocomplete
-            if (!$(event.target).closest(".ui-menu-item").length) {
+            if ($(e.target).closest(".ui-menu-item").length == 0) {
                 utils.delay(function () {
-                    $(document).one("mousedown", function (event) {
+                    $(document).one("mousedown", function (e) {
                         var $elements = that.el
                             .add(that.$wrapper)
                             .add(that.options.$helpers);
 
+                        if (that.options.floating) {
+                            $elements = $elements.add(that.$container);
+                        }
+
                         $elements = $elements.filter(function () {
-                            return this === event.target || $.contains(this, event.target);
+                            return this === e.target || $.contains(this, e.target);
                         });
 
                         if (!$elements.length) {
@@ -244,12 +248,18 @@
         },
 
         bindWindowEvents: function () {
-            var that = this;
-            that.$viewport.on('resize' + eventNS + that.uniqueId, $.proxy(that.fixPosition, that));
+            var that = this,
+                handler = $.proxy(that.fixPosition, that);
+
+            that.$viewport
+                .on('resize' + eventNS + that.uniqueId, handler)
+                .on('scroll' + eventNS + that.uniqueId, handler);
         },
 
         unbindWindowEvents: function () {
-            this.$viewport.off('resize' + eventNS + this.uniqueId);
+            this.$viewport
+                .off('resize' + eventNS + this.uniqueId)
+                .off('scroll' + eventNS + this.uniqueId);
         },
 
         scrollToTop: function () {
@@ -281,16 +291,23 @@
                 }).join(', ');
             }
 
+            $(that.options.$helpers)
+                .off(eventNS)
+                .on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
+
             that.notify('setOptions');
         },
 
         // Common public methods
 
-        fixPosition: function () {
+        fixPosition: function (e) {
             var that = this,
                 elLayout = {},
                 wrapperOffset,
                 origin;
+
+            if (e && e.type == 'scroll' && !that.options.floating) return;
+            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
 
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
