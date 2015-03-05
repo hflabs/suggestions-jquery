@@ -1750,6 +1750,14 @@
                 $container.on('click' + eventNS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
             },
 
+            removeContainer: function () {
+                var that = this;
+
+                if (that.options.floating) {
+                    that.$container.remove();
+                }
+            },
+
             setContainerOptions: function () {
                 var that = this,
                     mousedownEvent = 'mousedown' + eventNS;
@@ -2198,6 +2206,7 @@
 
         notificator
             .on('initialize', methods.createContainer)
+            .on('dispose', methods.removeContainer)
             .on('setOptions', methods.setContainerOptions)
             .on('fixPosition', methods.setDropdownPosition)
             .on('fixPosition', methods.setItemsPositions)
