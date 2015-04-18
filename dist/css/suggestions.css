@@ -32,7 +32,7 @@
   border-radius: 50%;
 }
 .suggestions-wrapper .suggestions-addon[data-addon-type="clear"] {
-  background: transparent url("data:image/svg+xml;utf8,<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><g><path d='m20,20m10,0l20,20l20,-20l10,10l-20,20l20,20l-10,10l-20,-20l-20,20l-10,-10l20,-20l-20,-20l10,-10' fill='#999'/></g></svg>") 50% 50% no-repeat;
+  background: transparent url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48Zz48cGF0aCBkPSdtMjAsMjBtMTAsMGwyMCwyMGwyMCwtMjBsMTAsMTBsLTIwLDIwbDIwLDIwbC0xMCwxMGwtMjAsLTIwbC0yMCwyMGwtMTAsLTEwbDIwLC0yMGwtMjAsLTIwbDEwLC0xMCcgZmlsbD0nIzk5OScvPjwvZz48L3N2Zz4=") 50% 50% no-repeat;
   background-size: contain;
   cursor: pointer;
   opacity: 0.8;
@@ -103,7 +103,7 @@
   width: 1em;
   display: inline-block;
   margin: 0 0 0 0.25em;
-  background: transparent url("data:image/svg+xml;utf8,<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><g><path d='m20,20m10,0l20,20l20,-20l10,10l-20,20l20,20l-10,10l-20,-20l-20,20l-10,-10l20,-20l-20,-20l10,-10' fill='#999'/></g></svg>") 50% 50% no-repeat;
+  background: transparent url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48Zz48cGF0aCBkPSdtMjAsMjBtMTAsMGwyMCwyMGwyMCwtMjBsMTAsMTBsLTIwLDIwbDIwLDIwbC0xMCwxMGwtMjAsLTIwbC0yMCwyMGwtMTAsLTEwbDIwLC0yMGwtMjAsLTIwbDEwLC0xMCcgZmlsbD0nIzk5OScvPjwvZz48L3N2Zz4=") 50% 50% no-repeat;
   background-size: contain;
   cursor: pointer;
   opacity: 0.8;
