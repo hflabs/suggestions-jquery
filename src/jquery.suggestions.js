@@ -730,6 +730,11 @@
             var that = this,
                 index = -1;
 
+            // When suggestion has just been selected
+            if (that.selection && !that.visible) {
+                return -1;
+            }
+
             if ($.trim(query) !== '') {
                 $.each(that.type.matchers, function (i, matcher) {
                     index = matcher.call(that.type, query, that.suggestions);
