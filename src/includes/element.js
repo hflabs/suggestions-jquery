@@ -21,17 +21,22 @@
 
             onElementBlur: function () {
                 var that = this;
+
                 // suggestion was clicked, blur should be ignored
                 // see container mousedown handler
                 if (that.cancelBlur) {
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({ trim: true, noSpace: true })
-                    .done(function (index) {
-                        // For NAMEs selecting keeps suggestions list visible, so hide it
-                        that.hide();
-                    });
+
+                if (that.options.triggerSelectOnBlur) {
+                    that.selectCurrentValue({trim: true, noSpace: true})
+                        .done(function (index) {
+                            // For NAMEs selecting keeps suggestions list visible, so hide it
+                            that.hide();
+                        });
+                }
+
                 if (!that.currentRequestIsEnrich) {
                     that.abortRequest();
                 }
@@ -62,7 +67,9 @@
                             break;
                         // if no suggestions available and user pressed Enter
                         case keys.ENTER:
-                            that.triggerOnSelectNothing();
+                            if (that.options.triggerSelectOnEnter) {
+                                that.triggerOnSelectNothing();
+                            }
                             break;
                     }
                     return;
@@ -82,7 +89,9 @@
                         break;
 
                     case keys.ENTER:
-                        that.selectCurrentValue({ trim: true });
+                        if (that.options.triggerSelectOnEnter) {
+                            that.selectCurrentValue({trim: true});
+                        }
                         break;
 
                     case keys.SPACE:

@@ -8,7 +8,8 @@ describe('Select on Space', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME',
-            deferRequestBy: 0
+            deferRequestBy: 0,
+            triggerSelectOnSpace: true
         }).suggestions();
         this.server = sinon.fakeServer.create();
     });

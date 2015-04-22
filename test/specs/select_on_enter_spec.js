@@ -157,6 +157,29 @@ describe('Select on Enter', function () {
         );
     });
 
+    it('Should not trigger on full match if `triggerSelectOnEnter` is false', function () {
+        var options = {
+                onSelect: function(){}
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+        this.server.respond();
+
+        this.input.value = 'Albania';
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect.calls.count()).toEqual(1);
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'}),
+            true
+        );
+    });
+
     it('Should trigger when suggestion is selected manually', function () {
         var options = {
                 onSelect: function(){}

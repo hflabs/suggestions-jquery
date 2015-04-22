@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.5.1
+ * DaData.ru Suggestions jQuery plugin, version 15.5.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -52,7 +52,9 @@
             noCache: false,
             containerClass: 'suggestions-suggestions',
             tabDisabled: false,
-            triggerSelectOnSpace: true,
+            triggerSelectOnSpace: false,
+            triggerSelectOnEnter: true,
+            triggerSelectOnBlur: true,
             preventBadQueries: false,
             hint: 'Выберите вариант или продолжите ввод',
             type: null,
@@ -650,7 +652,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.5.1';
+    Suggestions.version = '15.5.2';
 
     $.Suggestions = Suggestions;
 
@@ -1277,17 +1279,22 @@
 
             onElementBlur: function () {
                 var that = this;
+
                 // suggestion was clicked, blur should be ignored
                 // see container mousedown handler
                 if (that.cancelBlur) {
                     delete that.cancelBlur;
                     return;
                 }
-                that.selectCurrentValue({ trim: true, noSpace: true })
-                    .done(function (index) {
-                        // For NAMEs selecting keeps suggestions list visible, so hide it
-                        that.hide();
-                    });
+
+                if (that.options.triggerSelectOnBlur) {
+                    that.selectCurrentValue({trim: true, noSpace: true})
+                        .done(function (index) {
+                            // For NAMEs selecting keeps suggestions list visible, so hide it
+                            that.hide();
+                        });
+                }
+
                 if (!that.currentRequestIsEnrich) {
                     that.abortRequest();
                 }
@@ -1318,7 +1325,9 @@
                             break;
                         // if no suggestions available and user pressed Enter
                         case keys.ENTER:
-                            that.triggerOnSelectNothing();
+                            if (that.options.triggerSelectOnEnter) {
+                                that.triggerOnSelectNothing();
+                            }
                             break;
                     }
                     return;
@@ -1338,7 +1347,9 @@
                         break;
 
                     case keys.ENTER:
-                        that.selectCurrentValue({ trim: true });
+                        if (that.options.triggerSelectOnEnter) {
+                            that.selectCurrentValue({trim: true});
+                        }
                         break;
 
                     case keys.SPACE:

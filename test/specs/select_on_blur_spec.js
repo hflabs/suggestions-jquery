@@ -108,4 +108,23 @@ describe('Select on blur', function () {
 
         expect(options.onSelect).not.toHaveBeenCalled();
     });
+
+    it('Should NOT trigger when triggerSelectOnBlur is false', function () {
+        var suggestions = [{ value: 'Jamaica', data: 'J' }],
+            options = {
+                onSelect: function(){},
+                triggerSelectOnBlur: false
+            };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.input.value = 'A';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+
+        this.instance.selectedIndex = 0;
+        helpers.fireBlur(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
 });
