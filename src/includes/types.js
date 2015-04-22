@@ -110,6 +110,7 @@
                 'data.inn': null
             },
             matchers: [matchers.matchByFields],
+            geoEnabled: true,
             urlSuffix: 'party',
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
