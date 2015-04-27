@@ -112,7 +112,8 @@
         that.enrichmentCache = {};
         that.currentRequest = null;
         that.inputPhase = $.Deferred();
-        that.dataPhase = $.Deferred();
+        that.fetchPhase = $.Deferred();
+        that.enrichPhase = $.Deferred();
         that.onChangeTimeout = null;
         that.triggering = {};
         that.$wrapper = null;
@@ -447,7 +448,7 @@
 
         /**
          * Looks up parent instances
-         * @returns current value prepended by parents' values
+         * @returns {String} current value prepended by parents' values
          */
         extendedCurrentValue: function () {
             var that = this,
@@ -537,10 +538,10 @@
         updateSuggestions: function (query) {
             var that = this;
 
-            that.dataPhase = that.getSuggestions(query)
+            that.fetchPhase = that.getSuggestions(query)
                 .done(function (suggestions) {
                     that.assignSuggestions(suggestions, query);
-                })
+                });
         },
 
         /**
@@ -626,7 +627,6 @@
 
             request.always(function () {
                 that.currentRequest = null;
-                that.currentRequestIsEnrich = false;
                 that.notify('request');
             });
 
@@ -726,24 +726,6 @@
             return a && b &&
                 a.value === b.value &&
                 utils.areSame(a.data, b.data);
-        },
-
-        findSuggestionIndex: function (query) {
-            var that = this,
-                index = -1;
-
-            // When suggestion has just been selected
-            if (that.selection && !that.visible) {
-                return -1;
-            }
-
-            if ($.trim(query) !== '') {
-                $.each(that.type.matchers, function (i, matcher) {
-                    index = matcher.call(that.type, query, that.suggestions);
-                    return index === -1;
-                });
-            }
-            return index;
         }
 
     };

@@ -25,20 +25,22 @@
                 // suggestion was clicked, blur should be ignored
                 // see container mousedown handler
                 if (that.cancelBlur) {
-                    delete that.cancelBlur;
+                    that.cancelBlur = false;
                     return;
                 }
 
                 if (that.options.triggerSelectOnBlur) {
-                    that.selectCurrentValue({trim: true, noSpace: true})
-                        .done(function (index) {
+                    that.selectCurrentValue({noSpace: true})
+                        .always(function () {
                             // For NAMEs selecting keeps suggestions list visible, so hide it
                             that.hide();
                         });
+                } else {
+                    that.hide();
                 }
 
-                if (!that.currentRequestIsEnrich) {
-                    that.abortRequest();
+                if (that.fetchPhase.abort) {
+                    that.fetchPhase.abort();
                 }
             },
 
@@ -90,24 +92,19 @@
 
                     case keys.ENTER:
                         if (that.options.triggerSelectOnEnter) {
-                            that.selectCurrentValue({trim: true});
+                            that.selectCurrentValue();
                         }
                         break;
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                             e.preventDefault();
-                            that.selectCurrentValue({
-                                continueSelecting: true,
-                                dontEnrich: true
-                            })
-                                .done(function (index) {
+                            that.selectCurrentValue({ continueSelecting: true, dontEnrich: true })
+                                .fail(function () {
                                     // If all data fetched but nothing selected
-                                    if (index === -1) {
-                                        that.currentValue += ' ';
-                                        that.el.val(that.currentValue);
-                                        that.update();
-                                    }
+                                    that.currentValue += ' ';
+                                    that.el.val(that.currentValue);
+                                    that.update();
                                 });
                         }
                         return;

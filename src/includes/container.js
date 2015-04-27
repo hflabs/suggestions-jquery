@@ -200,12 +200,11 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push(
-                        '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
-                            formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
-                                unformattableTokens: that.type.STOPWORDS
-                            })
-                    );
+
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
+                    html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
+                        unformattableTokens: that.type.unformattableTokens
+                    }));
                     if (labels) {
                         html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
                     }

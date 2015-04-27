@@ -18,7 +18,7 @@
             /**
              * Selects current or first matched suggestion, but firstly waits for data ready
              * @param selectionOptions
-             * @returns {$.Deferred} promise, resolved with index of selected suggestion
+             * @returns {$.Deferred} promise, resolved with index of selected suggestion or rejected if nothing matched
              */
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
@@ -27,9 +27,27 @@
                 // force onValueChange to be executed if it has been deferred
                 that.inputPhase.resolve();
 
-                that.dataPhase
+                that.fetchPhase
                     .done(function () {
-                        result.resolve(that.doSelectCurrentValue(selectionOptions));
+                        var index;
+
+                        // When suggestion has already been selected and not modified
+                        if (that.selection && !that.visible) {
+                            result.reject();
+                        } else {
+                            index = that.findSuggestionIndex();
+
+                            that.select(index, selectionOptions);
+
+                            if (index === -1) {
+                                result.reject();
+                            } else {
+                                result.resolve(index);
+                            }
+                        }
+                    })
+                    .fail(function () {
+                        result.reject();
                     });
 
                 return result;
@@ -37,23 +55,23 @@
 
             /**
              * Selects current or first matched suggestion
-             * @param selectionOptions
              * @returns {number} index of found suggestion
              */
-            doSelectCurrentValue: function(selectionOptions) {
+            findSuggestionIndex: function() {
                 var that = this,
                     index = that.selectedIndex,
-                    trim = selectionOptions && selectionOptions.trim,
                     value;
 
                 if (index === -1) {
-                    value = that.el.val();
-                    if (trim) {
-                        value = $.trim(value);
+                    // matchers always operate with trimmed strings
+                    value = $.trim(that.el.val());
+                    if (value) {
+                        $.each(that.type.matchers, function (i, matcher) {
+                            index = matcher(value, that.suggestions);
+                            return index === -1;
+                        });
                     }
-                    index = that.findSuggestionIndex(value);
                 }
-                that.select(index, selectionOptions);
 
                 return index;
             },

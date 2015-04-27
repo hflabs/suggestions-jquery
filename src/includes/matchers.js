@@ -1,7 +1,6 @@
     /**
-     * Methods for selecting a suggestion
-     *
      * Matchers return index of suitable suggestion
+     * Context inside is optionally set in types.js
      */
     var matchers = function() {
 
@@ -28,7 +27,7 @@
              */
             matchByNormalizedQuery: function (query, suggestions) {
                 var queryLowerCase = query.toLowerCase(),
-                    stopwords = this.STOPWORDS,
+                    stopwords = this && this.stopwords,
                     normalizedQuery = utils.normalize(queryLowerCase, stopwords),
                     matches = [];
 
@@ -57,7 +56,7 @@
              * Matches if query words are a subset of suggested words.
              */
             matchByWords: function (query, suggestions) {
-                var stopwords = this.STOPWORDS,
+                var stopwords = this && this.stopwords,
                     queryLowerCase = query.toLowerCase(),
                     queryTokens,
                     index = -1;
@@ -86,8 +85,8 @@
             },
 
             matchByFields: function (query, suggestions) {
-                var stopwords = this.STOPWORDS,
-                    fieldsStopwords = this.fieldsStopwords,
+                var stopwords = this && this.stopwords,
+                    fieldsStopwords = this && this.fieldsStopwords,
                     tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
                     suggestionWords = [];
 

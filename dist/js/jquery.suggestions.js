@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.5.3
+ * DaData.ru Suggestions jQuery plugin, version 15.5.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -235,9 +235,8 @@
 
 
     /**
-     * Methods for selecting a suggestion
-     *
      * Matchers return index of suitable suggestion
+     * Context inside is optionally set in types.js
      */
     var matchers = function() {
 
@@ -264,7 +263,7 @@
              */
             matchByNormalizedQuery: function (query, suggestions) {
                 var queryLowerCase = query.toLowerCase(),
-                    stopwords = this.STOPWORDS,
+                    stopwords = this && this.stopwords,
                     normalizedQuery = utils.normalize(queryLowerCase, stopwords),
                     matches = [];
 
@@ -293,7 +292,7 @@
              * Matches if query words are a subset of suggested words.
              */
             matchByWords: function (query, suggestions) {
-                var stopwords = this.STOPWORDS,
+                var stopwords = this && this.stopwords,
                     queryLowerCase = query.toLowerCase(),
                     queryTokens,
                     index = -1;
@@ -322,8 +321,8 @@
             },
 
             matchByFields: function (query, suggestions) {
-                var stopwords = this.STOPWORDS,
-                    fieldsStopwords = this.fieldsStopwords,
+                var stopwords = this && this.stopwords,
+                    fieldsStopwords = this && this.fieldsStopwords,
                     tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
                     suggestionWords = [];
 
@@ -353,11 +352,39 @@
 
     (function () {
 
+        /**
+         * Type is a bundle of properties:
+         * - urlSuffix Mandatory. String
+         * - matchers Mandatory. Array of functions (with optional data bound as a context) that find appropriate suggestion to select
+         * - `fieldNames` Map fields of suggestion.data to their displayable names
+         * - `unformattableTokens` Array of strings which should not be highlighted
+         * - `boundsAvailable` Array of 'bound's can be set as `bounds` option. Order is important.
+         * - `boundsFields` Map of fields of `suggestion.data` corresponding to each bound
+         *
+         * flags:
+         * - `alwaysContinueSelecting` Forbids to hide dropdown after selecting
+         * - `geoEnabled` Makes to detect client's location for passing it to all requests
+         * - `enrichmentEnabled` Makes to send additional request when a suggestion is selected
+         *
+         * and methods:
+         * - `isDataComplete` Checks if suggestion.data can be operated as full data of it's type
+         * - `composeValue` returns string value based on suggestion.data
+         * - `formatResult` returns html of a suggestion. Overrides default method
+         * - `formatResultInn` returns html of suggestion.data.inn
+         * - `isQueryRequestable` checks if query is appropriated for requesting server
+         * - `formatSelected` returns string to be inserted in textbox
+         */
+
         var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
         var rHasMatch = /<strong>/;
 
-        function valueStartsWith (suggestion, field){
+        var innPartsLengths = {
+            'LEGAL': [2, 2, 5, 1],
+            'INDIVIDUAL': [2, 2, 6, 2]
+        };
+
+        function valueStartsWith (suggestion, field) {
             var fieldValue = suggestion.data && suggestion.data[field];
 
             return fieldValue &&
@@ -380,7 +407,16 @@
         }
 
         types['NAME'] = {
+            urlSuffix: 'fio',
             matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
+            // names for labels, describing which fields are displayed
+            fieldNames: {
+                surname: 'фамилия',
+                name: 'имя',
+                patronymic: 'отчество'
+            },
+            // try to suggest even if a suggestion has been selected manually
+            alwaysContinueSelecting: true,
             isDataComplete: function (suggestion) {
                 var that = this,
                     params = that.options.params,
@@ -406,24 +442,15 @@
             },
             composeValue: function (data) {
                 return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-            },
-            urlSuffix: 'fio',
-
-            // names for labels, describing which fields are displayed
-            fieldNames: {
-                surname: 'фамилия',
-                name: 'имя',
-                patronymic: 'отчество'
-            },
-            // try to suggest even if a suggestion has been selected manually
-            alwaysContinueSelecting: true
+            }
         };
 
         types['ADDRESS'] = {
-            STOPWORDS: ADDRESS_STOPWORDS,
-            matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
-            geoEnabled: true,
-            enrichmentEnabled: true,
+            urlSuffix: 'address',
+            matchers: [
+                $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
+                $.proxy(matchers.matchByWords, { stopwords: ADDRESS_STOPWORDS })
+            ],
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             boundsFields: {
                 'region': ['region', 'region_type', 'region_type_full', 'region_with_type'],
@@ -434,6 +461,9 @@
                 'house': ['house', 'house_type', 'house_type_full',
                     'block', 'block_type']
             },
+            unformattableTokens: ADDRESS_STOPWORDS,
+            enrichmentEnabled: true,
+            geoEnabled: true,
             isDataComplete: function (suggestion) {
                 var fields = [this.bounds.to || 'flat'],
                     data = suggestion.data;
@@ -451,20 +481,22 @@
                     utils.compact([data.flat_type, data.flat]).join(' '),
                     data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
-            },
-            urlSuffix: 'address'
+            }
         };
 
         types['PARTY'] = {
-            // These fields of suggestion's `data` used by by-words matcher
-            fieldsStopwords: {
-                'value': null,
-                'data.address.value': ADDRESS_STOPWORDS,
-                'data.inn': null
-            },
-            matchers: [matchers.matchByFields],
-            geoEnabled: true,
             urlSuffix: 'party',
+            matchers: [
+                $.proxy(matchers.matchByFields, {
+                    // These fields of suggestion's `data` used by by-words matcher
+                    fieldsStopwords: {
+                        'value': null,
+                        'data.address.value': ADDRESS_STOPWORDS,
+                        'data.inn': null
+                    }
+                })
+            ],
+            geoEnabled: true,
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
@@ -501,14 +533,10 @@
                 }
                 return value;
             },
-            innPartsLength: {
-                'LEGAL': [2, 2, 5, 1],
-                'INDIVIDUAL': [2, 2, 6, 2]
-            },
             formatResultInn: function(suggestion, currentValue) {
                 var that = this,
                     inn = suggestion.data && suggestion.data.inn,
-                    innPartsLength = that.type.innPartsLength[suggestion.data && suggestion.data.type],
+                    innPartsLength = innPartsLengths[suggestion.data && suggestion.data.type],
                     innParts,
                     formattedInn,
                     rDigit = /\d/;
@@ -621,7 +649,8 @@
         that.enrichmentCache = {};
         that.currentRequest = null;
         that.inputPhase = $.Deferred();
-        that.dataPhase = $.Deferred();
+        that.fetchPhase = $.Deferred();
+        that.enrichPhase = $.Deferred();
         that.onChangeTimeout = null;
         that.triggering = {};
         that.$wrapper = null;
@@ -653,7 +682,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.5.3';
+    Suggestions.version = '15.5.4';
 
     $.Suggestions = Suggestions;
 
@@ -956,7 +985,7 @@
 
         /**
          * Looks up parent instances
-         * @returns current value prepended by parents' values
+         * @returns {String} current value prepended by parents' values
          */
         extendedCurrentValue: function () {
             var that = this,
@@ -1046,10 +1075,10 @@
         updateSuggestions: function (query) {
             var that = this;
 
-            that.dataPhase = that.getSuggestions(query)
+            that.fetchPhase = that.getSuggestions(query)
                 .done(function (suggestions) {
                     that.assignSuggestions(suggestions, query);
-                })
+                });
         },
 
         /**
@@ -1135,7 +1164,6 @@
 
             request.always(function () {
                 that.currentRequest = null;
-                that.currentRequestIsEnrich = false;
                 that.notify('request');
             });
 
@@ -1235,24 +1263,6 @@
             return a && b &&
                 a.value === b.value &&
                 utils.areSame(a.data, b.data);
-        },
-
-        findSuggestionIndex: function (query) {
-            var that = this,
-                index = -1;
-
-            // When suggestion has just been selected
-            if (that.selection && !that.visible) {
-                return -1;
-            }
-
-            if ($.trim(query) !== '') {
-                $.each(that.type.matchers, function (i, matcher) {
-                    index = matcher.call(that.type, query, that.suggestions);
-                    return index === -1;
-                });
-            }
-            return index;
         }
 
     };
@@ -1284,20 +1294,22 @@
                 // suggestion was clicked, blur should be ignored
                 // see container mousedown handler
                 if (that.cancelBlur) {
-                    delete that.cancelBlur;
+                    that.cancelBlur = false;
                     return;
                 }
 
                 if (that.options.triggerSelectOnBlur) {
-                    that.selectCurrentValue({trim: true, noSpace: true})
-                        .done(function (index) {
+                    that.selectCurrentValue({noSpace: true})
+                        .always(function () {
                             // For NAMEs selecting keeps suggestions list visible, so hide it
                             that.hide();
                         });
+                } else {
+                    that.hide();
                 }
 
-                if (!that.currentRequestIsEnrich) {
-                    that.abortRequest();
+                if (that.fetchPhase.abort) {
+                    that.fetchPhase.abort();
                 }
             },
 
@@ -1349,24 +1361,19 @@
 
                     case keys.ENTER:
                         if (that.options.triggerSelectOnEnter) {
-                            that.selectCurrentValue({trim: true});
+                            that.selectCurrentValue();
                         }
                         break;
 
                     case keys.SPACE:
                         if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                             e.preventDefault();
-                            that.selectCurrentValue({
-                                continueSelecting: true,
-                                dontEnrich: true
-                            })
-                                .done(function (index) {
+                            that.selectCurrentValue({ continueSelecting: true, dontEnrich: true })
+                                .fail(function () {
                                     // If all data fetched but nothing selected
-                                    if (index === -1) {
-                                        that.currentValue += ' ';
-                                        that.el.val(that.currentValue);
-                                        that.update();
-                                    }
+                                    that.currentValue += ' ';
+                                    that.el.val(that.currentValue);
+                                    that.update();
                                 });
                         }
                         return;
@@ -1658,8 +1665,7 @@
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
-                that.currentRequestIsEnrich = true;
-                that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
+                that.enrichPhase = that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                     .always(function () {
                         that.enableDropdown();
                     })
@@ -1905,12 +1911,11 @@
                     if (suggestion == that.selection) {
                         that.selectedIndex = i;
                     }
-                    html.push(
-                        '<div class="' + that.classes.suggestion + '" data-index="' + i + '">' +
-                            formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
-                                unformattableTokens: that.type.STOPWORDS
-                            })
-                    );
+
+                    html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
+                    html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
+                        unformattableTokens: that.type.unformattableTokens
+                    }));
                     if (labels) {
                         html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
                     }
@@ -2792,7 +2797,7 @@
             /**
              * Selects current or first matched suggestion, but firstly waits for data ready
              * @param selectionOptions
-             * @returns {$.Deferred} promise, resolved with index of selected suggestion
+             * @returns {$.Deferred} promise, resolved with index of selected suggestion or rejected if nothing matched
              */
             selectCurrentValue: function (selectionOptions) {
                 var that = this,
@@ -2801,9 +2806,27 @@
                 // force onValueChange to be executed if it has been deferred
                 that.inputPhase.resolve();
 
-                that.dataPhase
+                that.fetchPhase
                     .done(function () {
-                        result.resolve(that.doSelectCurrentValue(selectionOptions));
+                        var index;
+
+                        // When suggestion has already been selected and not modified
+                        if (that.selection && !that.visible) {
+                            result.reject();
+                        } else {
+                            index = that.findSuggestionIndex();
+
+                            that.select(index, selectionOptions);
+
+                            if (index === -1) {
+                                result.reject();
+                            } else {
+                                result.resolve(index);
+                            }
+                        }
+                    })
+                    .fail(function () {
+                        result.reject();
                     });
 
                 return result;
@@ -2811,23 +2834,23 @@
 
             /**
              * Selects current or first matched suggestion
-             * @param selectionOptions
              * @returns {number} index of found suggestion
              */
-            doSelectCurrentValue: function(selectionOptions) {
+            findSuggestionIndex: function() {
                 var that = this,
                     index = that.selectedIndex,
-                    trim = selectionOptions && selectionOptions.trim,
                     value;
 
                 if (index === -1) {
-                    value = that.el.val();
-                    if (trim) {
-                        value = $.trim(value);
+                    // matchers always operate with trimmed strings
+                    value = $.trim(that.el.val());
+                    if (value) {
+                        $.each(that.type.matchers, function (i, matcher) {
+                            index = matcher(value, that.suggestions);
+                            return index === -1;
+                        });
                     }
-                    index = that.findSuggestionIndex(value);
                 }
-                that.select(index, selectionOptions);
 
                 return index;
             },
