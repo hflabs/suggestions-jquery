@@ -104,7 +104,7 @@
                                     // If all data fetched but nothing selected
                                     that.currentValue += ' ';
                                     that.el.val(that.currentValue);
-                                    that.update();
+                                    that.proceedChangedValue();
                                 });
                         }
                         return;
@@ -142,18 +142,26 @@
                 that.inputPhase.reject();
 
                 if (that.currentValue !== that.el.val()) {
+                    that.proceedChangedValue();
+                }
+            },
 
-                    that.inputPhase = $.Deferred()
-                        .done($.proxy(that.onValueChange, that));
+            proceedChangedValue: function () {
+                var that = this;
 
-                    if (that.options.deferRequestBy > 0) {
-                        // Defer lookup in case when value changes very quickly:
-                        that.onChangeTimeout = utils.delay(function () {
-                            that.inputPhase.resolve();
-                        }, that.options.deferRequestBy);
-                    } else {
+                // Cancel fetching, because it became obsolete
+                that.abortRequest();
+
+                that.inputPhase = $.Deferred()
+                    .done($.proxy(that.onValueChange, that));
+
+                if (that.options.deferRequestBy > 0) {
+                    // Defer lookup in case when value changes very quickly:
+                    that.onChangeTimeout = utils.delay(function () {
                         that.inputPhase.resolve();
-                    }
+                    }, that.options.deferRequestBy);
+                } else {
+                    that.inputPhase.resolve();
                 }
             },
 
