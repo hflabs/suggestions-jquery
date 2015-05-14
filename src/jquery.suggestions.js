@@ -40,6 +40,7 @@
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
+            timeout: 3000,
             formatResult: null,
             formatSelected: null,
             noCache: false,
@@ -464,7 +465,9 @@
                 token = $.trim(that.options.token),
                 serviceUrl = that.options.serviceUrl,
                 serviceMethod = serviceMethods[method],
-                params = $.extend({}, serviceMethod.defaultParams),
+                params = $.extend({
+                    timeout: that.options.timeout
+                }, serviceMethod.defaultParams),
                 headers = {};
 
             if (!/\/$/.test(serviceUrl)) {

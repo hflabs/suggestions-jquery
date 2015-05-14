@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.5.4
+ * DaData.ru Suggestions jQuery plugin, version 15.6.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -47,6 +47,7 @@
             deferRequestBy: 100,
             params: {},
             paramName: 'query',
+            timeout: 3000,
             formatResult: null,
             formatSelected: null,
             noCache: false,
@@ -682,7 +683,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.5.4';
+    Suggestions.version = '15.6.1';
 
     $.Suggestions = Suggestions;
 
@@ -1001,7 +1002,9 @@
                 token = $.trim(that.options.token),
                 serviceUrl = that.options.serviceUrl,
                 serviceMethod = serviceMethods[method],
-                params = $.extend({}, serviceMethod.defaultParams),
+                params = $.extend({
+                    timeout: that.options.timeout
+                }, serviceMethod.defaultParams),
                 headers = {};
 
             if (!/\/$/.test(serviceUrl)) {
