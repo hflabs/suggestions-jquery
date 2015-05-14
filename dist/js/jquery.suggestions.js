@@ -527,8 +527,8 @@
                 if (formattedInnOGRN || address || formattedFIO) {
                     value +=
                         '<div class="' + that.classes.subtext + '">' +
-                        '<span class="' + that.classes.subtext_inline + '">' + formattedInnOGRN + '</span>' +
-                        chooseFormattedField(address, formattedFIO) +
+                        '<span class="' + that.classes.subtext_inline + '">' + (formattedInnOGRN || '') + '</span>' +
+                        (chooseFormattedField(address, formattedFIO) || '') +
                         '</div>';
                 }
                 return value;
