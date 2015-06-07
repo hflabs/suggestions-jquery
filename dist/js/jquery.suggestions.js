@@ -1302,11 +1302,13 @@
                 }
 
                 if (that.options.triggerSelectOnBlur) {
-                    that.selectCurrentValue({noSpace: true})
-                        .always(function () {
-                            // For NAMEs selecting keeps suggestions list visible, so hide it
-                            that.hide();
-                        });
+                    if (!that.disabled) {
+                        that.selectCurrentValue({ noSpace: true })
+                            .always(function () {
+                                // For NAMEs selecting keeps suggestions list visible, so hide it
+                                that.hide();
+                            });
+                    }
                 } else {
                     that.hide();
                 }
@@ -1455,6 +1457,10 @@
 
             completeOnFocus: function () {
                 var that = this;
+
+                if (that.disabled) {
+                    return;
+                }
 
                 if (that.isElementFocused()) {
                     that.fixPosition();
