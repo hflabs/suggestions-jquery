@@ -1588,15 +1588,16 @@
         var methods = {
 
             checkLocation: function () {
-                var that = this;
+                var that = this,
+                    providedLocation = that.options.geoLocation;
 
-                if (!that.type.geoEnabled || !that.options.geoLocation) {
+                if (!that.type.geoEnabled || !providedLocation) {
                     return;
                 }
 
                 that.geoLocation = $.Deferred();
-                if ($.isPlainObject(that.options.geoLocation)) {
-                    that.geoLocation.resolve(that.options.geoLocation);
+                if ($.isPlainObject(providedLocation) || $.isArray(providedLocation)) {
+                    that.geoLocation.resolve(providedLocation);
                 } else {
                     if (!locationRequest) {
                         locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
@@ -1631,7 +1632,7 @@
 
                 if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
                     that.geoLocation.done(function(locationData){
-                        params['locations_boost'] = [locationData];
+                        params['locations_boost'] = $.makeArray(locationData);
                     });
                 }
 

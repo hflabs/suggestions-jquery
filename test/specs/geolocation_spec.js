@@ -74,7 +74,7 @@ describe('Geolocation', function(){
         expect(this.server.requests.length).toEqual(0);
     });
 
-    it('Should send location set by `geoLocation` option', function () {
+    it('Should send location set by `geoLocation` option as object', function () {
 
         this.$input.suggestions({
             serviceUrl: serviceUrl,
@@ -89,6 +89,21 @@ describe('Geolocation', function(){
         this.$input.suggestions('onValueChange');
 
         expect(this.server.requests[1].requestBody).toContain('"locations_boost":[{"kladr_id":"83"}]');
+    });
+
+    it('Should send location set by `geoLocation` option as array', function () {
+
+        this.$input.suggestions({
+            serviceUrl: serviceUrl,
+            type: 'ADDRESS',
+            useDadata: false,
+            geoLocation: [{ kladr_id: '77' }, { kladr_id: '50' }]
+        });
+
+        this.$input.val('A');
+        this.$input.suggestions('onValueChange');
+
+        expect(this.server.requests[1].requestBody).toContain('"locations_boost":[{"kladr_id":"77"},{"kladr_id":"50"}]');
     });
 
 });
