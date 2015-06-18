@@ -394,7 +394,7 @@
                 value;
 
             if ($.isPlainObject(suggestion)) {
-                value = suggestion.value || '';
+                value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
                 that.selection = suggestion;
