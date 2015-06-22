@@ -31,15 +31,15 @@
          * @param instance other Suggestions instance
          */
         function belongsToArea(suggestion, instance){
-            var result = true,
-                parentSuggestion = instance.selection;
+            var parentSuggestion = instance.selection,
+                result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
-            if (parentSuggestion && parentSuggestion.data && instance.bounds) {
+            if (result) {
                 $.each(instance.bounds.all, function (i, bound) {
                     return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
                 });
-                return result;
             }
+            return result;
         }
 
         var methods = {
@@ -261,29 +261,14 @@
 
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
-                var that = this.getParentInstance(),
-                    parentData,
-                    parentValueData;
+                var that = this.getParentInstance();
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
                     return;
                 }
 
                 that.shareWithParent(suggestion);
-
-                parentValueData = that.copyBoundedData(suggestion.data, that.bounds.own);
-                parentValueData = that.type.composeValue(parentValueData);
-
-                if (parentValueData) {
-                    parentData = that.copyBoundedData(suggestion.data, that.bounds.all);
-                    if (suggestion.data.kladr_id) {
-                        parentData.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
-                    }
-                    that.setSuggestion({
-                        value: parentValueData,
-                        data: parentData
-                    });
-                }
+                that.setSuggestion(suggestion);
             }
 
         };

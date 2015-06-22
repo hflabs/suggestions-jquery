@@ -415,6 +415,8 @@ describe('Address constraints', function () {
             this.parentInstance.setSuggestion({
                 value: 'г. Санкт-Петербург',
                 data: {
+                    region: 'Санкт-Петербург',
+                    region_type: 'г',
                     kladr_id: '7800000000000'
                 }
             });
@@ -478,10 +480,8 @@ describe('Address constraints', function () {
         });
 
         it('Should not fill non-empty parent control with territory including a selected', function () {
-            var mockValue = 'выбранная ранее область';
-
             this.parentInstance.setSuggestion({
-                value: mockValue,
+                value: 'Тульская, Узловский',
                 data: {
                     region: 'Тульская',
                     area: 'Узловский'
@@ -499,7 +499,7 @@ describe('Address constraints', function () {
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 
-            expect(this.$parent.val()).toEqual(mockValue);
+            expect(this.$parent.val()).toEqual('Тульская, Узловский');
             expect(this.parentInstance.selection.data).toEqual({
                 region: 'Тульская',
                 area: 'Узловский'

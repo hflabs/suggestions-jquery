@@ -146,7 +146,7 @@ describe('After selecting', function () {
     it('Should do nothing if select same suggestion twice', function () {
         var suggestion = {
                 value: 'Some value',
-                data: null
+                data: {}
             },
             options = {
                 onSelect: $.noop

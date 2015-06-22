@@ -14,8 +14,7 @@
             'settlement': { digits: 11, zeros: 2 },
             'street': { digits: 15, zeros: 2 },
             'house': {digits: 19 }
-        },
-        KLADR_MIN_LENGTH = 11;
+        };
 
     var methods = {
 

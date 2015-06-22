@@ -392,9 +392,21 @@
 
         setSuggestion: function (suggestion) {
             var that = this,
+                data,
                 value;
 
-            if ($.isPlainObject(suggestion)) {
+            if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
+                suggestion = $.extend(true, {}, suggestion);
+
+                if (that.bounds.own.length) {
+                    that.checkValueBounds(suggestion);
+                    data = that.copyBoundedData(suggestion.data, that.bounds.all);
+                    if (suggestion.data.kladr_id) {
+                        data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
+                    }
+                    suggestion.data = data;
+                }
+
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);

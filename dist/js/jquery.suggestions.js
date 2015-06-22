@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.6.1
+ * DaData.ru Suggestions jQuery plugin, version 15.7.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -683,7 +683,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.6.1';
+    Suggestions.version = '15.7.1';
 
     $.Suggestions = Suggestions;
 
@@ -929,9 +929,21 @@
 
         setSuggestion: function (suggestion) {
             var that = this,
+                data,
                 value;
 
-            if ($.isPlainObject(suggestion)) {
+            if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
+                suggestion = $.extend(true, {}, suggestion);
+
+                if (that.bounds.own.length) {
+                    that.checkValueBounds(suggestion);
+                    data = that.copyBoundedData(suggestion.data, that.bounds.all);
+                    if (suggestion.data.kladr_id) {
+                        data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
+                    }
+                    suggestion.data = data;
+                }
+
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
@@ -2520,15 +2532,15 @@
          * @param instance other Suggestions instance
          */
         function belongsToArea(suggestion, instance){
-            var result = true,
-                parentSuggestion = instance.selection;
+            var parentSuggestion = instance.selection,
+                result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
-            if (parentSuggestion && parentSuggestion.data && instance.bounds) {
+            if (result) {
                 $.each(instance.bounds.all, function (i, bound) {
                     return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
                 });
-                return result;
             }
+            return result;
         }
 
         var methods = {
@@ -2750,29 +2762,14 @@
 
             shareWithParent: function (suggestion) {
                 // that is the parent control's instance
-                var that = this.getParentInstance(),
-                    parentData,
-                    parentValueData;
+                var that = this.getParentInstance();
 
                 if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
                     return;
                 }
 
                 that.shareWithParent(suggestion);
-
-                parentValueData = that.copyBoundedData(suggestion.data, that.bounds.own);
-                parentValueData = that.type.composeValue(parentValueData);
-
-                if (parentValueData) {
-                    parentData = that.copyBoundedData(suggestion.data, that.bounds.all);
-                    if (suggestion.data.kladr_id) {
-                        parentData.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
-                    }
-                    that.setSuggestion({
-                        value: parentValueData,
-                        data: parentData
-                    });
-                }
+                that.setSuggestion(suggestion);
             }
 
         };
@@ -3014,8 +3011,7 @@
             'settlement': { digits: 11, zeros: 2 },
             'street': { digits: 15, zeros: 2 },
             'house': {digits: 19 }
-        },
-        KLADR_MIN_LENGTH = 11;
+        };
 
     var methods = {
 
