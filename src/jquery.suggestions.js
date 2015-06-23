@@ -388,7 +388,7 @@
         },
 
         isUnavailable: function () {
-            return this.disabled || !this.status.search;
+            return this.disabled;
         },
 
         update: function () {
