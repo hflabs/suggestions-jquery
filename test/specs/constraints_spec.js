@@ -33,7 +33,6 @@ describe('Address constraints', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: false
         }).suggestions();
     });
@@ -399,7 +398,6 @@ describe('Address constraints', function () {
                 type: 'ADDRESS',
                 serviceUrl: serviceUrl,
                 geoLocation: false,
-                useDadata: false,
                 bounds: 'region-area'
             });
 

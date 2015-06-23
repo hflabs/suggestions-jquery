@@ -9,6 +9,8 @@ describe('Nothing selected callback', function () {
         ];
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
+
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
@@ -19,6 +21,8 @@ describe('Nothing selected callback', function () {
             onSelect: $.noop,
             geoLocation: false
         }).suggestions();
+
+        helpers.returnGoodStatus(this.server);
 
         this.server.respond();
         this.server.requests.length = 0;

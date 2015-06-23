@@ -4,6 +4,10 @@ describe('Select on Space', function () {
     var serviceUrl = '/some/url';
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
@@ -11,7 +15,8 @@ describe('Select on Space', function () {
             deferRequestBy: 0,
             triggerSelectOnSpace: true
         }).suggestions();
-        this.server = sinon.fakeServer.create();
+
+        helpers.returnGoodStatus(this.server);
     });
 
     afterEach(function () {

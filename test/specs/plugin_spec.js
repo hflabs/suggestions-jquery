@@ -4,6 +4,10 @@ describe('Common features', function () {
     var serviceUrl = '/some/url';
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
@@ -13,7 +17,8 @@ describe('Common features', function () {
             mobileWidth: NaN
         }).suggestions();
 
-        this.server = sinon.fakeServer.create();
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
     });
     
     afterEach(function () {
@@ -133,10 +138,15 @@ describe('Common features', function () {
     describe('when `bounds` specified', function () {
 
         beforeEach(function(){
+            $.Suggestions.resetTokens();
+
             this.instance.setOptions({
                 type: 'ADDRESS',
-                geoLocation: false,
+                geoLocation: false
             });
+
+            helpers.returnGoodStatus(this.server);
+            this.server.requests.length = 0;
         });
 
         it('Should include `bounds` option into request, if it is a range', function () {
@@ -353,6 +363,8 @@ describe('Common features', function () {
             type: 'EMAIL',
             suggest_local: false
         });
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
 
         this.input.value = 'jam';
         this.instance.onValueChange();

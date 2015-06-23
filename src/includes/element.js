@@ -30,7 +30,7 @@
                 }
 
                 if (that.options.triggerSelectOnBlur) {
-                    if (!that.disabled) {
+                    if (!that.isUnavailable()) {
                         that.selectCurrentValue({ noSpace: true })
                             .always(function () {
                                 // For NAMEs selecting keeps suggestions list visible, so hide it
@@ -59,7 +59,7 @@
             onElementKeyDown: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 
@@ -128,7 +128,7 @@
             onElementKeyUp: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 
@@ -186,7 +186,7 @@
             completeOnFocus: function () {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 

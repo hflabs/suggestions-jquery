@@ -1,10 +1,13 @@
-
 describe('Element events', function () {
     'use strict';
 
     var serviceUrl = '/some/url';
 
     beforeEach(function () {
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
@@ -12,7 +15,7 @@ describe('Element events', function () {
             type: 'NAME'
         }).suggestions();
 
-        this.server = sinon.fakeServer.create();
+        helpers.returnGoodStatus(this.server);
     });
 
     afterEach(function () {
@@ -80,8 +83,7 @@ describe('Element events', function () {
         $parent.suggestions({
             type: 'ADDRESS',
             serviceUrl: serviceUrl,
-            geoLocation: false,
-            useDadata: false
+            geoLocation: false
         });
 
         spyOn(this.instance, 'onParentDispose');

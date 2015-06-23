@@ -8,7 +8,6 @@ describe('Autoselect', function () {
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: false
         }).suggestions();
         this.server = sinon.fakeServer.create();

@@ -3,18 +3,21 @@ describe('Adding space on selecting', function () {
 
     var serviceUrl = '/some/url';
 
-    describe('For NAME controls', function(){
+    describe('For NAME controls', function () {
 
-        beforeEach(function(){
+        beforeEach(function () {
+            $.Suggestions.resetTokens();
+
+            this.server = sinon.fakeServer.create();
+
             this.input = document.createElement('input');
             this.$input = $(this.input).appendTo($('body'));
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
-                type: 'NAME',
-                useDadata: false
+                type: 'NAME'
             }).suggestions();
 
-            this.server = sinon.fakeServer.create();
+            helpers.returnGoodStatus(this.server);
         });
 
         afterEach(function () {
@@ -125,7 +128,7 @@ describe('Adding space on selecting', function () {
 
         it('Should not add SPACE if only part expected (params set as function)', function () {
             this.instance.setOptions({
-                params: function(query) {
+                params: function (query) {
                     return {
                         parts: ['SURNAME']
                     };
@@ -151,9 +154,11 @@ describe('Adding space on selecting', function () {
 
     });
 
-    describe('For ADDRESS controls', function(){
+    describe('For ADDRESS controls', function () {
 
-        beforeEach(function(){
+        beforeEach(function () {
+            $.Suggestions.resetTokens();
+
             this.server = sinon.fakeServer.create();
 
             this.input = document.createElement('input');
@@ -161,9 +166,10 @@ describe('Adding space on selecting', function () {
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'ADDRESS',
-                useDadata: false,
                 geoLocation: false
             }).suggestions();
+
+            helpers.returnGoodStatus(this.server);
         });
 
         afterEach(function () {

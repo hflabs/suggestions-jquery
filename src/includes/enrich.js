@@ -7,7 +7,7 @@
                     token = $.trim(that.options.token),
                     resolver = $.Deferred();
 
-                if (!that.options.useDadata || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
+                if (!that.status.enrich || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
                     return resolver.resolve(suggestion);
                 }
 
@@ -57,10 +57,6 @@
             }
 
         };
-
-        $.extend(defaultOptions, {
-            useDadata: true
-        });
 
         $.extend(Suggestions.prototype, methods);
 

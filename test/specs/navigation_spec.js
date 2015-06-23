@@ -9,12 +9,17 @@ describe('Keyboard navigation', function () {
     ];
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME'
         }).suggestions();
-        this.server = sinon.fakeServer.create();
+
+        helpers.returnGoodStatus(this.server);
     });
 
     afterEach(function () {

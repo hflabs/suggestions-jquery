@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.7.2
+ * DaData.ru Suggestions jQuery plugin, version 15.7.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -632,6 +632,13 @@
                 dataType: 'json'
             },
             addTypeInUrl: false
+        },
+        'status': {
+            defaultParams: {
+                type: 'GET',
+                dataType: 'json'
+            },
+            addTypeInUrl: true
         }
     };
 
@@ -669,10 +676,12 @@
             removeConstraint: 'suggestions-remove',
             value: 'suggestions-value'
         };
+        that.disabled = false;
         that.selection = null;
         that.$viewport = $(window);
         that.$body = $(document.body);
         that.type = null;
+        that.status = {};
 
         // Initialize and set options:
         that.initialize();
@@ -683,7 +692,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.7.2';
+    Suggestions.version = '15.7.3';
 
     $.Suggestions = Suggestions;
 
@@ -913,6 +922,10 @@
 
         enable: function () {
             this.disabled = false;
+        },
+
+        isUnavailable: function () {
+            return this.disabled || !this.status.search;
         },
 
         update: function () {
@@ -1314,7 +1327,7 @@
                 }
 
                 if (that.options.triggerSelectOnBlur) {
-                    if (!that.disabled) {
+                    if (!that.isUnavailable()) {
                         that.selectCurrentValue({ noSpace: true })
                             .always(function () {
                                 // For NAMEs selecting keeps suggestions list visible, so hide it
@@ -1343,7 +1356,7 @@
             onElementKeyDown: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 
@@ -1412,7 +1425,7 @@
             onElementKeyUp: function (e) {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 
@@ -1470,7 +1483,7 @@
             completeOnFocus: function () {
                 var that = this;
 
-                if (that.disabled) {
+                if (that.isUnavailable()) {
                     return;
                 }
 
@@ -1529,44 +1542,46 @@
          * Methods related to plugin's authorization on server
          */
 
-        // Two-dimensional hash [type][token]
-        var tokenRequests = {};
+        // keys are "[type][token]"
+        var statusRequests = {};
 
         function resetTokens () {
-            $.each(types, function(typeName){
-                tokenRequests[typeName] = {};
+            $.each(statusRequests, function(){
+                this.abort();
             });
+            statusRequests = {};
         }
+
         resetTokens();
 
         var methods = {
 
-            checkToken: function () {
+            checkStatus: function () {
                 var that = this,
                     token = $.trim(that.options.token),
-                    requestsOfType = tokenRequests[that.options.type],
-                    tokenRequest = requestsOfType[token];
+                    requestKey = that.options.type + token,
+                    request = statusRequests[requestKey];
 
-                function onTokenReady() {
-                    that.checkToken();
+                if (!request) {
+                    request = statusRequests[requestKey] = $.ajax(that.getAjaxParams('status'));
                 }
 
-                if (token) {
-                    if (tokenRequest && $.isFunction(tokenRequest.promise)) {
-                        switch (tokenRequest.state()) {
-                            case 'resolved':
-                                break;
-                            case 'rejected':
-                                if ($.isFunction(that.options.onSearchError)) {
-                                    that.options.onSearchError.call(that.element, null, tokenRequest, 'error', tokenRequest.statusText);
-                                }
-                                break;
-                            default:
-                                tokenRequest.always(onTokenReady);
+                request
+                    .done(function(status){
+                        if (status.search) {
+                            $.extend(that.status, status);
+                        } else {
+                            triggerError('Service Unavailable');
                         }
-                    } else {
-                        (requestsOfType[token] = $.ajax(that.getAjaxParams('suggest')))
-                            .always(onTokenReady);
+                    })
+                    .fail(function(){
+                        triggerError(request.statusText);
+                    });
+
+                function triggerError(errorThrown){
+                    // If unauthorized
+                    if ($.isFunction(that.options.onSearchError)) {
+                        that.options.onSearchError.call(that.element, null, request, 'error', errorThrown);
                     }
                 }
             }
@@ -1578,7 +1593,7 @@
         $.extend(Suggestions.prototype, methods);
 
         notificator
-            .on('setOptions', methods.checkToken);
+            .on('setOptions', methods.checkStatus);
 
     }());
 
@@ -1680,7 +1695,7 @@
                     token = $.trim(that.options.token),
                     resolver = $.Deferred();
 
-                if (!that.options.useDadata || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
+                if (!that.status.enrich || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
                     return resolver.resolve(suggestion);
                 }
 
@@ -1730,10 +1745,6 @@
             }
 
         };
-
-        $.extend(defaultOptions, {
-            useDadata: true
-        });
 
         $.extend(Suggestions.prototype, methods);
 

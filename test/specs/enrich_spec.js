@@ -36,6 +36,8 @@ describe('Enrich', function () {
         };
 
     beforeEach(function(){
+        $.Suggestions.resetTokens();
+
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
@@ -43,8 +45,12 @@ describe('Enrich', function () {
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            token: '123'
+            token: '123',
+            geoLocation: false
         }).suggestions();
+
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
     });
 
     afterEach(function () {
@@ -120,10 +126,16 @@ describe('Enrich', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
-    it('Should NOT enrich a suggestion when useDadata set to `false`', function () {
+    it('Should NOT enrich a suggestion when server returns `enrich:false` in status', function () {
+        $.Suggestions.resetTokens();
         this.instance.setOptions({
-            useDadata: false
+            token: '456'
         });
+        helpers.returnStatus(this.server, {
+            search: true,
+            enrich: false
+        });
+        this.server.requests.length = 0;
 
         // select address
         this.input.value = 'М';

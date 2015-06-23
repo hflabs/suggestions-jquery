@@ -3,13 +3,18 @@ describe('Select on blur', function () {
 
     var serviceUrl = '/some/url';
 
-    beforeEach(function(){
+    beforeEach(function () {
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.instance = $(this.input).suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME'
         }).suggestions();
-        this.server = sinon.fakeServer.create();
+
+        helpers.returnGoodStatus(this.server);
     });
 
     afterEach(function () {
@@ -24,7 +29,8 @@ describe('Select on blur', function () {
                 { value: 'Andorra', data: 'An' }
             ],
             options = {
-                onSelect: function(){}
+                onSelect: function () {
+                }
             };
         spyOn(options, 'onSelect');
 
@@ -51,8 +57,9 @@ describe('Select on blur', function () {
             { value: 'Andorra', data: 'An' }
         ];
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -76,7 +83,8 @@ describe('Select on blur', function () {
                 { value: 'Jamaica', data: 'J' }
             ],
             options = {
-                onSelect: function(){}
+                onSelect: function () {
+                }
             };
         spyOn(options, 'onSelect');
 
@@ -94,7 +102,8 @@ describe('Select on blur', function () {
     it('Should NOT trigger when nothing matched', function () {
         var suggestions = [{ value: 'Jamaica', data: 'J' }],
             options = {
-                onSelect: function(){}
+                onSelect: function () {
+                }
             };
         spyOn(options, 'onSelect');
 
@@ -112,7 +121,8 @@ describe('Select on blur', function () {
     it('Should NOT trigger when triggerSelectOnBlur is false', function () {
         var suggestions = [{ value: 'Jamaica', data: 'J' }],
             options = {
-                onSelect: function(){},
+                onSelect: function () {
+                },
                 triggerSelectOnBlur: false
             };
         spyOn(options, 'onSelect');

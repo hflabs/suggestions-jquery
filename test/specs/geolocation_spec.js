@@ -11,8 +11,7 @@ describe('Geolocation', function(){
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'ADDRESS',
-            useDadata: false
+            type: 'ADDRESS'
         }).suggestions();
     });
 
@@ -52,7 +51,6 @@ describe('Geolocation', function(){
         this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: false
         });
 
@@ -65,7 +63,6 @@ describe('Geolocation', function(){
         this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: {
                 kladr_id: 83
             }
@@ -79,7 +76,6 @@ describe('Geolocation', function(){
         this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: {
                 kladr_id: '83'
             }
@@ -96,7 +92,6 @@ describe('Geolocation', function(){
         this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
-            useDadata: false,
             geoLocation: [{ kladr_id: '77' }, { kladr_id: '50' }]
         });
 

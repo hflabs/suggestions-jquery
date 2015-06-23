@@ -1,5 +1,4 @@
-
-describe('Authorization features', function () {
+describe('Status features', function () {
     'use strict';
     
     var serviceUrl = '/some/url',
@@ -25,14 +24,27 @@ describe('Authorization features', function () {
         $.Suggestions.resetTokens();
     });
 
-    it('Should send empty authorization request if `token` option specified', function () {
+    it('Should send status request with token', function () {
         expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].url).toMatch(/status\/fio/);
         expect(this.server.requests[0].requestHeaders.Authorization).toEqual('Token ' + token);
     });
 
-    it('Should invoke `onSearchError` callback if authorization failed', function () {
+    it('Should send status request without token', function () {
+        this.server.requests.length = 0;
+        this.instance.setOptions({
+            token: null
+        });
+
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].url).toMatch(/status\/fio/);
+        expect(this.server.requests[0].requestHeaders.Authorization).toBeUndefined();
+    });
+
+    it('Should invoke `onSearchError` callback if status request failed', function () {
         var options = {
-            onSearchError: $.noop
+            onSearchError: $.noop,
+            token: '456'
         };
         spyOn(options, 'onSearchError');
         this.instance.setOptions(options);
@@ -85,41 +97,4 @@ describe('Authorization features', function () {
         });
     });
 
-});
-
-describe('Authorization without token', function() {
-    var serviceUrl = '/some/url';
-
-    beforeEach(function(){
-        this.server = sinon.fakeServer.create();
-
-        this.input = document.createElement('input');
-        this.$input = $(this.input).appendTo('body');
-    });
-
-    afterEach(function () {
-        this.instance.dispose();
-        this.$input.remove();
-        this.server.restore();
-    });
-
-
-    it('Should not send authorization request (no token)', function() {
-        this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl,
-            type: 'NAME'
-        }).suggestions();
-
-        expect(this.server.requests.length).toEqual(0);
-    });
-
-    it('Should not send authorization request (empty token)', function() {
-        this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl,
-            type: 'NAME',
-            token: ''
-        }).suggestions();
-
-        expect(this.server.requests.length).toEqual(0);
-    });
 });

@@ -95,6 +95,13 @@
                 dataType: 'json'
             },
             addTypeInUrl: false
+        },
+        'status': {
+            defaultParams: {
+                type: 'GET',
+                dataType: 'json'
+            },
+            addTypeInUrl: true
         }
     };
 
@@ -132,10 +139,12 @@
             removeConstraint: 'suggestions-remove',
             value: 'suggestions-value'
         };
+        that.disabled = false;
         that.selection = null;
         that.$viewport = $(window);
         that.$body = $(document.body);
         that.type = null;
+        that.status = {};
 
         // Initialize and set options:
         that.initialize();
@@ -376,6 +385,10 @@
 
         enable: function () {
             this.disabled = false;
+        },
+
+        isUnavailable: function () {
+            return this.disabled || !this.status.search;
         },
 
         update: function () {
@@ -747,7 +760,7 @@
 
 //include "element.js"
 
-//include "authorization.js"
+//include "status.js"
 
 //include "geolocation.js"
 

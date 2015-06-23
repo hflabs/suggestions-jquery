@@ -4,16 +4,18 @@ describe('After selecting', function () {
     var serviceUrl = '/some/url';
 
     beforeEach(function () {
+        $.Suggestions.resetTokens();
+
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo($('body'));
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME',
-            useDadata: false,
-            geoLocation: false
+            type: 'NAME'
         }).suggestions();
 
-        this.server = sinon.fakeServer.create();
+        helpers.returnGoodStatus(this.server);
     });
 
     afterEach(function () {
@@ -60,10 +62,6 @@ describe('After selecting', function () {
             }
         ];
 
-        this.instance.setOptions({
-            type: 'NAME'
-        });
-
         this.input.value = 'S';
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
@@ -90,10 +88,6 @@ describe('After selecting', function () {
                 }
             }
         ];
-
-        this.instance.setOptions({
-            type: 'NAME'
-        });
 
         this.input.value = 'Н';
         this.instance.onValueChange();
@@ -126,8 +120,10 @@ describe('After selecting', function () {
         ];
 
         this.instance.setOptions({
-            type: 'ADDRESS'
+            type: 'ADDRESS',
+            geoLocation: false
         });
+        helpers.returnGoodStatus(this.server);
 
         this.input.value = 'Р';
         this.instance.onValueChange();

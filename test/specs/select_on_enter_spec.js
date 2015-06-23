@@ -45,7 +45,7 @@ describe('Select on Enter', function () {
                 { value: 'Россия, респ Коми, г Ухта, пр-кт Ленина, д 36А', data: 1 },
                 { value: 'Россия, респ Калмыкия, г Элиста, ул В.И.Ленина, влд 367', data: 2 }
             ],
-            'средний зеленая 36' : [
+            'средний зеленая 36': [
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 },
                 { value: 'Россия, респ Марий Эл, р-н Горномарийский, д Средний Околодок, ул Зеленая, д 36', data: 1 },
                 { value: 'Россия, обл Воронежская, р-н Лискинский, с Средний Икорец, ул Зеленая, д 36', data: 2 }
@@ -60,7 +60,7 @@ describe('Select on Enter', function () {
             ],
             'хф 7707545900': [
                 {
-                    value:'ООО ХФ ЛАБС',
+                    value: 'ООО ХФ ЛАБС',
                     data: {
                         name: {
                             full: 'ХФ ЛАБС'
@@ -71,7 +71,7 @@ describe('Select on Enter', function () {
             ],
             'хф 770754': [
                 {
-                    value:'ООО ХФ ЛАБС',
+                    value: 'ООО ХФ ЛАБС',
                     data: {
                         name: {
                             full: 'ХФ ЛАБС'
@@ -81,14 +81,15 @@ describe('Select on Enter', function () {
                 }
             ],
             'газпром 1027700055360': [
-                {   value: 'ОАО Газпром автоматизация',
+                {
+                    value: 'ОАО Газпром автоматизация',
                     data: {
-                        name:{
+                        name: {
                             full: 'ГАЗПРОМ АВТОМАТИЗАЦИЯ',
                             short: 'Газпром автоматизация'
                         },
                         ogrn: '1027700055360'
-                        }
+                    }
                 },
                 {
                     value: 'Филиал ФЛ ОАО \"Газпром автоматизация\" в г. Астрахань',
@@ -103,17 +104,20 @@ describe('Select on Enter', function () {
             ]
         };
 
-    beforeEach(function(){
+    beforeEach(function () {
+        $.Suggestions.resetTokens();
+
         this.server = sinon.fakeServer.create();
-        this.server.respondWith('POST', /suggest/, function(xhr){
+        this.server.respondWith('POST', /suggest/, function (xhr) {
             var request = JSON.parse(xhr.requestBody),
                 query = request && request.query;
             xhr.respond(
                 200,
-                {'Content-type':'application/json'},
+                { 'Content-type': 'application/json' },
                 JSON.stringify(query ? { suggestions: fixtures[query] } : {})
             );
         });
+        helpers.returnGoodStatus(this.server);
 
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
@@ -136,8 +140,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger on full match', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -152,15 +157,16 @@ describe('Select on Enter', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'}),
+            helpers.appendUnrestrictedValue({ value: 'Albania', data: 'Al' }),
             true
         );
     });
 
     it('Should not trigger on full match if `triggerSelectOnEnter` is false', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -175,15 +181,16 @@ describe('Select on Enter', function () {
 
         expect(options.onSelect.calls.count()).toEqual(1);
         expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue({value: 'Albania', data: 'Al'}),
+            helpers.appendUnrestrictedValue({ value: 'Albania', data: 'Al' }),
             true
         );
     });
 
     it('Should trigger when suggestion is selected manually', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -204,8 +211,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger on partial match', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -223,8 +231,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when nothing matched', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -242,8 +251,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger when normalized query equals single suggestion from list (same parent)', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -262,8 +272,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger when normalized query equals single suggestion from list (not same parent)', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -282,8 +293,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when normalized query equals single suggestion from list (not same parent) AND is contained in other suggestion at the same time', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -299,8 +311,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when normalized query encloses suggestion from list', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -316,8 +329,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when normalized query equals multiple suggestions from list', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -333,8 +347,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger when normalized query byword-matches single suggestion', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -355,8 +370,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when the last word in query is a stop-word', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -372,8 +388,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when normalized query byword-matches single suggestion from list', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -389,8 +406,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when normalized query byword-matches multiple suggestions from list', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -406,8 +424,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger on joint query match (case 1)', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -426,8 +445,9 @@ describe('Select on Enter', function () {
 
     it('Should trigger on joint query match (case 2)', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -446,8 +466,9 @@ describe('Select on Enter', function () {
 
     it('Should NOT trigger when joint query not matched', function () {
         var options = {
-                onSelect: function(){}
-            };
+            onSelect: function () {
+            }
+        };
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -465,7 +486,8 @@ describe('Select on Enter', function () {
 
         var options = {
             type: 'PARTY',
-            onSelect: function(){}
+            onSelect: function () {
+            }
         };
         spyOn(options, 'onSelect');
 
@@ -487,8 +509,11 @@ describe('Select on Enter', function () {
 
         var options = {
             type: 'PARTY',
-            onSelect: function(){}
+            onSelect: function () {
+            }
         };
+        helpers.returnGoodStatus(this.server);
+
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
@@ -507,8 +532,11 @@ describe('Select on Enter', function () {
 
         var options = {
             type: 'PARTY',
-            onSelect: function(){}
+            onSelect: function () {
+            }
         };
+        helpers.returnGoodStatus(this.server);
+
         spyOn(options, 'onSelect');
 
         this.instance.setOptions(options);
