@@ -27,7 +27,7 @@ describe('Select on Enter', function () {
             'москва мира': [
                 { value: 'г Москва, ул Мира ', data: 0 },
                 { value: 'г Москва, пр-кт Мира ', data: 1 },
-                { value: 'г Москва, ул Мира, д 1', data: 2 },
+                { value: 'г Москва, ул Мира, д 1', data: 2 }
             ],
             'Россия, обл Тверская, р-н Оленинский, д Упыри ул': [
                 { value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 },
@@ -37,8 +37,15 @@ describe('Select on Enter', function () {
             'ставропольский средний зеленая 36': [
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
             ],
-            'зеленоград мкр': [
-                { value: 'г Москва, г Зеленоград', data: 0 }
+            'новосибирск ленина 12': [
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 12', data: 0 },
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 12/1', data: 1 },
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 12/2 ', data: 2 }
+            ],
+            'новосибирск ленина 2': [
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 2', data: 0 },
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 12/2', data: 1 },
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 20 ', data: 2 }
             ],
             'ленина 36': [
                 { value: 'Россия, г Севастополь, ул Ленина, д 36', data: 0 },
@@ -49,6 +56,9 @@ describe('Select on Enter', function () {
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 },
                 { value: 'Россия, респ Марий Эл, р-н Горномарийский, д Средний Околодок, ул Зеленая, д 36', data: 1 },
                 { value: 'Россия, обл Воронежская, р-н Лискинский, с Средний Икорец, ул Зеленая, д 36', data: 2 }
+            ],
+            'зеленоград мкр': [
+                { value: 'г Москва, г Зеленоград', data: 0 }
             ],
             'москва енисейская24': [
                 { value: 'г Москва, ул Енисейская, д 24', data: 0 },
@@ -291,7 +301,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should NOT trigger when normalized query equals single suggestion from list (not same parent) AND is contained in other suggestion at the same time', function () {
+    it('Should NOT trigger when normalized query equals single suggestion from list AND is contained in other', function () {
         var options = {
             onSelect: function () {
             }
@@ -345,7 +355,7 @@ describe('Select on Enter', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
-    it('Should trigger when normalized query byword-matches single suggestion', function () {
+    it('Should trigger when normalized query byword-matches same parent list #1', function () {
         var options = {
             onSelect: function () {
             }
@@ -360,6 +370,7 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
+        // expect to select first matching suggestion
         expect(options.onSelect).toHaveBeenCalledWith(
             helpers.appendUnrestrictedValue(
                 { value: 'Россия, край Ставропольский, р-н Александровский, х Средний, ул Зеленая, д 36', data: 0 }
@@ -368,7 +379,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should NOT trigger when the last word in query is a stop-word', function () {
+    it('Should trigger when normalized query byword-matches same parent list #2', function () {
         var options = {
             onSelect: function () {
             }
@@ -378,15 +389,45 @@ describe('Select on Enter', function () {
         this.instance.setOptions(options);
         this.instance.selectedIndex = -1;
 
-        this.input.value = 'зеленоград мкр';
+        this.input.value = 'новосибирск ленина 12';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).not.toHaveBeenCalled();
+        // expect to select first matching suggestion
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 12', data: 0 }
+            ),
+            true
+        );
     });
 
-    it('Should NOT trigger when normalized query byword-matches single suggestion from list', function () {
+    it('Should trigger when normalized query byword-matches same parent list #3', function () {
+        var options = {
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'новосибирск ленина 2';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        // expect to select first matching suggestion
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(
+                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 2', data: 0 }
+            ),
+            true
+        );
+    });
+
+    it('Should NOT trigger when normalized query byword-matches different parent list #1', function () {
         var options = {
             onSelect: function () {
             }
@@ -404,7 +445,7 @@ describe('Select on Enter', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
-    it('Should NOT trigger when normalized query byword-matches multiple suggestions from list', function () {
+    it('Should NOT trigger when normalized query byword-matches different parent list #2', function () {
         var options = {
             onSelect: function () {
             }
@@ -415,6 +456,24 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = -1;
 
         this.input.value = 'средний зеленая 36';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should NOT trigger when the last word in query is a stop-word', function () {
+        var options = {
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'зеленоград мкр';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);

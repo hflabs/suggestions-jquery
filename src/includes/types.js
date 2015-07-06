@@ -97,7 +97,7 @@
             urlSuffix: 'address',
             matchers: [
                 $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-                $.proxy(matchers.matchByWords, { stopwords: ADDRESS_STOPWORDS })
+                $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
             boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
             boundsFields: {
