@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.7.3
+ * DaData.ru Suggestions jQuery plugin, version 15.7.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -725,7 +725,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.7.3';
+    Suggestions.version = '15.7.4';
 
     $.Suggestions = Suggestions;
 
@@ -2051,12 +2051,12 @@
                     maxLength = options && options.maxLength,
                     tokens, tokenMatchers,
                     rWords = utils.reWordExtractor(),
-                    match, i, chunk, formattedStr;
+                    match, word, i, chunk, formattedStr;
 
                 if (!value) return '';
 
                 tokens = utils.formatToken(currentValue).split(wordSplitter);
-                tokens = utils.arrayMinus(utils.withSubTokens(tokens), unformattableTokens);
+                tokens = utils.withSubTokens(tokens);
 
                 tokenMatchers = $.map(tokens, function (token) {
                     return new RegExp('^((.*)([' + wordPartsDelimiters + ']+))?' +
@@ -2066,9 +2066,11 @@
 
                 // parse string by words
                 while ((match = rWords.exec(value)) && match[0]) {
+                    word = match[1];
                     chunks.push({
-                        text: match[1],
-                        formatted: utils.formatToken(match[1]),
+                        text: word,
+                        inUpperCase: word.toLowerCase() !== word,
+                        formatted: utils.formatToken(word),
                         matchable: true
                     });
                     if (match[2]) {
@@ -2081,7 +2083,7 @@
                 // use simple loop because length can change
                 for (i = 0; i < chunks.length; i++) {
                     chunk = chunks[i];
-                    if (chunk.matchable && !chunk.matched && $.inArray(chunk.formatted, unformattableTokens) === -1) {
+                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.inUpperCase)) {
                         $.each(tokenMatchers, function (j, matcher) {
                             var tokenMatch = matcher.exec(chunk.formatted),
                                 length, nextIndex = i + 1;

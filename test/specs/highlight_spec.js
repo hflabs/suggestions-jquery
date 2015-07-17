@@ -141,7 +141,7 @@ describe('Highlight suggestions', function () {
                 value: 'ООО "Красава"',
                 data: {
                     address: {
-                        value: '350056 РОССИЯ, КРАСНОДАРСКИЙ КРАЙ, Г КРАСНОДАР, П ИНДУСТРИАЛЬНЫЙ, УЛ СВЕТЛАЯ, Д 3',
+                        value: '350056 Россия, Краснодарский край, г Краснодар, п Индустриальный, ул Светлая, д 3',
                         data: null
                     }
                 }
@@ -152,11 +152,11 @@ describe('Highlight suggestions', function () {
             html = $item.html();
 
         expect($item.length).toEqual(1);
-        expect(html).toContain('<strong>КРА</strong>СНОДАРСКИЙ');
-        expect(html).toContain('Г <strong>КРА</strong>СНОДАР');
+        expect(html).toContain('<strong>Кра</strong>снодарский');
+        expect(html).toContain('г <strong>Кра</strong>снодар');
 
-        expect(html).toContain('КРАЙ');
-        expect(html).not.toContain('<strong>КРА</strong>Й');
+        expect(html).toContain('край');
+        expect(html).not.toContain('<strong>кра</strong>й');
     });
 
     it('Should highlight INN in parties (full match)', function () {
