@@ -1,0 +1,21 @@
+{
+  "name": "hflabs/suggestions-jquery",
+  "description": "DaData.ru Suggestions jQuery plugin",
+  "homepage": "http://dadata.ru/",
+  "keywords": [
+    "css",
+    "js",
+    "dadata",
+    "suggestions"
+  ],
+  "authors": [
+    {
+      "name": "HFLabs",
+      "url": "www.hflabs.ru"
+    }
+  ],
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/hflabs/suggestions-jquery/issues"
+  }
+}
