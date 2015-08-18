@@ -207,12 +207,18 @@
             isCursorAtEnd: function () {
                 var that = this,
                     valLength = that.el.val().length,
-                    selectionStart = that.element.selectionStart,
+                    selectionStart,
                     range;
 
-                if (typeof selectionStart === 'number') {
-                    return selectionStart === valLength;
+                // `selectionStart` and `selectionEnd` are not supported by some input types
+                try {
+                    selectionStart = that.element.selectionStart;
+                    if (typeof selectionStart === 'number') {
+                        return selectionStart === valLength;
+                    }
+                } catch (ex) {
                 }
+
                 if (document.selection) {
                     range = document.selection.createRange();
                     range.moveStart('character', -valLength);
@@ -224,12 +230,16 @@
             setCursorAtEnd: function () {
                 var element = this.element;
 
-                element.selectionEnd = element.selectionStart = element.value.length;
-                element.scrollLeft = element.scrollWidth;
+                // `selectionStart` and `selectionEnd` are not supported by some input types
+                try {
+                    element.selectionEnd = element.selectionStart = element.value.length;
+                    element.scrollLeft = element.scrollWidth;
+                } catch (ex) {
+                    element.value = element.value;
+                }
             }
 
-
-    };
+        };
 
         $.extend(Suggestions.prototype, methods);
 
