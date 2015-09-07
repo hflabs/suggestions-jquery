@@ -2,11 +2,12 @@ describe('Right-sided control', function () {
     'use strict';
 
     var serviceUrl = '/some/url',
-        attr = 'data-addon-type';
+        attr = 'data-addon-type',
+        $body = $(document.body);
 
     beforeEach(function () {
         this.input = document.createElement('input');
-        this.$input = $(this.input).appendTo('body');
+        this.$input = $(this.input).appendTo($body);
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME'

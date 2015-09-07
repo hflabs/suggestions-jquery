@@ -1,15 +1,16 @@
 describe('Common features', function () {
     'use strict';
-    
-    var serviceUrl = '/some/url';
 
-    beforeEach(function(){
+    var serviceUrl = '/some/url',
+        $body = $(document.body);
+
+    beforeEach(function () {
         $.Suggestions.resetTokens();
 
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
-        this.$input = $(this.input).appendTo('body');
+        this.$input = $(this.input).appendTo($body);
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME',
@@ -20,23 +21,11 @@ describe('Common features', function () {
         helpers.returnGoodStatus(this.server);
         this.server.requests.length = 0;
     });
-    
+
     afterEach(function () {
         this.instance.dispose();
         this.$input.remove();
         this.server.restore();
-    });
-
-    it('Should initialize suggestions options', function () {
-        expect(this.instance.options.serviceUrl).toEqual(serviceUrl);
-    });
-
-    it('Should create all additional components', function(){
-        var instance = this.instance;
-        $.each(['$wrapper','$container','$constraints'], function(i,component){
-            expect(instance[component].length).toEqual(1);
-        });
-        expect(instance.addon.$el.length).toEqual(1);
     });
 
     it('Should get current value', function () {
@@ -52,7 +41,8 @@ describe('Common features', function () {
     it('Verify onSelect callback (fully changed)', function () {
         var suggestions = [{ value: 'Abcdef', data: 'B' }],
             options = {
-                onSelect: function(){}
+                onSelect: function () {
+                }
             };
         spyOn(options, 'onSelect');
 
@@ -73,9 +63,11 @@ describe('Common features', function () {
                     name: 'Name',
                     surname: 'Surname',
                     patronymic: 'Patronymic'
-                } }],
+                }
+            }],
             options = {
-                onSelect: function(){}
+                onSelect: function () {
+                }
             };
         spyOn(options, 'onSelect');
 
@@ -92,10 +84,10 @@ describe('Common features', function () {
     it('Should convert suggestions format', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(['Alex','Ammy','Anny']));
-        expect(this.instance.suggestions[0]).toEqual(helpers.appendUnrestrictedValue({value:'Alex', data:null}));
-        expect(this.instance.suggestions[1]).toEqual(helpers.appendUnrestrictedValue({value:'Ammy', data:null}));
-        expect(this.instance.suggestions[2]).toEqual(helpers.appendUnrestrictedValue({value:'Anny', data:null}));
+        this.server.respond(helpers.responseFor(['Alex', 'Ammy', 'Anny']));
+        expect(this.instance.suggestions[0]).toEqual(helpers.appendUnrestrictedValue({ value: 'Alex', data: null }));
+        expect(this.instance.suggestions[1]).toEqual(helpers.appendUnrestrictedValue({ value: 'Ammy', data: null }));
+        expect(this.instance.suggestions[2]).toEqual(helpers.appendUnrestrictedValue({ value: 'Anny', data: null }));
     });
 
     it('Should use custom query parameter name', function () {
@@ -124,8 +116,8 @@ describe('Common features', function () {
 
     it('Should include params option into request when it is a function', function () {
         this.instance.setOptions({
-            params: function(){
-                return {a:2};
+            params: function () {
+                return { a: 2 };
             }
         });
 
@@ -137,7 +129,7 @@ describe('Common features', function () {
 
     describe('when `bounds` specified', function () {
 
-        beforeEach(function(){
+        beforeEach(function () {
             $.Suggestions.resetTokens();
 
             this.instance.setOptions({
@@ -222,13 +214,13 @@ describe('Common features', function () {
         var $div = $(document.createElement('div'));
 
         $div.append(this.input);
-        
+
         expect(this.$input.data('suggestions')).toBeDefined();
 
         this.$input.suggestions('dispose');
 
         expect(this.$input.data('suggestions')).toBeUndefined();
-        $.each(['.suggestions-suggestions','.suggestions-addon','.suggestions-constraints'], function(i, selector){
+        $.each(['.suggestions-suggestions', '.suggestions-addon', '.suggestions-constraints'], function (i, selector) {
             expect($div.find(selector).length).toEqual(0);
         });
     });
@@ -242,7 +234,8 @@ describe('Common features', function () {
 
     it('Should call beforeRender and pass container jQuery object', function () {
         var options = {
-            beforeRender: function () {}
+            beforeRender: function () {
+            }
         };
         spyOn(options, 'beforeRender');
         this.instance.setOptions(options);
@@ -266,27 +259,27 @@ describe('Common features', function () {
 
         this.input.value = 'Jama';
         this.instance.onValueChange();
-        
+
         expect(this.server.requests.length).toEqual(1);
 
         this.input.value = 'Jamai';
         this.instance.onValueChange();
-        
+
         expect(this.server.requests.length).toEqual(1);
     });
 
-    it('Should display default hint message above suggestions', function(){
+    it('Should display default hint message above suggestions', function () {
         this.input.value = 'jam';
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
-            
+
         expect($hint.length).toEqual(1);
         expect($hint.text()).toEqual($.Suggestions.defaultOptions.hint);
     });
 
-    it('Should display custom hint message above suggestions', function(){
+    it('Should display custom hint message above suggestions', function () {
         var customHint = 'This is custon hint';
         this.instance.setOptions({
             hint: customHint
@@ -297,12 +290,12 @@ describe('Common features', function () {
         this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
-            
+
         expect($hint.length).toEqual(1);
         expect($hint.text()).toEqual(customHint);
     });
 
-    it('Should not display any hint message above suggestions', function(){
+    it('Should not display any hint message above suggestions', function () {
         this.instance.setOptions({
             hint: false
         });
@@ -312,11 +305,11 @@ describe('Common features', function () {
         this.server.respond(helpers.responseFor(['Jamaica']));
 
         var $hint = this.instance.$container.find('.suggestions-hint');
-            
+
         expect($hint.length).toEqual(0);
     });
 
-    it('Should not display any hint message for narrow-screen (mobile) view', function(){
+    it('Should not display any hint message for narrow-screen (mobile) view', function () {
         this.instance.setOptions({
             hint: false,
             mobileWidth: 20000
@@ -331,16 +324,16 @@ describe('Common features', function () {
         expect($hint.length).toEqual(0);
     });
 
-    it('Should include version info in requests', function(){
+    it('Should include version info in requests', function () {
         this.input.value = 'jam';
         this.instance.onValueChange();
 
         expect(this.server.requests[0].requestHeaders['X-Version']).toMatch(/\d+\.\d+\.\d+/);
     });
 
-    it('Should send custom HTTP headers', function(){
+    it('Should send custom HTTP headers', function () {
         this.instance.setOptions({
-            headers: {'X-my-header': 'blabla'}
+            headers: { 'X-my-header': 'blabla' }
         });
         this.input.value = 'jam';
         this.instance.onValueChange();
@@ -348,9 +341,9 @@ describe('Common features', function () {
         expect(this.server.requests[0].requestHeaders['X-my-header']).toEqual('blabla');
     });
 
-    it('Should overwrite custom HTTP headers with ones used by plugin', function(){
+    it('Should overwrite custom HTTP headers with ones used by plugin', function () {
         this.instance.setOptions({
-            headers: {'X-Version': 'blabla'}
+            headers: { 'X-Version': 'blabla' }
         });
         this.input.value = 'jam';
         this.instance.onValueChange();

@@ -3,7 +3,7 @@ describe('Highlight suggestions', function () {
 
     var serviceUrl = '/some/url';
 
-    beforeEach(function(){
+    beforeEach(function () {
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
@@ -180,9 +180,9 @@ describe('Highlight suggestions', function () {
             }
         ]));
 
-       var $item = this.instance.$container.children('.suggestions-suggestion'),
-           html = $item.html(),
-           pattern = '<strong>54 03 23308 5</strong>'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html(),
+            pattern = '<strong>54 03 23308 5</strong>'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
 
         expect($item.length).toEqual(1);
         expect(html).toContain('<span class="suggestions-subtext suggestions-subtext_inline">' + pattern + '</span>');
@@ -209,9 +209,9 @@ describe('Highlight suggestions', function () {
             }
         ]));
 
-       var $item = this.instance.$container.children('.suggestions-suggestion'),
-           html = $item.html(),
-           pattern = '<strong>54 03 23</strong>308 5'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
+        var $item = this.instance.$container.children('.suggestions-suggestion'),
+            html = $item.html(),
+            pattern = '<strong>54 03 23</strong>308 5'.replace(/ /g, '<span class="suggestions-subtext-delimiter"></span>');
 
         expect($item.length).toEqual(1);
         expect(html).toContain('<span class="suggestions-subtext suggestions-subtext_inline">' + pattern + '</span>');

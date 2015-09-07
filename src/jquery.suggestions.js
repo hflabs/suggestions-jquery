@@ -146,9 +146,12 @@
         that.type = null;
         that.status = {};
 
-        // Initialize and set options:
-        that.initialize();
-        that.setOptions(options);
+        that.setupElement();
+        if (that.el.is(':visible')) {
+            that.initialize();
+        } else {
+            that.deferInitialization();
+        }
     }
 
     Suggestions.utils = utils;
@@ -166,11 +169,6 @@
         initialize: function () {
             var that = this;
 
-            // Remove autocomplete attribute to prevent native suggestions:
-            that.element.setAttribute('autocomplete', 'off');
-            this.el.addClass('suggestions-input')
-                .css('box-sizing', 'border-box');
-
             that.uniqueId = utils.uniqueId('i');
 
             that.createWrapper();
@@ -178,7 +176,24 @@
 
             that.bindWindowEvents();
 
+            that.setOptions();
             that.fixPosition();
+        },
+
+        /**
+         * Initialize when element is firstly interacted
+         */
+        deferInitialization: function () {
+            var that = this,
+                events = 'mouseover focus keydown',
+                callback = function () {
+                    that.el.off(events, callback);
+                    that.enable();
+                    that.initialize();
+                };
+
+            that.disabled = true;
+            that.el.on(events, callback);
         },
 
         dispose: function () {
@@ -212,7 +227,9 @@
         removeWrapper: function () {
             var that = this;
 
-            that.$wrapper.remove();
+            if (that.$wrapper) {
+                that.$wrapper.remove();
+            }
             $(that.options.$helpers).off(eventNS);
         },
 

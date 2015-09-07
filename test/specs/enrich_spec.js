@@ -2,6 +2,7 @@ describe('Enrich', function () {
     'use strict';
 
     var serviceUrl = 'some/url',
+        $body = $(document.body),
         fixtures = {
             poorName: [{
                 value: 'Романов Иван Петрович',
@@ -35,13 +36,13 @@ describe('Enrich', function () {
             }]
         };
 
-    beforeEach(function(){
+    beforeEach(function () {
         $.Suggestions.resetTokens();
 
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
-        this.$input = $(this.input);
+        this.$input = $(this.input).appendTo($body);
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
@@ -55,6 +56,7 @@ describe('Enrich', function () {
 
     afterEach(function () {
         this.instance.dispose();
+        this.$input.remove();
         this.server.restore();
     });
 

@@ -1,7 +1,8 @@
 describe('Select on blur', function () {
     'use strict';
 
-    var serviceUrl = '/some/url';
+    var serviceUrl = '/some/url',
+        $body = $(document.body);
 
     beforeEach(function () {
         $.Suggestions.resetTokens();
@@ -9,7 +10,8 @@ describe('Select on blur', function () {
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
-        this.instance = $(this.input).suggestions({
+        this.$input = $(this.input).appendTo($body);
+        this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'NAME'
         }).suggestions();
@@ -18,8 +20,9 @@ describe('Select on blur', function () {
     });
 
     afterEach(function () {
+        this.instance.dispose();
+        this.$input.remove();
         this.server.restore();
-        this.instance.dispose()
     });
 
     it('Should trigger on full match', function () {

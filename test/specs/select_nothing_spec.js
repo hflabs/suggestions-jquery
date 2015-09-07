@@ -8,7 +8,7 @@ describe('Nothing selected callback', function () {
             { value: 'Andorra', data: 'An' }
         ];
 
-    beforeEach(function(){
+    beforeEach(function () {
         $.Suggestions.resetTokens();
 
         this.server = sinon.fakeServer.create();
@@ -36,8 +36,9 @@ describe('Nothing selected callback', function () {
 
     it('Should be triggered on ENTER pressed with no suggestions visible', function () {
         var options = {
-                onSelectNothing: function(){}
-            };
+            onSelectNothing: function () {
+            }
+        };
         spyOn(options, 'onSelectNothing');
 
         this.instance.setOptions(options);
@@ -53,8 +54,9 @@ describe('Nothing selected callback', function () {
 
     it('Should be triggered on ENTER pressed with no matching suggestion', function () {
         var options = {
-                onSelectNothing: function(){}
-            };
+            onSelectNothing: function () {
+            }
+        };
         spyOn(options, 'onSelectNothing');
 
         this.instance.setOptions(options);
@@ -72,8 +74,9 @@ describe('Nothing selected callback', function () {
 
     it('Should be triggered when focus lost and no matching suggestion', function () {
         var options = {
-                onSelectNothing: function(){}
-            };
+            onSelectNothing: function () {
+            }
+        };
         spyOn(options, 'onSelectNothing');
 
         this.instance.setOptions(options);

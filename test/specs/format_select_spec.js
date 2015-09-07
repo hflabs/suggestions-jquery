@@ -24,7 +24,7 @@ describe('Text to insert after selection', function () {
 
     it('Should invoke formatSelected callback', function () {
         this.instance.setOptions({
-            formatSelected: function(suggestion){
+            formatSelected: function (suggestion) {
                 return suggestion.data.customValue;
             }
         });
@@ -45,7 +45,7 @@ describe('Text to insert after selection', function () {
 
     it('Should use default value if formatSelected returns nothing', function () {
         this.instance.setOptions({
-            formatSelected: function(suggestion){
+            formatSelected: function (suggestion) {
                 return '';
             },
             params: {

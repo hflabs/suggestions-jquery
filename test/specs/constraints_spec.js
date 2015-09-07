@@ -2,6 +2,7 @@ describe('Address constraints', function () {
     'use strict';
 
     var serviceUrl = '/some/url',
+        $body = $(document.body),
         fixtures = {
             fullyAddress: {
                 'value': 'Тульская обл, Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара',
@@ -9,15 +10,15 @@ describe('Address constraints', function () {
                 'data': {
                     'country': 'Россия',
                     'region_type': 'обл', 'region_type_full': 'область', 'region': 'Тульская',
-                        'region_with_type': 'Тульская обл',
+                    'region_with_type': 'Тульская обл',
                     'area_type': 'р-н', 'area_type_full': 'район', 'area': 'Узловский',
-                        'area_with_type': 'Узловский р-н',
+                    'area_with_type': 'Узловский р-н',
                     'city_type': 'г', 'city_type_full': 'город', 'city': 'Узловая',
-                        'city_with_type': 'г Узловая',
+                    'city_with_type': 'г Узловая',
                     'settlement_type': 'п', 'settlement_type_full': 'поселок', 'settlement': 'Брусянский',
-                        'settlement_with_type': 'поселок Брусянский',
+                    'settlement_with_type': 'поселок Брусянский',
                     'street_type': 'ул', 'street_type_full': 'улица', 'street': 'Строителей',
-                        'street_with_type': 'ул Строителей',
+                    'street_with_type': 'ул Строителей',
                     'house_type': 'д', 'house_type_full': 'дом', 'house': '1-бара',
                     'kladr_id': '7102200100200310001'
                 }
@@ -29,7 +30,7 @@ describe('Address constraints', function () {
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
-        this.$input = $(this.input).appendTo('body');
+        this.$input = $(this.input).appendTo($body);
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
@@ -167,20 +168,20 @@ describe('Address constraints', function () {
     it('Should have `locations` parameter in request if constraints and their locations specified as arrays', function () {
         var locations = [
             [
-                {'region': 'адыгея'},
-                {'region': 'астраханская'},
-                {'region': 'волгоградская'},
-                {'region': 'калмыкия'},
-                {'region': 'краснодарский'},
-                {'region': 'ростовская'}
+                { 'region': 'адыгея' },
+                { 'region': 'астраханская' },
+                { 'region': 'волгоградская' },
+                { 'region': 'калмыкия' },
+                { 'region': 'краснодарский' },
+                { 'region': 'ростовская' }
             ],
             [
-                {region: 'курганская'},
-                {region: 'свердловская'},
-                {region: 'тюменская'},
-                {region: 'ханты-мансийский'},
-                {region: 'челябинская'},
-                {region: 'ямало-ненецкая'}
+                { region: 'курганская' },
+                { region: 'свердловская' },
+                { region: 'тюменская' },
+                { region: 'ханты-мансийский' },
+                { region: 'челябинская' },
+                { region: 'ямало-ненецкая' }
             ]
         ];
 
@@ -439,7 +440,7 @@ describe('Address constraints', function () {
 
             this.input.value = 'бара';
             this.instance.onValueChange();
-            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.server.respond(helpers.responseFor([fixtures.fullyAddress]));
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 
@@ -466,7 +467,7 @@ describe('Address constraints', function () {
 
             this.input.value = 'бара';
             this.instance.onValueChange();
-            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.server.respond(helpers.responseFor([fixtures.fullyAddress]));
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 
@@ -493,7 +494,7 @@ describe('Address constraints', function () {
 
             this.input.value = 'бара';
             this.instance.onValueChange();
-            this.server.respond(helpers.responseFor([ fixtures.fullyAddress ]));
+            this.server.respond(helpers.responseFor([fixtures.fullyAddress]));
             this.instance.selectedIndex = 0;
             this.instance.select(0);
 

@@ -1,10 +1,10 @@
 describe('Status features', function () {
     'use strict';
-    
+
     var serviceUrl = '/some/url',
         token = '1234';
 
-    beforeEach(function(){
+    beforeEach(function () {
         $.Suggestions.resetTokens();
         this.server = sinon.fakeServer.create();
 
@@ -16,7 +16,7 @@ describe('Status features', function () {
             token: token
         }).suggestions();
     });
-    
+
     afterEach(function () {
         this.instance.dispose();
         this.$input.remove();
@@ -55,8 +55,8 @@ describe('Status features', function () {
     });
 
     describe('Several instances with the same token', function () {
-        
-        beforeEach(function(){
+
+        beforeEach(function () {
             this.input2 = document.createElement('input');
             this.$input2 = $(this.input2).appendTo('body');
             this.instance2 = this.$input2.suggestions({
@@ -65,17 +65,17 @@ describe('Status features', function () {
                 token: token
             }).suggestions();
         });
-        
-        afterEach(function(){
+
+        afterEach(function () {
             this.instance2.dispose();
             this.$input2.remove();
         });
-            
-        it('Should use the same authorization query', function() {
+
+        it('Should use the same authorization query', function () {
             expect(this.server.requests.length).toEqual(1);
         });
 
-        it('Should make another request for controls of different types', function() {
+        it('Should make another request for controls of different types', function () {
             this.instance.setOptions({
                 type: 'ADDRESS',
                 geoLocation: false
@@ -84,7 +84,7 @@ describe('Status features', function () {
             expect(this.server.requests.length).toEqual(2);
         });
 
-        it('Should invoke `onSearchError` callback on controls with same type and token', function(){
+        it('Should invoke `onSearchError` callback on controls with same type and token', function () {
             var options = {
                 onSearchError: $.noop
             };

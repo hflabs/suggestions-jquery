@@ -1,7 +1,8 @@
 describe('Adding space on selecting', function () {
     'use strict';
 
-    var serviceUrl = '/some/url';
+    var serviceUrl = '/some/url',
+        $body = $(document.body);
 
     describe('For NAME controls', function () {
 
@@ -11,7 +12,7 @@ describe('Adding space on selecting', function () {
             this.server = sinon.fakeServer.create();
 
             this.input = document.createElement('input');
-            this.$input = $(this.input).appendTo($('body'));
+            this.$input = $(this.input).appendTo($body);
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'NAME'
@@ -162,7 +163,7 @@ describe('Adding space on selecting', function () {
             this.server = sinon.fakeServer.create();
 
             this.input = document.createElement('input');
-            this.$input = $(this.input);
+            this.$input = $(this.input).appendTo($body);
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'ADDRESS',
@@ -175,6 +176,7 @@ describe('Adding space on selecting', function () {
         afterEach(function () {
             this.instance.dispose();
             this.server.restore();
+            this.$input.remove();
         });
 
         it('Should add SPACE at the end if only COUNTRY specified', function () {

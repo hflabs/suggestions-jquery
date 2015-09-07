@@ -1,9 +1,9 @@
-describe('Geolocation', function(){
+describe('Geolocation', function () {
     'use strict';
 
     var serviceUrl = '/some/url';
 
-    beforeEach(function(){
+    beforeEach(function () {
         $.Suggestions.resetLocation();
         this.server = sinon.fakeServer.create();
 
@@ -29,7 +29,7 @@ describe('Geolocation', function(){
 
     it('Should send location with request', function () {
 
-        this.server.respond([200, {'Content-type':'application/json'}, JSON.stringify({
+        this.server.respond([200, { 'Content-type': 'application/json' }, JSON.stringify({
             location: {
                 data: {
                     region: 'москва',

@@ -5,6 +5,14 @@
 
         var methods = {
 
+            setupElement: function () {
+                // Remove autocomplete attribute to prevent native suggestions:
+                this.el
+                    .attr('autocomplete', 'off')
+                    .addClass('suggestions-input')
+                    .css('box-sizing', 'border-box');
+            },
+
             bindElementEvents: function () {
                 var that = this;
 

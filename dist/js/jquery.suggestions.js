@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.8.0
+ * DaData.ru Suggestions jQuery plugin, version 15.8.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -716,16 +716,19 @@
         that.type = null;
         that.status = {};
 
-        // Initialize and set options:
-        that.initialize();
-        that.setOptions(options);
+        that.setupElement();
+        if (that.el.is(':visible')) {
+            that.initialize();
+        } else {
+            that.deferInitialization();
+        }
     }
 
     Suggestions.utils = utils;
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.8.0';
+    Suggestions.version = '15.8.1';
 
     $.Suggestions = Suggestions;
 
@@ -736,11 +739,6 @@
         initialize: function () {
             var that = this;
 
-            // Remove autocomplete attribute to prevent native suggestions:
-            that.element.setAttribute('autocomplete', 'off');
-            this.el.addClass('suggestions-input')
-                .css('box-sizing', 'border-box');
-
             that.uniqueId = utils.uniqueId('i');
 
             that.createWrapper();
@@ -748,7 +746,24 @@
 
             that.bindWindowEvents();
 
+            that.setOptions();
             that.fixPosition();
+        },
+
+        /**
+         * Initialize when element is firstly interacted
+         */
+        deferInitialization: function () {
+            var that = this,
+                events = 'mouseover focus keydown',
+                callback = function () {
+                    that.el.off(events, callback);
+                    that.enable();
+                    that.initialize();
+                };
+
+            that.disabled = true;
+            that.el.on(events, callback);
         },
 
         dispose: function () {
@@ -782,7 +797,9 @@
         removeWrapper: function () {
             var that = this;
 
-            that.$wrapper.remove();
+            if (that.$wrapper) {
+                that.$wrapper.remove();
+            }
             $(that.options.$helpers).off(eventNS);
         },
 
@@ -1334,6 +1351,14 @@
          */
 
         var methods = {
+
+            setupElement: function () {
+                // Remove autocomplete attribute to prevent native suggestions:
+                this.el
+                    .attr('autocomplete', 'off')
+                    .addClass('suggestions-input')
+                    .css('box-sizing', 'border-box');
+            },
 
             bindElementEvents: function () {
                 var that = this;

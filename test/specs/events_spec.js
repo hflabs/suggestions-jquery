@@ -78,7 +78,7 @@ describe('Element events', function () {
 
     it('`suggestions-dispose` should be triggered', function () {
         var $parent = $('<input>')
-                .appendTo($('body'));
+            .appendTo($('body'));
 
         $parent.suggestions({
             type: 'ADDRESS',
