@@ -198,12 +198,14 @@
                         params.restrict_value = true;
                     }
                 } else {
-                    $.each(constraints, function (id, constraint) {
-                        locations = locations.concat(constraint.locations);
-                    });
-                    if (locations.length) {
-                        params.locations = locations;
-                        params.restrict_value = that.options.restrict_value;
+                    if (constraints) {
+                        $.each(constraints, function (id, constraint) {
+                            locations = locations.concat(constraint.locations);
+                        });
+                        if (locations.length) {
+                            params.locations = locations;
+                            params.restrict_value = that.options.restrict_value;
+                        }
                     }
                 }
 
