@@ -81,6 +81,8 @@ describe('Initialization', function () {
 
         // create input, but do not add it to DOM
         beforeEach(function () {
+            jasmine.clock().install();
+
             this.input = document.createElement('input');
             this.$input = $(this.input);
             this.instance = this.$input.suggestions({
@@ -93,6 +95,7 @@ describe('Initialization', function () {
 
         afterEach(function () {
             this.instance.dispose();
+            jasmine.clock().uninstall();
         });
 
         it('Should initialize suggestions options', function () {
@@ -126,6 +129,15 @@ describe('Initialization', function () {
 
                 beforeEach(function () {
                     this.$input.mouseover();
+                });
+
+                checkInitialized();
+            });
+
+            describe('and `initializeInterval` expired', function () {
+
+                beforeEach(function () {
+                    jasmine.clock().tick($.Suggestions.defaultOptions.initializeInterval + 1);
                 });
 
                 checkInitialized();

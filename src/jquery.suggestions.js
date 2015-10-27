@@ -56,7 +56,8 @@
             $helpers: null,
             headers: null,
             scrollOnFocus: true,
-            mobileWidth: 980
+            mobileWidth: 980,
+            initializeInterval: 100
         };
 
     var notificator = {
@@ -186,7 +187,9 @@
         deferInitialization: function () {
             var that = this,
                 events = 'mouseover focus keydown',
+                timer,
                 callback = function () {
+                    clearInterval(timer);
                     that.el.off(events, callback);
                     that.enable();
                     that.initialize();
@@ -194,6 +197,11 @@
 
             that.disabled = true;
             that.el.on(events, callback);
+            timer = setInterval(function(){
+                if (that.el.is(':visible')) {
+                    callback();
+                }
+            }, that.options.initializeInterval);
         },
 
         dispose: function () {

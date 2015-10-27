@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.10.1
+ * DaData.ru Suggestions jQuery plugin, version 15.10.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -63,7 +63,8 @@
             $helpers: null,
             headers: null,
             scrollOnFocus: true,
-            mobileWidth: 980
+            mobileWidth: 980,
+            initializeInterval: 100
         };
 
     var notificator = {
@@ -728,7 +729,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.10.1';
+    Suggestions.version = '15.10.2';
 
     $.Suggestions = Suggestions;
 
@@ -756,7 +757,9 @@
         deferInitialization: function () {
             var that = this,
                 events = 'mouseover focus keydown',
+                timer,
                 callback = function () {
+                    clearInterval(timer);
                     that.el.off(events, callback);
                     that.enable();
                     that.initialize();
@@ -764,6 +767,11 @@
 
             that.disabled = true;
             that.el.on(events, callback);
+            timer = setInterval(function(){
+                if (that.el.is(':visible')) {
+                    callback();
+                }
+            }, that.options.initializeInterval);
         },
 
         dispose: function () {
