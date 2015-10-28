@@ -111,6 +111,22 @@ describe('Select on Enter', function () {
                         ogrn: '1027700055360'
                     }
                 }
+            ],
+            'Петр Иванович': [
+                {
+                    value: 'Петр Иванович',
+                    data: {
+                        name: 'Петр',
+                        surname: 'Иванович'
+                    }
+                },
+                {
+                    value: 'Петр Иванович',
+                    data: {
+                        name: 'Петр',
+                        patronymic: 'Иванович'
+                    }
+                }
             ]
         };
 
@@ -474,6 +490,25 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = -1;
 
         this.input.value = 'зеленоград мкр';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should NOT trigger when byword matched several suggestions', function () {
+        var options = {
+            type: 'NAME',
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'Петр Иванович';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);
