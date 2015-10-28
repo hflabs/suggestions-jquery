@@ -10,56 +10,20 @@
          * @returns {Function} same parent checker function
          */
         function sameParentChecker (preprocessFn) {
-           return function (suggestions) {
-               if (suggestions.length === 0) {
-                   return false;
-               }
-               if (suggestions.length === 1) {
-                   return true;
-               }
-
-               var parentValue = preprocessFn(suggestions[0].value),
-                   aliens = $.grep(suggestions, function (suggestion) {
-                       return preprocessFn(suggestion.value).indexOf(parentValue) === 0;
-                   }, true);
-
-               return aliens.length === 0;
-           }
-        }
-
-        /**
-         * Factory to create match by words function
-         * @param haveSameParentFn called to check if all suggestions have the same parent
-         * @returns {Function} match by words function
-         */
-        function byWordsMatcher(haveSameParentFn) {
-            return function (query, suggestions) {
-                var stopwords = this && this.stopwords,
-                    queryLowerCase = query.toLowerCase(),
-                    queryTokens,
-                    index = -1;
-
-                if (haveSameParentFn(suggestions)) {
-                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
-
-                    $.each(suggestions, function(i, suggestion) {
-                        var suggestedValue = suggestion.value.toLowerCase();
-
-                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                            return false;
-                        }
-
-                        // check if query words are a subset of suggested words
-                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                            index = i;
-                            return false;
-                        }
-                    });
+            return function (suggestions) {
+                if (suggestions.length === 0) {
+                    return false;
+                }
+                if (suggestions.length === 1) {
+                    return true;
                 }
 
-                return index;
+                var parentValue = preprocessFn(suggestions[0].value),
+                    aliens = $.grep(suggestions, function (suggestion) {
+                        return preprocessFn(suggestion.value).indexOf(parentValue) === 0;
+                    }, true);
+
+                return aliens.length === 0;
             }
         }
 
@@ -105,15 +69,69 @@
                     }
                 });
 
-                return matches.length == 1 ? matches[0] : -1;
+                return matches.length === 1 ? matches[0] : -1;
             },
 
             /**
              * Matches query against suggestions word-by-word (with respect to stopwords).
              * Matches if query words are a subset of suggested words.
              */
-            matchByWords: byWordsMatcher(haveSameParent),
-            matchByWordsAddress: byWordsMatcher(haveSameParentAddress),
+            matchByWords: function (query, suggestions) {
+                var stopwords = this && this.stopwords,
+                    queryLowerCase = query.toLowerCase(),
+                    queryTokens,
+                    matches = [];
+
+                if (haveSameParent(suggestions)) {
+                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+
+                    $.each(suggestions, function(i, suggestion) {
+                        var suggestedValue = suggestion.value.toLowerCase();
+
+                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                            return false;
+                        }
+
+                        // check if query words are a subset of suggested words
+                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
+
+                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
+                            matches.push(i);
+                        }
+                    });
+                }
+
+                return matches.length === 1 ? matches[0] : -1;
+            },
+
+            matchByWordsAddress: function (query, suggestions) {
+                var stopwords = this && this.stopwords,
+                    queryLowerCase = query.toLowerCase(),
+                    queryTokens,
+                    index = -1;
+
+                if (haveSameParentAddress(suggestions)) {
+                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+
+                    $.each(suggestions, function(i, suggestion) {
+                        var suggestedValue = suggestion.value.toLowerCase();
+
+                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                            return false;
+                        }
+
+                        // check if query words are a subset of suggested words
+                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
+
+                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
+                            index = i;
+                            return false;
+                        }
+                    });
+                }
+
+                return index;
+            },
 
             matchByFields: function (query, suggestions) {
                 var stopwords = this && this.stopwords,

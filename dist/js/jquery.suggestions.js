@@ -343,15 +343,69 @@
                     }
                 });
 
-                return matches.length == 1 ? matches[0] : -1;
+                return matches.length === 1 ? matches[0] : -1;
             },
 
             /**
              * Matches query against suggestions word-by-word (with respect to stopwords).
              * Matches if query words are a subset of suggested words.
              */
-            matchByWords: byWordsMatcher(haveSameParent),
-            matchByWordsAddress: byWordsMatcher(haveSameParentAddress),
+            matchByWords: function (query, suggestions) {
+                var stopwords = this && this.stopwords,
+                    queryLowerCase = query.toLowerCase(),
+                    queryTokens,
+                    matches = [];
+
+                if (haveSameParent(suggestions)) {
+                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+
+                    $.each(suggestions, function(i, suggestion) {
+                        var suggestedValue = suggestion.value.toLowerCase();
+
+                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                            return false;
+                        }
+
+                        // check if query words are a subset of suggested words
+                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
+
+                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
+                            matches.push(i);
+                        }
+                    });
+                }
+
+                return matches.length === 1 ? matches[0] : -1;
+            },
+
+            matchByWordsAddress: function (query, suggestions) {
+                var stopwords = this && this.stopwords,
+                    queryLowerCase = query.toLowerCase(),
+                    queryTokens,
+                    index = -1;
+
+                if (haveSameParentAddress(suggestions)) {
+                    queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+
+                    $.each(suggestions, function(i, suggestion) {
+                        var suggestedValue = suggestion.value.toLowerCase();
+
+                        if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                            return false;
+                        }
+
+                        // check if query words are a subset of suggested words
+                        var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
+
+                        if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
+                            index = i;
+                            return false;
+                        }
+                    });
+                }
+
+                return index;
+            },
 
             matchByFields: function (query, suggestions) {
                 var stopwords = this && this.stopwords,
