@@ -7,7 +7,7 @@
             restrict_value: false
         };
 
-        var LOCATION_FIELDS = ['kladr_id', 'postal_code', 'region', 'area', 'city', 'settlement', 'street'];
+        var LOCATION_FIELDS = ['kladr_id', 'postal_code', 'country', 'region', 'area', 'city', 'settlement', 'street'];
 
         function filteredLocation (data) {
             var location = {};
