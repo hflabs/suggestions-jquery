@@ -114,6 +114,7 @@ describe('Address constraints', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
+                    planet: 'земля',
                     country: 'россия',
                     region: 'москва',
                     city: 'москва',
@@ -125,7 +126,7 @@ describe('Address constraints', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region":"москва","city":"москва"}]');
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"country":"россия","region":"москва","city":"москва"}]');
     });
 
     it('Should have `locations` parameter in request if constraints specified as single object named `restrictions`', function () {
