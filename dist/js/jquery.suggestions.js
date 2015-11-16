@@ -993,7 +993,9 @@
 
             that.disabled = true;
             that.abortRequest();
-            that.hide();
+            if (that.visible) {
+                that.hide();
+            }
         },
 
         enable: function () {
