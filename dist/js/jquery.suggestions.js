@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.10.4
+ * DaData.ru Suggestions jQuery plugin, version 15.11.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -736,18 +736,23 @@
         that.status = {};
 
         that.setupElement();
+
+        that.initializer = new $.Deferred;
+
         if (that.el.is(':visible')) {
-            that.initialize();
+            that.initializer.resolve();
         } else {
             that.deferInitialization();
         }
+
+        that.initializer.done($.proxy(that.initialize, that));
     }
 
     Suggestions.utils = utils;
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.10.4';
+    Suggestions.version = '15.11.1';
 
     $.Suggestions = Suggestions;
 
@@ -777,11 +782,14 @@
                 events = 'mouseover focus keydown',
                 timer,
                 callback = function () {
-                    clearInterval(timer);
-                    that.el.off(events, callback);
+                    that.initializer.resolve();
                     that.enable();
-                    that.initialize();
                 };
+
+            that.initializer.always(function(){
+                that.el.off(events, callback);
+                clearInterval(timer);
+            });
 
             that.disabled = true;
             that.el.on(events, callback);
@@ -792,8 +800,14 @@
             }, that.options.initializeInterval);
         },
 
+        isInitialized: function () {
+            return this.initializer.state() === 'resolved';
+        },
+
         dispose: function () {
             var that = this;
+
+            that.initializer.reject();
             that.notify('dispose');
             that.el.removeData(dataAttrKey)
                 .removeClass('suggestions-input');
@@ -921,7 +935,9 @@
                 .off(eventNS)
                 .on('mousedown' + eventNS, $.proxy(that.onMousedown, that));
 
-            that.notify('setOptions');
+            if (that.isInitialized()) {
+                that.notify('setOptions');
+            }
         },
 
         // Common public methods
@@ -932,7 +948,7 @@
                 wrapperOffset,
                 origin;
 
-            if (e && e.type == 'scroll' && !that.options.floating) return;
+            if (!that.isInitialized() || (e && e.type == 'scroll' && !that.options.floating)) return;
             that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
 
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
@@ -978,14 +994,16 @@
         clear: function () {
             var that = this;
 
-            that.clearCache();
-            that.currentValue = '';
-            that.selection = null;
-            that.hide();
-            that.suggestions = [];
-            that.el.val('');
-            that.el.trigger('suggestions-clear');
-            that.notify('clear');
+            if (that.isInitialized()) {
+                that.clearCache();
+                that.currentValue = '';
+                that.selection = null;
+                that.hide();
+                that.suggestions = [];
+                that.el.val('');
+                that.el.trigger('suggestions-clear');
+                that.notify('clear');
+            }
         },
 
         disable: function () {
@@ -1010,11 +1028,13 @@
             var that = this,
                 query = that.el.val();
 
-            if (that.isQueryRequestable(query)) {
-                that.currentValue = query;
-                that.updateSuggestions(query);
-            } else {
-                that.hide();
+            if (that.isInitialized()) {
+                if (that.isQueryRequestable(query)) {
+                    that.currentValue = query;
+                    that.updateSuggestions(query);
+                } else {
+                    that.hide();
+                }
             }
         },
 
