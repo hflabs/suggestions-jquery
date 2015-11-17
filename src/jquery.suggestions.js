@@ -52,6 +52,7 @@
             preventBadQueries: false,
             hint: 'Выберите вариант или продолжите ввод',
             type: null,
+            requestMode: 'suggest',
             count: 5,
             $helpers: null,
             headers: null,
@@ -103,6 +104,29 @@
                 dataType: 'json'
             },
             addTypeInUrl: true
+        },
+        'findById': {
+            defaultParams: {
+                type: utils.getDefaultType(),
+                dataType: 'json',
+                contentType: utils.getDefaultContentType()
+            },
+            addTypeInUrl: true
+        }
+    };
+
+    var requestModes = {
+        'suggest': {
+            method: 'suggest',
+            userSelect: true,
+            updateValue: true,
+            enrichmentEnabled: true
+        },
+        'findById': {
+            method: 'findById',
+            userSelect: false,
+            updateValue: false,
+            enrichmentEnabled: false
         }
     };
 
@@ -149,7 +173,7 @@
 
         that.setupElement();
 
-        that.initializer = new $.Deferred;
+        that.initializer = $.Deferred();
 
         if (that.el.is(':visible')) {
             that.initializer.resolve();
@@ -335,13 +359,19 @@
 
             $.extend(that.options, suppliedOptions);
 
-            that.type = types[that.options.type];
-            if (!that.type) {
-                that.disable();
-                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function (i, type) {
-                    return '"' + type + '"';
-                }).join(', ');
-            }
+            // Check mandatory options
+            $.each({
+                'type': types,
+                'requestMode': requestModes
+            }, function (option, available) {
+                that[option] = available[that.options[option]];
+                if (!that[option]) {
+                    that.disable();
+                    throw '`' + option + '` option is incorrect! Must be one of: ' + $.map(available, function (value, name) {
+                        return '"' + name + '"';
+                    }).join(', ');
+                }
+            });
 
             $(that.options.$helpers)
                 .off(eventNS)
@@ -693,7 +723,7 @@
         doGetSuggestions: function (params) {
             var that = this,
                 request = $.ajax(
-                    that.getAjaxParams('suggest', { data: utils.serialize(params) })
+                    that.getAjaxParams(that.requestMode.method, { data: utils.serialize(params) })
                 );
 
             that.abortRequest();

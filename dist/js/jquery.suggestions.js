@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.11.1
+ * DaData.ru Suggestions jQuery plugin, version 15.11.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -59,6 +59,7 @@
             preventBadQueries: false,
             hint: 'Выберите вариант или продолжите ввод',
             type: null,
+            requestMode: 'suggest',
             count: 5,
             $helpers: null,
             headers: null,
@@ -691,6 +692,29 @@
                 dataType: 'json'
             },
             addTypeInUrl: true
+        },
+        'findById': {
+            defaultParams: {
+                type: utils.getDefaultType(),
+                dataType: 'json',
+                contentType: utils.getDefaultContentType()
+            },
+            addTypeInUrl: true
+        }
+    };
+
+    var requestModes = {
+        'suggest': {
+            method: 'suggest',
+            userSelect: true,
+            updateValue: true,
+            enrichmentEnabled: true
+        },
+        'findById': {
+            method: 'findById',
+            userSelect: false,
+            updateValue: false,
+            enrichmentEnabled: false
         }
     };
 
@@ -737,7 +761,7 @@
 
         that.setupElement();
 
-        that.initializer = new $.Deferred;
+        that.initializer = $.Deferred();
 
         if (that.el.is(':visible')) {
             that.initializer.resolve();
@@ -752,7 +776,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.11.1';
+    Suggestions.version = '15.11.2';
 
     $.Suggestions = Suggestions;
 
@@ -923,13 +947,19 @@
 
             $.extend(that.options, suppliedOptions);
 
-            that.type = types[that.options.type];
-            if (!that.type) {
-                that.disable();
-                throw '`type` option is incorrect! Must be one of: ' + $.map(types, function (i, type) {
-                    return '"' + type + '"';
-                }).join(', ');
-            }
+            // Check mandatory options
+            $.each({
+                'type': types,
+                'requestMode': requestModes
+            }, function (option, available) {
+                that[option] = available[that.options[option]];
+                if (!that[option]) {
+                    that.disable();
+                    throw '`' + option + '` option is incorrect! Must be one of: ' + $.map(available, function (value, name) {
+                        return '"' + name + '"';
+                    }).join(', ');
+                }
+            });
 
             $(that.options.$helpers)
                 .off(eventNS)
@@ -1281,7 +1311,7 @@
         doGetSuggestions: function (params) {
             var that = this,
                 request = $.ajax(
-                    that.getAjaxParams('suggest', { data: utils.serialize(params) })
+                    that.getAjaxParams(that.requestMode.method, { data: utils.serialize(params) })
                 );
 
             that.abortRequest();
@@ -1811,7 +1841,8 @@
                     token = $.trim(that.options.token),
                     resolver = $.Deferred();
 
-                if (!that.status.enrich || !that.type.enrichmentEnabled || !token || selectionOptions && selectionOptions.dontEnrich) {
+                if (!that.status.enrich || !that.type.enrichmentEnabled || !that.requestMode.enrichmentEnabled ||
+                    !token || selectionOptions && selectionOptions.dontEnrich) {
                     return resolver.resolve(suggestion);
                 }
 
@@ -2037,24 +2068,29 @@
              */
             hasSuggestionsToChoose: function () {
                 var that = this;
+
                 return that.suggestions.length > 1 ||
                     (that.suggestions.length === 1 &&
-                        (!that.selection || $.trim(that.suggestions[0].value) != $.trim(that.selection.value))
+                        (!that.selection || $.trim(that.suggestions[0].value) !== $.trim(that.selection.value))
                     );
             },
 
             suggest: function () {
-                if (!this.hasSuggestionsToChoose()) {
-                    this.hide();
+                var that = this,
+                    options = that.options,
+                    formatResult, html;
+
+                if (!that.requestMode.userSelect) {
+                    return ;
+                }
+
+                if (!that.hasSuggestionsToChoose()) {
+                    that.hide();
                     return;
                 }
 
-                var that = this,
-                    options = that.options,
-                    formatResult = options.formatResult || that.type.formatResult || that.formatResult,
-                    beforeRender = options.beforeRender,
-                    html = [],
-                    index;
+                formatResult = options.formatResult || that.type.formatResult || that.formatResult;
+                html = [];
 
                 // Build hint html
                 if (!that.isMobile && options.hint && that.suggestions.length) {
@@ -2089,8 +2125,8 @@
                     that.getSuggestionsItems().eq(that.selectedIndex).addClass(that.classes.selected);
                 }
 
-                if ($.isFunction(beforeRender)) {
-                    beforeRender.call(that.element, that.$container);
+                if ($.isFunction(options.beforeRender)) {
+                    options.beforeRender.call(that.element, that.$container);
                 }
 
                 that.$container.show();
@@ -2979,6 +3015,17 @@
             },
 
             /**
+             * Selects first when user interaction is not supposed
+             */
+            selectFoundSuggestion: function () {
+                var that = this;
+
+                if (!that.requestMode.userSelect) {
+                    that.select(0);
+                }
+            },
+
+            /**
              * Selects current or first matched suggestion
              * @returns {number} index of found suggestion
              */
@@ -3065,20 +3112,24 @@
                     that.suggestions[index] = suggestion;
                 }
 
-                that.checkValueBounds(suggestion);
-                that.currentValue = that.getSuggestionValue(suggestion);
+                if (that.requestMode.updateValue) {
+                    that.checkValueBounds(suggestion);
+                    that.currentValue = that.getSuggestionValue(suggestion);
 
-                if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
-                    that.currentValue += ' ';
+                    if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
+                        that.currentValue += ' ';
+                    }
+                    that.el.val(that.currentValue);
                 }
-                that.el.val(that.currentValue);
 
                 if (that.currentValue) {
                     that.selection = suggestion;
                     if (!that.areSuggestionsSame(suggestion, currentSelection)) {
                         that.trigger('Select', suggestion, that.currentValue != lastValue);
                     }
-                    that.onSelectComplete(continueSelecting);
+                    if (that.requestMode.userSelect) {
+                        that.onSelectComplete(continueSelecting);
+                    }
                 } else {
                     that.selection = null;
                     that.triggerOnSelectNothing();
@@ -3122,6 +3173,9 @@
         };
 
         $.extend(Suggestions.prototype, methods);
+
+        notificator
+            .on('assignSuggestions', methods.selectFoundSuggestion);
 
     }());
 

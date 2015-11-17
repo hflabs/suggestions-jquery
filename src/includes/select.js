@@ -54,6 +54,17 @@
             },
 
             /**
+             * Selects first when user interaction is not supposed
+             */
+            selectFoundSuggestion: function () {
+                var that = this;
+
+                if (!that.requestMode.userSelect) {
+                    that.select(0);
+                }
+            },
+
+            /**
              * Selects current or first matched suggestion
              * @returns {number} index of found suggestion
              */
@@ -140,20 +151,24 @@
                     that.suggestions[index] = suggestion;
                 }
 
-                that.checkValueBounds(suggestion);
-                that.currentValue = that.getSuggestionValue(suggestion);
+                if (that.requestMode.updateValue) {
+                    that.checkValueBounds(suggestion);
+                    that.currentValue = that.getSuggestionValue(suggestion);
 
-                if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
-                    that.currentValue += ' ';
+                    if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
+                        that.currentValue += ' ';
+                    }
+                    that.el.val(that.currentValue);
                 }
-                that.el.val(that.currentValue);
 
                 if (that.currentValue) {
                     that.selection = suggestion;
                     if (!that.areSuggestionsSame(suggestion, currentSelection)) {
                         that.trigger('Select', suggestion, that.currentValue != lastValue);
                     }
-                    that.onSelectComplete(continueSelecting);
+                    if (that.requestMode.userSelect) {
+                        that.onSelectComplete(continueSelecting);
+                    }
                 } else {
                     that.selection = null;
                     that.triggerOnSelectNothing();
@@ -197,5 +212,8 @@
         };
 
         $.extend(Suggestions.prototype, methods);
+
+        notificator
+            .on('assignSuggestions', methods.selectFoundSuggestion);
 
     }());

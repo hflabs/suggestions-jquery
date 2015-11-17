@@ -169,24 +169,29 @@
              */
             hasSuggestionsToChoose: function () {
                 var that = this;
+
                 return that.suggestions.length > 1 ||
                     (that.suggestions.length === 1 &&
-                        (!that.selection || $.trim(that.suggestions[0].value) != $.trim(that.selection.value))
+                        (!that.selection || $.trim(that.suggestions[0].value) !== $.trim(that.selection.value))
                     );
             },
 
             suggest: function () {
-                if (!this.hasSuggestionsToChoose()) {
-                    this.hide();
+                var that = this,
+                    options = that.options,
+                    formatResult, html;
+
+                if (!that.requestMode.userSelect) {
+                    return ;
+                }
+
+                if (!that.hasSuggestionsToChoose()) {
+                    that.hide();
                     return;
                 }
 
-                var that = this,
-                    options = that.options,
-                    formatResult = options.formatResult || that.type.formatResult || that.formatResult,
-                    beforeRender = options.beforeRender,
-                    html = [],
-                    index;
+                formatResult = options.formatResult || that.type.formatResult || that.formatResult;
+                html = [];
 
                 // Build hint html
                 if (!that.isMobile && options.hint && that.suggestions.length) {
@@ -221,8 +226,8 @@
                     that.getSuggestionsItems().eq(that.selectedIndex).addClass(that.classes.selected);
                 }
 
-                if ($.isFunction(beforeRender)) {
-                    beforeRender.call(that.element, that.$container);
+                if ($.isFunction(options.beforeRender)) {
+                    options.beforeRender.call(that.element, that.$container);
                 }
 
                 that.$container.show();
