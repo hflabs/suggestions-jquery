@@ -1059,8 +1059,8 @@
                 query = that.el.val();
 
             if (that.isInitialized()) {
+                that.currentValue = query;
                 if (that.isQueryRequestable(query)) {
-                    that.currentValue = query;
                     that.updateSuggestions(query);
                 } else {
                     that.hide();
