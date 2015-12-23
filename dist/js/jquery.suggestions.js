@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.11.2
+ * DaData.ru Suggestions jQuery plugin, version 15.12.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -776,7 +776,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.11.2';
+    Suggestions.version = '15.12.0';
 
     $.Suggestions = Suggestions;
 
