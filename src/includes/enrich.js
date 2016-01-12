@@ -23,7 +23,7 @@
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
-                that.enrichPhase = that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
+                that.enrichPhase = that.getSuggestions(suggestion.unrestricted_value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                     .always(function () {
                         that.enableDropdown();
                     })

@@ -21,6 +21,23 @@ describe('Enrich', function () {
                     qc: null
                 }
             }],
+            poorAddressRestricted: [{
+                value: 'ул Солянка, д 6',
+                unrestricted_value: 'г Москва, ул Солянка, д 6',
+                data: {
+                    region: 'Москва',
+                    region_type: 'г',
+                    region_with_type: 'г Москва',
+                    city: 'Москва',
+                    city_type: 'г',
+                    city_with_type: 'г Москва',
+                    street: 'Солянка',
+                    street_type: 'ул',
+                    street_with_type: 'ул Солянка',
+                    house: '6',
+                    qc: null
+                }
+            }],
             poorParty: [{
                 value: 'Фирма',
                 data: {
@@ -111,6 +128,30 @@ describe('Enrich', function () {
         expect(this.server.requests.length).toEqual(1);
         expect(this.server.requests[0].requestBody).toContain('"count":1');
         expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poorAddress[0].value + '"');
+    });
+
+    it('Should send unrestricted_value for enrichment', function () {
+
+        this.instance.setOptions({
+            constraints: {
+                locations: { region_type: 'г', region: 'Москва', region_with_type: 'г Москва' }
+            },
+            restrict_value: true
+        });
+
+        // select address
+        this.input.value = 'Сол';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(fixtures.poorAddressRestricted));
+
+        this.server.requests.length = 0;
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        // request for enriched suggestion
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].requestBody).toContain('"count":1');
+        expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poorAddressRestricted[0].unrestricted_value + '"');
     });
 
     it('Should not enrich a suggestion when selected by SPACE', function () {

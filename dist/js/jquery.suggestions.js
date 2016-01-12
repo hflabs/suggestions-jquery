@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 15.12.0
+ * DaData.ru Suggestions jQuery plugin, version 15.12.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -776,7 +776,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '15.12.0';
+    Suggestions.version = '15.12.1';
 
     $.Suggestions = Suggestions;
 
@@ -1857,7 +1857,7 @@
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
-                that.enrichPhase = that.getSuggestions(suggestion.value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
+                that.enrichPhase = that.getSuggestions(suggestion.unrestricted_value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
                     .always(function () {
                         that.enableDropdown();
                     })
