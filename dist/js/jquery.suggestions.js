@@ -120,7 +120,9 @@
             },
             serialize: function (data) {
                 if ($.support.cors) {
-                    return JSON.stringify(data);
+                    return JSON.stringify(data, function (key, value) {
+                        return value === null ? undefined : value;
+                    });
                 } else {
                     return $.param(data, true);
                 }
@@ -1804,7 +1806,7 @@
                     params = {};
 
                 if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
-                    that.geoLocation.done(function(locationData){
+                    that.geoLocation.done(function (locationData) {
                         params['locations_boost'] = $.makeArray(locationData);
                     });
                 }
@@ -1857,7 +1859,20 @@
                 that.currentValue = suggestion.value;
 
                 // prevent request abortion during onBlur
-                that.enrichPhase = that.getSuggestions(suggestion.unrestricted_value, { count: 1 }, { noCallbacks: true, useEnrichmentCache: true })
+                that.enrichPhase = that.getSuggestions(
+                    suggestion.unrestricted_value,
+                    {
+                        count: 1,
+                        locations: null,
+                        locations_boost: null,
+                        from_bound: null,
+                        to_bound: null
+                    },
+                    {
+                        noCallbacks: true,
+                        useEnrichmentCache: true
+                    }
+                )
                     .always(function () {
                         that.enableDropdown();
                     })
@@ -1869,6 +1884,7 @@
                     .fail(function () {
                         resolver.resolve(suggestion);
                     });
+
                 return resolver;
             },
 

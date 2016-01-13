@@ -35,7 +35,9 @@
             },
             serialize: function (data) {
                 if ($.support.cors) {
-                    return JSON.stringify(data);
+                    return JSON.stringify(data, function (key, value) {
+                        return value === null ? undefined : value;
+                    });
                 } else {
                     return $.param(data, true);
                 }

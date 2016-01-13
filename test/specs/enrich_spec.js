@@ -154,6 +154,30 @@ describe('Enrich', function () {
         expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poorAddressRestricted[0].unrestricted_value + '"');
     });
 
+    it('Should not send constraints and boost parameters for enrichment', function () {
+
+        this.instance.setOptions({
+            constraints: {
+                locations: { region_type: 'г', region: 'Москва', region_with_type: 'г Москва' }
+            },
+            restrict_value: true
+        });
+
+        // select address
+        this.input.value = 'Сол';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(fixtures.poorAddressRestricted));
+
+        this.server.requests.length = 0;
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        // request for enriched suggestion
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].requestBody).not.toContain('"locations"');
+        expect(this.server.requests[0].requestBody).not.toContain('"locations_boost"');
+    });
+
     it('Should not enrich a suggestion when selected by SPACE', function () {
 
         // select address

@@ -59,7 +59,7 @@
                     params = {};
 
                 if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
-                    that.geoLocation.done(function(locationData){
+                    that.geoLocation.done(function (locationData) {
                         params['locations_boost'] = $.makeArray(locationData);
                     });
                 }
