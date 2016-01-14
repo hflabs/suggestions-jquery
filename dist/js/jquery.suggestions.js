@@ -1413,7 +1413,9 @@
                 label = that.getFirstConstraintLabel();
 
             $.each(suggestions, function (i, suggestion) {
-                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+                if (!suggestion.unrestricted_value) {
+                    suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+                }
             });
         },
 
