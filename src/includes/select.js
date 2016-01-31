@@ -148,7 +148,7 @@
                 }
 
                 if (selectionOptions.hasBeenEnriched) {
-                    that.suggestions[index] = suggestion;
+                    that.suggestions[index].data = suggestion.data;
                 }
 
                 if (that.requestMode.updateValue) {
