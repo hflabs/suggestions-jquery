@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.1.1
+ * DaData.ru Suggestions jQuery plugin, version 16.2.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -40,6 +40,7 @@
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,
+            onSuggestionsFetch: null,
             onSelect: null,
             onSelectNothing: null,
             onInvalidateSelection: null,
@@ -778,7 +779,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.1.1';
+    Suggestions.version = '16.2.1';
 
     $.Suggestions = Suggestions;
 
@@ -1244,8 +1245,8 @@
          * @param {String} query
          * @param {Object} customParams parameters specified here will be passed to request body
          * @param {Object} requestOptions
-         *          - noCallbacks flag, request competence callbacks will not be invoked
-         *          - useEnrichmentCache flag
+         * @param {Boolean} [requestOptions.noCallbacks]  flag, request competence callbacks will not be invoked
+         * @param {Boolean} [requestOptions.useEnrichmentCache]
          * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
          */
         getSuggestions: function (query, customParams, requestOptions) {
@@ -1353,7 +1354,8 @@
          * @return {Boolean} response contains acceptable data
          */
         processResponse: function (response) {
-            var that = this;
+            var that = this,
+                suggestions;
 
             if (!response || !$.isArray(response.suggestions)) {
                 return false;
@@ -1361,6 +1363,13 @@
 
             that.verifySuggestionsFormat(response.suggestions);
             that.setUnrestrictedValues(response.suggestions);
+
+            if ($.isFunction(that.options.onSuggestionsFetch)) {
+                suggestions = that.options.onSuggestionsFetch.call(that.element, response.suggestions);
+                if ($.isArray(suggestions)) {
+                    response.suggestions = suggestions;
+                }
+            }
 
             return true;
         },

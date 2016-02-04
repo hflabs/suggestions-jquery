@@ -365,4 +365,82 @@ describe('Common features', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
+    describe('onSuggestionsFetch callback', function () {
+
+        beforeEach(function () {
+
+            this.suggestions = [
+                helpers.appendUnrestrictedValue({ value: 'Afghanistan', data: { country: 'Afghanistan' } }),
+                helpers.appendUnrestrictedValue({ value: 'Albania', data: { country: 'Albania' } }),
+                helpers.appendUnrestrictedValue({ value: 'Andorra', data: { country: 'Andorra' } })
+            ];
+
+
+            this.input.value = 'A';
+            this.instance.onValueChange();
+
+        });
+
+        it('invoked', function () {
+            var options = {
+                onSuggestionsFetch: function () {
+                }
+            };
+
+            spyOn(options, 'onSuggestionsFetch');
+
+            this.instance.setOptions(options);
+
+            this.server.respond(helpers.responseFor(this.suggestions));
+
+            expect(options.onSuggestionsFetch.calls.count()).toEqual(1);
+            expect(options.onSuggestionsFetch).toHaveBeenCalledWith(this.suggestions);
+        });
+
+        it('can modify argument', function () {
+
+            this.instance.setOptions({
+                onSuggestionsFetch: function (suggestions) {
+                    // Move first option to the end
+                    suggestions.push(suggestions.shift());
+                }
+            });
+
+            this.server.respond(helpers.responseFor(this.suggestions));
+
+            var $items = this.instance.$container.find('.suggestions-suggestion');
+
+            // Second option become first
+            expect($items.eq(0)).toContainText(this.suggestions[1].value);
+            expect($items.eq(1)).toContainText(this.suggestions[2].value);
+            // First option become last
+            expect($items.eq(2)).toContainText(this.suggestions[0].value);
+        });
+
+        it('can use returned array', function () {
+
+            this.instance.setOptions({
+                onSuggestionsFetch: function (suggestions) {
+                    // Return new array
+                    return [
+                        suggestions[1],
+                        suggestions[2],
+                        suggestions[0]
+                    ];
+                }
+            });
+
+            this.server.respond(helpers.responseFor(this.suggestions));
+
+            var $items = this.instance.$container.find('.suggestions-suggestion');
+
+            // Second option become first
+            expect($items.eq(0)).toContainText(this.suggestions[1].value);
+            expect($items.eq(1)).toContainText(this.suggestions[2].value);
+            // First option become last
+            expect($items.eq(2)).toContainText(this.suggestions[0].value);
+        });
+
+    });
+
 });
