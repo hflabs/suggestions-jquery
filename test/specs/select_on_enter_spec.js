@@ -143,7 +143,7 @@ describe('Select on Enter', function () {
                 JSON.stringify(query ? { suggestions: fixtures[query] } : {})
             );
         });
-        helpers.returnGoodStatus(this.server);
+        helpers.returnPoorStatus(this.server);
 
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');

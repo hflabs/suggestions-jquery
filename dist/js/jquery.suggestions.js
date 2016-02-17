@@ -1842,11 +1842,10 @@
 
             enrichSuggestion: function (suggestion, selectionOptions) {
                 var that = this,
-                    token = $.trim(that.options.token),
                     resolver = $.Deferred();
 
                 if (!that.status.enrich || !that.type.enrichmentEnabled || !that.requestMode.enrichmentEnabled ||
-                    !token || selectionOptions && selectionOptions.dontEnrich) {
+                    selectionOptions && selectionOptions.dontEnrich) {
                     return resolver.resolve(suggestion);
                 }
 
