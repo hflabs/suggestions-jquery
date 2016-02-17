@@ -46,6 +46,9 @@ this.helpers = (function () {
         },
         returnGoodStatus: function (server) {
             helpers.returnStatus(server, { search: true, enrich: true });
+        },
+        returnPoorStatus: function (server) {
+            helpers.returnStatus(server, { search: true, enrich: false });
         }
     };
     return helpers;

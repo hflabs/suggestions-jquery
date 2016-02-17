@@ -15,7 +15,7 @@ describe('After selecting', function () {
             type: 'NAME'
         }).suggestions();
 
-        helpers.returnGoodStatus(this.server);
+        helpers.returnPoorStatus(this.server);
     });
 
     afterEach(function () {
@@ -123,7 +123,7 @@ describe('After selecting', function () {
             type: 'ADDRESS',
             geoLocation: false
         });
-        helpers.returnGoodStatus(this.server);
+        helpers.returnPoorStatus(this.server);
 
         this.input.value = 'Р';
         this.instance.onValueChange();

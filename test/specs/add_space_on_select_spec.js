@@ -18,7 +18,7 @@ describe('Adding space on selecting', function () {
                 type: 'NAME'
             }).suggestions();
 
-            helpers.returnGoodStatus(this.server);
+            helpers.returnPoorStatus(this.server);
         });
 
         afterEach(function () {
@@ -170,7 +170,7 @@ describe('Adding space on selecting', function () {
                 geoLocation: false
             }).suggestions();
 
-            helpers.returnGoodStatus(this.server);
+            helpers.returnPoorStatus(this.server);
         });
 
         afterEach(function () {
