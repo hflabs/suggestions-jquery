@@ -2014,15 +2014,17 @@
                     index;
 
                 if (!that.dropdownDisabled) {
+                    that.cancelFocus = true;
+                    that.el.focus();
+
                     while ($el.length && !(index = $el.attr('data-index'))) {
                         $el = $el.closest('.' + that.classes.suggestion);
                     }
+
                     if (index && !isNaN(index)) {
                         that.select(+index);
                     }
                 }
-                that.cancelFocus = true;
-                that.el.focus();
             },
 
             // Dropdown UI methods
