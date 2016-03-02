@@ -195,11 +195,11 @@
                         formattedInn = formattedInn.split('');
                         innParts = $.map(innPartsLength, function (partLength) {
                             var formattedPart = '',
-                                char;
+                                ch;
 
-                            while (partLength && (char = formattedInn.shift())) {
-                                formattedPart += char;
-                                if (rDigit.test(char)) partLength--;
+                            while (partLength && (ch = formattedInn.shift())) {
+                                formattedPart += ch;
+                                if (rDigit.test(ch)) partLength--;
                             }
 
                             return formattedPart;

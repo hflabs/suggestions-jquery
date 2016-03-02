@@ -15,8 +15,8 @@
                 };
 
                 if (str) {
-                    $.each(map, function(char, html){
-                        str = str.replace(new RegExp(char, 'g'), html);
+                    $.each(map, function(ch, html){
+                        str = str.replace(new RegExp(ch, 'g'), html);
                     });
                 }
                 return str;
