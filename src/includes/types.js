@@ -161,7 +161,7 @@
                 value = that.wrapFormattedValue(value, suggestion);
 
                 if (address) {
-                    address = address.replace(/^\d{6}\s+/i, '');
+                    address = address.replace(/^(\d{6}?\s+|Россия,\s+)/i, '');
                     if (that.isMobile) {
                         // keep only two first words
                         address = address.replace(new RegExp('^([^' + wordDelimiters + ']+[' + wordDelimiters + ']+[^' + wordDelimiters + ']+).*'), '$1');
