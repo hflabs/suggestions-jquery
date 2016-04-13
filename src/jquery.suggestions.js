@@ -566,6 +566,7 @@
         getAjaxParams: function (method, custom) {
             var that = this,
                 token = $.trim(that.options.token),
+                partner = $.trim(that.options.partner),
                 serviceUrl = that.options.serviceUrl,
                 serviceMethod = serviceMethods[method],
                 params = $.extend({
@@ -588,6 +589,9 @@
                 if (token) {
                     headers['Authorization'] = 'Token ' + token;
                 }
+                if (partner) {
+                    headers['X-Partner'] = partner;
+                }
                 headers['X-Version'] = Suggestions.version;
                 if (!params.headers) {
                     params.headers = {};
@@ -597,6 +601,9 @@
                 // for XDomainRequest put token into URL
                 if (token) {
                     headers['token'] = token;
+                }
+                if (partner) {
+                    headers['partner'] = partner;
                 }
                 headers['version'] = Suggestions.version;
                 serviceUrl = utils.addUrlParams(serviceUrl, headers);

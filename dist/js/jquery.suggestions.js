@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.2.1
+ * DaData.ru Suggestions jQuery plugin, version 16.4.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -779,7 +779,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.2.1';
+    Suggestions.version = '16.4.1';
 
     $.Suggestions = Suggestions;
 
@@ -1156,6 +1156,7 @@
         getAjaxParams: function (method, custom) {
             var that = this,
                 token = $.trim(that.options.token),
+                partner = $.trim(that.options.partner),
                 serviceUrl = that.options.serviceUrl,
                 serviceMethod = serviceMethods[method],
                 params = $.extend({
@@ -1178,6 +1179,9 @@
                 if (token) {
                     headers['Authorization'] = 'Token ' + token;
                 }
+                if (partner) {
+                    headers['X-Partner'] = partner;
+                }
                 headers['X-Version'] = Suggestions.version;
                 if (!params.headers) {
                     params.headers = {};
@@ -1187,6 +1191,9 @@
                 // for XDomainRequest put token into URL
                 if (token) {
                     headers['token'] = token;
+                }
+                if (partner) {
+                    headers['partner'] = partner;
                 }
                 headers['version'] = Suggestions.version;
                 serviceUrl = utils.addUrlParams(serviceUrl, headers);
