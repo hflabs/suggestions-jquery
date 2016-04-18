@@ -109,11 +109,14 @@
                     style;
 
                 if (that.isMobile) {
-                    style = {
+                    style = that.options.floating ? {
+                        left: 0 + 'px',
+                        top: elLayout.top + elLayout.outerHeight + 'px'
+                    } : {
                         left: origin.left - elLayout.left + 'px',
-                        top: origin.top + elLayout.outerHeight + 'px',
-                        width: that.$viewport.width() + 'px'
+                        top: origin.top + elLayout.outerHeight + 'px'
                     };
+                    style.width = that.$viewport.width() + 'px';
                 } else {
                     style = that.options.floating ? {
                         left: elLayout.left + 'px',
