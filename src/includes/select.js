@@ -147,7 +147,8 @@
                     continueSelecting = false;
                 }
 
-                if (selectionOptions.hasBeenEnriched) {
+                // `suggestions` cat be empty, e.g. during `fixData`
+                if (selectionOptions.hasBeenEnriched && that.suggestions[index]) {
                     that.suggestions[index].data = suggestion.data;
                 }
 

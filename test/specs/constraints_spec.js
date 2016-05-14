@@ -394,7 +394,7 @@ describe('Address constraints', function () {
 
         beforeEach(function () {
             this.$parent = $('<input>')
-                .appendTo($('body'));
+                .appendTo($body);
 
             this.$parent.suggestions({
                 type: 'ADDRESS',
@@ -504,6 +504,26 @@ describe('Address constraints', function () {
                 region: 'Тульская',
                 area: 'Узловский'
             });
+        });
+
+        it('Should spread data to all parents', function () {
+            this.$parent.val('Тульская обл, Узловский р-н');
+            this.input.value = 'г Узловая, поселок Брусянский, ул Строителей, д 1-бара';
+
+            this.instance.setOptions({
+                bounds: 'city-',
+                constraints: this.$parent
+            });
+
+            this.instance.fixData();
+            this.server.respond(helpers.responseFor([fixtures.fullyAddress]));
+
+            expect(this.parentInstance.selection.data).toEqual(jasmine.objectContaining({
+                region: 'Тульская',
+                region_type: 'обл',
+                area: 'Узловский',
+                area_type: 'р-н'
+            }));
         });
 
     });
