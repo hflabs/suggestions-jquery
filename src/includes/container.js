@@ -106,14 +106,15 @@
 
             setDropdownPosition: function (origin, elLayout) {
                 var that = this,
+                    scrollLeft = that.$viewport.scrollLeft(),
                     style;
 
                 if (that.isMobile) {
                     style = that.options.floating ? {
-                        left: 0 + 'px',
+                        left: scrollLeft + 'px',
                         top: elLayout.top + elLayout.outerHeight + 'px'
                     } : {
-                        left: origin.left - elLayout.left + 'px',
+                        left: origin.left - elLayout.left + scrollLeft + 'px',
                         top: origin.top + elLayout.outerHeight + 'px'
                     };
                     style.width = that.$viewport.width() + 'px';
@@ -141,7 +142,7 @@
                     .toggleClass(that.classes.mobile, that.isMobile)
                     .css(style);
 
-                that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft;
+                that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft - scrollLeft;
             },
 
             setItemsPositions: function () {

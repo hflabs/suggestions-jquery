@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.5.1
+ * DaData.ru Suggestions jQuery plugin, version 16.5.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -779,7 +779,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.5.1';
+    Suggestions.version = '16.5.3';
 
     $.Suggestions = Suggestions;
 
@@ -981,10 +981,10 @@
                 wrapperOffset,
                 origin;
 
-            if (!that.isInitialized() || (e && e.type == 'scroll' && !that.options.floating)) return;
-            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
-
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
+
+            if (!that.isInitialized() || (e && e.type == 'scroll' && !(that.options.floating || that.isMobile))) return;
+            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
 
             that.notify('resetPosition');
             // reset input's padding to default, determined by css
@@ -2038,14 +2038,15 @@
 
             setDropdownPosition: function (origin, elLayout) {
                 var that = this,
+                    scrollLeft = that.$viewport.scrollLeft(),
                     style;
 
                 if (that.isMobile) {
                     style = that.options.floating ? {
-                        left: 0 + 'px',
+                        left: scrollLeft + 'px',
                         top: elLayout.top + elLayout.outerHeight + 'px'
                     } : {
-                        left: origin.left - elLayout.left + 'px',
+                        left: origin.left - elLayout.left + scrollLeft + 'px',
                         top: origin.top + elLayout.outerHeight + 'px'
                     };
                     style.width = that.$viewport.width() + 'px';
@@ -2073,7 +2074,7 @@
                     .toggleClass(that.classes.mobile, that.isMobile)
                     .css(style);
 
-                that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft;
+                that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft - scrollLeft;
             },
 
             setItemsPositions: function () {

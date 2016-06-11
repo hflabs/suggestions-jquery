@@ -391,10 +391,10 @@
                 wrapperOffset,
                 origin;
 
-            if (!that.isInitialized() || (e && e.type == 'scroll' && !that.options.floating)) return;
-            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
-
             that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
+
+            if (!that.isInitialized() || (e && e.type == 'scroll' && !(that.options.floating || that.isMobile))) return;
+            that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
 
             that.notify('resetPosition');
             // reset input's padding to default, determined by css
