@@ -501,6 +501,7 @@
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
+                that.el.trigger('suggestions-set');
                 that.selection = suggestion;
                 that.suggestions = [suggestion];
                 that.abortRequest();
@@ -520,11 +521,13 @@
             resolver
                 .done(function (suggestion) {
                     that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
+                    that.el.trigger('suggestions-fixdata');
                 })
                 .fail(function () {
                     that.selection = null;
                     that.currentValue = '';
                     that.el.val(that.currentValue);
+                    that.el.trigger('suggestions-fixdata');
                 });
 
             if (that.isQueryRequestable(fullQuery)) {
