@@ -5,6 +5,7 @@ describe('Geolocation', function () {
 
     beforeEach(function () {
         $.Suggestions.resetLocation();
+        $.Suggestions.resetTokens();
         this.server = sinon.fakeServer.create();
 
         this.input = document.createElement('input');
@@ -13,12 +14,22 @@ describe('Geolocation', function () {
             serviceUrl: serviceUrl,
             type: 'ADDRESS'
         }).suggestions();
+
+        // First request gets service status info
+        this.server.requests.shift().respond([200, { 'Content-type': 'application/json' }, JSON.stringify({
+            enrich: true,
+            name: "address",
+            search: true,
+            state: "ENABLED"
+        })]);
+        this.server.queue.shift();
     });
 
     afterEach(function () {
         this.instance.dispose();
         this.$input.remove();
         this.server.restore();
+        $.Suggestions.resetTokens();
         $.Suggestions.resetLocation();
     });
 
@@ -29,7 +40,7 @@ describe('Geolocation', function () {
 
     it('Should send location with request', function () {
 
-        this.server.respond([200, { 'Content-type': 'application/json' }, JSON.stringify({
+        this.server.respond('GET', /detectAddressByIp/, [200, { 'Content-type': 'application/json' }, JSON.stringify({
             location: {
                 data: {
                     region: 'москва',

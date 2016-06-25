@@ -98,4 +98,35 @@ describe('Element events', function () {
         expect(this.instance.onParentDispose).toHaveBeenCalled();
     });
 
+    it('`suggestions-set` should be triggered', function () {
+        // this.$input is different with this.instance.el, thought contains same element
+        var $input = this.instance.el;
+        spyOn($input, 'trigger');
+
+        this.instance.setSuggestion({
+            value: 'somethind',
+            data: {}
+        });
+
+        expect($input.trigger).toHaveBeenCalledWith('suggestions-set');
+    });
+
+    it('`suggestions-fixdata` should be triggered', function () {
+        // this.$input is different with this.instance.el, thought contains same element
+        var $input = this.instance.el;
+        spyOn($input, 'trigger');
+
+        this.input.value = 'г Москва';
+        this.instance.fixData();
+
+        this.server.respond('GET', /address/, [200, { 'Content-type': 'application/json' }, JSON.stringify([
+            {
+                value: 'г Москва',
+                data: {}
+            }
+        ])]);
+
+        expect($input.trigger).toHaveBeenCalledWith('suggestions-fixdata');
+    });
+
 });

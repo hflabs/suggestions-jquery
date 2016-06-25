@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.5.3
+ * DaData.ru Suggestions jQuery plugin, version 16.5.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -779,7 +779,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.5.3';
+    Suggestions.version = '16.5.4';
 
     $.Suggestions = Suggestions;
 
@@ -1091,10 +1091,10 @@
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
-                that.el.trigger('suggestions-set');
                 that.selection = suggestion;
                 that.suggestions = [suggestion];
                 that.abortRequest();
+                that.el.trigger('suggestions-set');
             }
         },
 
@@ -1111,7 +1111,7 @@
             resolver
                 .done(function (suggestion) {
                     that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
-                    that.el.trigger('suggestions-fixdata');
+                    that.el.trigger('suggestions-fixdata', suggestion);
                 })
                 .fail(function () {
                     that.selection = null;

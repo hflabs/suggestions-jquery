@@ -6,6 +6,9 @@ describe('Right-sided control', function () {
         $body = $(document.body);
 
     beforeEach(function () {
+        this.server = sinon.fakeServer.create();
+        jasmine.clock().install();
+
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo($body);
         this.instance = this.$input.suggestions({
@@ -13,9 +16,6 @@ describe('Right-sided control', function () {
             type: 'NAME'
         }).suggestions();
         this.$button = this.instance.$wrapper.children('.suggestions-addon');
-
-        this.server = sinon.fakeServer.create();
-        jasmine.clock().install();
     });
 
     afterEach(function () {

@@ -4,6 +4,8 @@ describe('Highlight suggestions', function () {
     var serviceUrl = '/some/url';
 
     beforeEach(function () {
+        this.server = sinon.fakeServer.create();
+
         this.input = document.createElement('input');
         this.$input = $(this.input).appendTo('body');
         this.instance = this.$input.suggestions({
@@ -12,8 +14,6 @@ describe('Highlight suggestions', function () {
             // disable mobile view
             mobileWidth: NaN
         }).suggestions();
-
-        this.server = sinon.fakeServer.create();
     });
 
     afterEach(function () {
