@@ -88,6 +88,17 @@
                     return $.inArray(el, array2) === -1;
                 }) : array1;
             },
+            /**
+             * Returns array1 minus array2
+             * if value in array1 in enclosed by value in array2, it is considered a match
+             */
+            arrayMinusWithPartialMatching: function(array1, array2) {
+                return array2 ? $.grep(array1, function(el, i){
+                    return !array2.some(function(el2) {
+                        return el2.indexOf(el) === 0;
+                    })
+                }) : array1;
+            },
             getWords: function(str, stopwords) {
                 // Split numbers and letters written together
                 str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')

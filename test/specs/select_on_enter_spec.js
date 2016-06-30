@@ -79,6 +79,18 @@ describe('Select on Enter', function () {
                     }
                 }
             ],
+            '1057746629115': [
+                {
+                    value: 'ООО ХФ ЛАБС',
+                    data: {
+                        name: {
+                            full: 'ХФ ЛАБС'
+                        },
+                        inn: '7707545900',
+                        ogrn: '1057746629115'
+                    }
+                }
+            ],
             'хф 770754': [
                 {
                     value: 'ООО ХФ ЛАБС',
@@ -109,6 +121,18 @@ describe('Select on Enter', function () {
                             short: 'ФЛ ОАО \"Газпром автоматизация\" в г. Астрахань'
                         },
                         ogrn: '1027700055360'
+                    }
+                }
+            ],
+            'альфа 04452': [
+                {
+                    value: 'АО "АЛЬФА-БАНК"',
+                    data: {
+                        name: {
+                            full: 'АКЦИОНЕРНОЕ ОБЩЕСТВО "АЛЬФА-БАНК"',
+                            short: 'АЛЬФА-БАНК'
+                        },
+                        bik: '044525593'
                     }
                 }
             ],
@@ -599,7 +623,30 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should NOT trigger when fields (inn) partially match single suggestion', function () {
+    it('Should trigger when fields (ogrn) match single suggestion', function () {
+
+        var options = {
+            type: 'PARTY',
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = '1057746629115';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(fixtures['1057746629115'][0]),
+            true
+        );
+    });
+
+    it('Should trigger when fields (inn) partially match single suggestion', function () {
 
         var options = {
             type: 'PARTY',
@@ -618,8 +665,35 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        expect(options.onSelect).not.toHaveBeenCalled();
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(fixtures['хф 770754'][0]),
+            true
+        );
+    });
 
+    it('Should trigger when fields (bik) partially match single suggestion', function () {
+
+        var options = {
+            type: 'BANK',
+            onSelect: function () {
+            }
+        };
+        helpers.returnGoodStatus(this.server);
+
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'альфа 04452';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue(fixtures['альфа 04452'][0]),
+            true
+        );
     });
 
     it('Should NOT trigger when fields match several suggestions', function () {

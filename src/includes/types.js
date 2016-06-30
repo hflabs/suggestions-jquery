@@ -140,7 +140,8 @@
                     fieldsStopwords: {
                         'value': null,
                         'data.address.value': ADDRESS_STOPWORDS,
-                        'data.inn': null
+                        'data.inn': null,
+                        'data.ogrn': null
                     }
                 })
             ],
@@ -223,7 +224,13 @@
 
         types['BANK'] = {
             urlSuffix: 'bank',
-            matchers: [matchers.matchByWords],
+            matchers: [$.proxy(matchers.matchByFields, {
+                // These fields of suggestion's `data` used by by-words matcher
+                fieldsStopwords: {
+                    'value': null,
+                    'data.bik': null
+                }
+            })],
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
                     formattedBIC = that.highlightMatches(utils.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
