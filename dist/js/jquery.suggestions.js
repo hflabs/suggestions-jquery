@@ -391,7 +391,7 @@
              * for cases, when there is only one suggestion
              * only considers fields specified in fieldsStopwords map
              * uses partial matching:
-             *   "0445" vs { value: "ALFA-BANK", data: { "bik": "044525593" }} is a match
+             *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
              */
             matchByFields: function (query, suggestions) {
                 var stopwords = this && this.stopwords,
@@ -654,7 +654,7 @@
                 // These fields of suggestion's `data` used by by-words matcher
                 fieldsStopwords: {
                     'value': null,
-                    'data.bik': null
+                    'data.bic': null
                 }
             })],
             formatResult: function (value, currentValue, suggestion, options) {

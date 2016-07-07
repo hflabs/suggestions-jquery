@@ -132,7 +132,7 @@ describe('Select on Enter', function () {
                             full: 'АКЦИОНЕРНОЕ ОБЩЕСТВО "АЛЬФА-БАНК"',
                             short: 'АЛЬФА-БАНК'
                         },
-                        bik: '044525593'
+                        bic: '044525593'
                     }
                 }
             ],
@@ -671,7 +671,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should trigger when fields (bik) partially match single suggestion', function () {
+    it('Should trigger when fields (bic) partially match single suggestion', function () {
 
         var options = {
             type: 'BANK',

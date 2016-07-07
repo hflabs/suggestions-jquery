@@ -228,7 +228,7 @@
                 // These fields of suggestion's `data` used by by-words matcher
                 fieldsStopwords: {
                     'value': null,
-                    'data.bik': null
+                    'data.bic': null
                 }
             })],
             formatResult: function (value, currentValue, suggestion, options) {
