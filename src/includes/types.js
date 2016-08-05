@@ -129,6 +129,22 @@
                     utils.compact([data.flat_type, data.flat]).join(' '),
                     data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
+            },
+            formatResult: function (value, currentValue, suggestion, options) {
+                var that = this,
+                    district = suggestion.data && suggestion.data.city_district_with_type;
+
+                value = that.highlightMatches(value, currentValue, suggestion, options);
+                value = that.wrapFormattedValue(value, suggestion);
+
+                if (district && that.bounds.own.indexOf('street') >= 0) {
+                    value +=
+                        '<div class="' + that.classes.subtext + '">' +
+                        that.highlightMatches(district, currentValue, suggestion) +
+                        '</div>';
+                }
+
+                return value;
             }
         };
 
