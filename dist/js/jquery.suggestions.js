@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.1
+ * DaData.ru Suggestions jQuery plugin, version 16.8.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -563,7 +563,7 @@
                 value = that.highlightMatches(value, currentValue, suggestion, options);
                 value = that.wrapFormattedValue(value, suggestion);
 
-                if (district && that.bounds.own.indexOf('street') >= 0) {
+                if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)) {
                     value +=
                         '<div class="' + that.classes.subtext + '">' +
                         that.highlightMatches(district, currentValue, suggestion) +
@@ -820,7 +820,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.1';
+    Suggestions.version = '16.8.2';
 
     $.Suggestions = Suggestions;
 

@@ -137,7 +137,7 @@
                 value = that.highlightMatches(value, currentValue, suggestion, options);
                 value = that.wrapFormattedValue(value, suggestion);
 
-                if (district && that.bounds.own.indexOf('street') >= 0) {
+                if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)) {
                     value +=
                         '<div class="' + that.classes.subtext + '">' +
                         that.highlightMatches(district, currentValue, suggestion) +
