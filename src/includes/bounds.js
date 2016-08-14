@@ -27,7 +27,7 @@
 
         setBoundsOptions: function () {
             var that = this,
-                boundsAvailable = that.type.boundsAvailable,
+                boundsAvailable = [],
                 newBounds = $.trim(that.options.bounds).split('-'),
                 boundFrom = newBounds[0],
                 boundTo = newBounds[newBounds.length - 1],
@@ -35,6 +35,14 @@
                 boundIsOwn,
                 boundsAll = [],
                 indexTo;
+
+            if (that.type.dataComponents) {
+                $.each(that.type.dataComponents, function () {
+                    if (this.forBounds) {
+                        boundsAvailable.push(this.id);
+                    }
+                });
+            }
 
             if ($.inArray(boundFrom, boundsAvailable) === -1) {
                 boundFrom = null;
@@ -94,19 +102,19 @@
 
         copyBoundedData: function (data, boundsRange) {
             var result = {},
-                boundsFields = this.type.boundsFields;
+                dataComponents = this.type.dataComponents;
 
-            if (boundsFields) {
+            if (dataComponents) {
                 $.each(boundsRange, function (i, bound) {
-                    var fields = boundsFields[bound];
-
-                    if (fields) {
-                        $.each(fields, function (i, field) {
-                            if (data[field] != null) {
-                                result[field] = data[field];
-                            }
-                        })
-                    }
+                    $.each(dataComponents, function(){
+                        if (this.id === bound) {
+                            $.each(this.fields, function (i, field) {
+                                if (data[field] != null) {
+                                    result[field] = data[field];
+                                }
+                            })
+                        }
+                    });
                 });
             }
 

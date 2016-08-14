@@ -6,8 +6,7 @@
          * - matchers Mandatory. Array of functions (with optional data bound as a context) that find appropriate suggestion to select
          * - `fieldNames` Map fields of suggestion.data to their displayable names
          * - `unformattableTokens` Array of strings which should not be highlighted
-         * - `boundsAvailable` Array of 'bound's can be set as `bounds` option. Order is important.
-         * - `boundsFields` Map of fields of `suggestion.data` corresponding to each bound
+         * - `dataComponents` Array of 'bound's can be set as `bounds` option. Order is important.
          *
          * flags:
          * - `alwaysContinueSelecting` Forbids to hide dropdown after selecting
@@ -99,16 +98,62 @@
                 $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
                 $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
-            boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
-            boundsFields: {
-                'region': ['region', 'region_type', 'region_type_full', 'region_with_type'],
-                'area': ['area', 'area_type', 'area_type_full', 'area_with_type'],
-                'city': ['city', 'city_type', 'city_type_full', 'city_with_type'],
-                'settlement': ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
-                'street': ['street', 'street_type', 'street_type_full', 'street_with_type'],
-                'house': ['house', 'house_type', 'house_type_full',
-                    'block', 'block_type']
-            },
+            dataComponents: [
+                {
+                    id: 'kladr_id',
+                    fields: ['kladr_id'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'postal_code',
+                    fields: ['postal_code'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'country',
+                    fields: ['country'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'region',
+                    fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id:'area',
+                    fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id:'city',
+                    fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                }, {
+                    id: 'settlement',
+                    fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id: 'street',
+                    fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id: 'house',
+                    fields: ['house', 'house_type', 'house_type_full',
+                        'block', 'block_type'],
+                    forBounds: true,
+                    forLocations: false
+                }
+            ],
             unformattableTokens: ADDRESS_STOPWORDS,
             enrichmentEnabled: true,
             geoEnabled: true,
