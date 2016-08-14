@@ -802,7 +802,14 @@
             }
         },
 
-        getSuggestionValue: function (suggestion) {
+        /**
+         * Gets string to set as input value
+         *
+         * @param suggestion
+         * @param {boolean} [hasBeenEnriched]  if set, calculation of restricted value will be applied
+         * @return {string}
+         */
+        getSuggestionValue: function (suggestion, hasBeenEnriched) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
                 formattedValue;
@@ -812,7 +819,13 @@
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
-                formattedValue = suggestion.value;
+                // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
+                // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasBeenEnriched && that.options.restrict_value && that.type.composeValue) {
+                    formattedValue = that.type.composeValue(that.getUnrestrictedData(suggestion.data));
+                } else {
+                    formattedValue = suggestion.value;
+                }
             }
 
             return formattedValue;

@@ -154,7 +154,7 @@
 
                 if (that.requestMode.updateValue) {
                     that.checkValueBounds(suggestion);
-                    that.currentValue = that.getSuggestionValue(suggestion);
+                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions.hasBeenEnriched);
 
                     if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
                         that.currentValue += ' ';

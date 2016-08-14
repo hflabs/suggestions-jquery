@@ -7,24 +7,6 @@
             restrict_value: false
         };
 
-        var LOCATION_FIELDS = ['kladr_id', 'postal_code', 'country', 'region', 'area', 'city', 'settlement', 'street'];
-
-        function filteredLocation (data) {
-            var location = {};
-
-            if ($.isPlainObject(data)) {
-                $.each(data, function(key, value) {
-                    if (value && LOCATION_FIELDS.indexOf(key) >= 0) {
-                        location[key] = value;
-                    }
-                });
-            }
-
-            if (!$.isEmptyObject(location)) {
-                return location.kladr_id ? { kladr_id: location.kladr_id } : location;
-            }
-        }
-
         /**
          * Compares two suggestion objects
          * @param suggestion
@@ -110,6 +92,28 @@
                 }
             },
 
+            filteredLocation: function (data) {
+                var locationComponents = [],
+                    location = {};
+
+                $.each(this.type.dataComponents, function () {
+                    if (this.forLocations) locationComponents.push(this.id);
+                });
+
+                if ($.isPlainObject(data)) {
+                    // Copy to location only allowed fields
+                    $.each(data, function (key, value) {
+                        if (value && locationComponents.indexOf(key) >= 0) {
+                            location[key] = value;
+                        }
+                    });
+                }
+
+                if (!$.isEmptyObject(location)) {
+                    return location.kladr_id ? { kladr_id: location.kladr_id } : location;
+                }
+            },
+
             /**
              * Checks for required fields
              * Also checks `locations` objects for having acceptable fields
@@ -130,7 +134,7 @@
 
                     constraint.locations = [];
                     $.each(locations, function (i, location) {
-                        var filtered = filteredLocation(location);
+                        var filtered = that.filteredLocation(location);
 
                         if (filtered) {
                             constraint.locations.push(filtered);
@@ -192,7 +196,7 @@
                 }
 
                 if (constraints instanceof $) {
-                    parentData = filteredLocation(parentData);
+                    parentData = that.filteredLocation(parentData);
                     if (parentData) {
                         params.locations = [ parentData ];
                         params.restrict_value = true;
@@ -271,6 +275,55 @@
 
                 that.shareWithParent(suggestion);
                 that.setSuggestion(suggestion);
+            },
+
+            /**
+             * Pick only fields that absent in restriction
+             */
+            getUnrestrictedData: function (data) {
+                var that = this,
+                    restrictedKeys = [],
+                    unrestrictedData = {},
+                    lastRestrictedComponent = -1;
+
+                // Collect all keys from all locations
+                $.each(that.constraints, function (id, constraint) {
+                    $.each(constraint.locations, function () {
+                        // Parse each location
+                        $.each(this, function (key) {
+                            if (restrictedKeys.indexOf(key) === -1) {
+                                restrictedKeys.push(key);
+                            }
+                        });
+                    });
+                });
+
+                // Get most specific data component
+                $.each(that.type.dataComponents, function(i){
+                    if (restrictedKeys.indexOf(this.id) >= 0) {
+                        lastRestrictedComponent = i;
+                    }
+                });
+
+                if (lastRestrictedComponent >= 0) {
+
+                    // Collect all fieldnames from all restricted components
+                    restrictedKeys = [];
+                    $.each(that.type.dataComponents.slice(0, lastRestrictedComponent + 1), function () {
+                        restrictedKeys.push.apply(restrictedKeys, this.fields);
+                    });
+
+                    // Copy skipping restricted fields
+                    $.each(data, function (key, value) {
+                        if (restrictedKeys.indexOf(key) === -1) {
+                            unrestrictedData[key] = value;
+                        }
+                    });
+                } else {
+                    unrestrictedData = data;
+                }
+
+                return unrestrictedData;
             }
 
         };

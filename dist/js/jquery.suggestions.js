@@ -432,8 +432,7 @@
          * - matchers Mandatory. Array of functions (with optional data bound as a context) that find appropriate suggestion to select
          * - `fieldNames` Map fields of suggestion.data to their displayable names
          * - `unformattableTokens` Array of strings which should not be highlighted
-         * - `boundsAvailable` Array of 'bound's can be set as `bounds` option. Order is important.
-         * - `boundsFields` Map of fields of `suggestion.data` corresponding to each bound
+         * - `dataComponents` Array of 'bound's can be set as `bounds` option. Order is important.
          *
          * flags:
          * - `alwaysContinueSelecting` Forbids to hide dropdown after selecting
@@ -525,16 +524,62 @@
                 $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
                 $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
-            boundsAvailable: ['region', 'area', 'city', 'settlement', 'street', 'house'],
-            boundsFields: {
-                'region': ['region', 'region_type', 'region_type_full', 'region_with_type'],
-                'area': ['area', 'area_type', 'area_type_full', 'area_with_type'],
-                'city': ['city', 'city_type', 'city_type_full', 'city_with_type'],
-                'settlement': ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
-                'street': ['street', 'street_type', 'street_type_full', 'street_with_type'],
-                'house': ['house', 'house_type', 'house_type_full',
-                    'block', 'block_type']
-            },
+            dataComponents: [
+                {
+                    id: 'kladr_id',
+                    fields: ['kladr_id'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'postal_code',
+                    fields: ['postal_code'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'country',
+                    fields: ['country'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'region',
+                    fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id:'area',
+                    fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id:'city',
+                    fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                }, {
+                    id: 'settlement',
+                    fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id: 'street',
+                    fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
+                    forBounds: true,
+                    forLocations: true
+                },
+                {
+                    id: 'house',
+                    fields: ['house', 'house_type', 'house_type_full',
+                        'block', 'block_type'],
+                    forBounds: true,
+                    forLocations: false
+                }
+            ],
             unformattableTokens: ADDRESS_STOPWORDS,
             enrichmentEnabled: true,
             geoEnabled: true,
@@ -1417,7 +1462,14 @@
             }
         },
 
-        getSuggestionValue: function (suggestion) {
+        /**
+         * Gets string to set as input value
+         *
+         * @param suggestion
+         * @param {boolean} [hasBeenEnriched]  if set, calculation of restricted value will be applied
+         * @return {string}
+         */
+        getSuggestionValue: function (suggestion, hasBeenEnriched) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
                 formattedValue;
@@ -1427,7 +1479,13 @@
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
-                formattedValue = suggestion.value;
+                // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
+                // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasBeenEnriched && that.options.restrict_value && that.type.composeValue) {
+                    formattedValue = that.type.composeValue(that.getUnrestrictedData(suggestion.data));
+                } else {
+                    formattedValue = suggestion.value;
+                }
             }
 
             return formattedValue;
@@ -2740,24 +2798,6 @@
             restrict_value: false
         };
 
-        var LOCATION_FIELDS = ['kladr_id', 'postal_code', 'country', 'region', 'area', 'city', 'settlement', 'street'];
-
-        function filteredLocation (data) {
-            var location = {};
-
-            if ($.isPlainObject(data)) {
-                $.each(data, function(key, value) {
-                    if (value && LOCATION_FIELDS.indexOf(key) >= 0) {
-                        location[key] = value;
-                    }
-                });
-            }
-
-            if (!$.isEmptyObject(location)) {
-                return location.kladr_id ? { kladr_id: location.kladr_id } : location;
-            }
-        }
-
         /**
          * Compares two suggestion objects
          * @param suggestion
@@ -2843,6 +2883,28 @@
                 }
             },
 
+            filteredLocation: function (data) {
+                var locationComponents = [],
+                    location = {};
+
+                $.each(this.type.dataComponents, function () {
+                    if (this.forLocations) locationComponents.push(this.id);
+                });
+
+                if ($.isPlainObject(data)) {
+                    // Copy to location only allowed fields
+                    $.each(data, function (key, value) {
+                        if (value && locationComponents.indexOf(key) >= 0) {
+                            location[key] = value;
+                        }
+                    });
+                }
+
+                if (!$.isEmptyObject(location)) {
+                    return location.kladr_id ? { kladr_id: location.kladr_id } : location;
+                }
+            },
+
             /**
              * Checks for required fields
              * Also checks `locations` objects for having acceptable fields
@@ -2863,7 +2925,7 @@
 
                     constraint.locations = [];
                     $.each(locations, function (i, location) {
-                        var filtered = filteredLocation(location);
+                        var filtered = that.filteredLocation(location);
 
                         if (filtered) {
                             constraint.locations.push(filtered);
@@ -2925,7 +2987,7 @@
                 }
 
                 if (constraints instanceof $) {
-                    parentData = filteredLocation(parentData);
+                    parentData = that.filteredLocation(parentData);
                     if (parentData) {
                         params.locations = [ parentData ];
                         params.restrict_value = true;
@@ -3004,6 +3066,55 @@
 
                 that.shareWithParent(suggestion);
                 that.setSuggestion(suggestion);
+            },
+
+            /**
+             * Pick only fields that absent in restriction
+             */
+            getUnrestrictedData: function (data) {
+                var that = this,
+                    restrictedKeys = [],
+                    unrestrictedData = {},
+                    lastRestrictedComponent = -1;
+
+                // Collect all keys from all locations
+                $.each(that.constraints, function (id, constraint) {
+                    $.each(constraint.locations, function () {
+                        // Parse each location
+                        $.each(this, function (key) {
+                            if (restrictedKeys.indexOf(key) === -1) {
+                                restrictedKeys.push(key);
+                            }
+                        });
+                    });
+                });
+
+                // Get most specific data component
+                $.each(that.type.dataComponents, function(i){
+                    if (restrictedKeys.indexOf(this.id) >= 0) {
+                        lastRestrictedComponent = i;
+                    }
+                });
+
+                if (lastRestrictedComponent >= 0) {
+
+                    // Collect all fieldnames from all restricted components
+                    restrictedKeys = [];
+                    $.each(that.type.dataComponents.slice(0, lastRestrictedComponent + 1), function () {
+                        restrictedKeys.push.apply(restrictedKeys, this.fields);
+                    });
+
+                    // Copy skipping restricted fields
+                    $.each(data, function (key, value) {
+                        if (restrictedKeys.indexOf(key) === -1) {
+                            unrestrictedData[key] = value;
+                        }
+                    });
+                } else {
+                    unrestrictedData = data;
+                }
+
+                return unrestrictedData;
             }
 
         };
@@ -3182,7 +3293,7 @@
 
                 if (that.requestMode.updateValue) {
                     that.checkValueBounds(suggestion);
-                    that.currentValue = that.getSuggestionValue(suggestion);
+                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions.hasBeenEnriched);
 
                     if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
                         that.currentValue += ' ';
@@ -3277,7 +3388,7 @@
 
         setBoundsOptions: function () {
             var that = this,
-                boundsAvailable = that.type.boundsAvailable,
+                boundsAvailable = [],
                 newBounds = $.trim(that.options.bounds).split('-'),
                 boundFrom = newBounds[0],
                 boundTo = newBounds[newBounds.length - 1],
@@ -3285,6 +3396,14 @@
                 boundIsOwn,
                 boundsAll = [],
                 indexTo;
+
+            if (that.type.dataComponents) {
+                $.each(that.type.dataComponents, function () {
+                    if (this.forBounds) {
+                        boundsAvailable.push(this.id);
+                    }
+                });
+            }
 
             if ($.inArray(boundFrom, boundsAvailable) === -1) {
                 boundFrom = null;
@@ -3344,19 +3463,19 @@
 
         copyBoundedData: function (data, boundsRange) {
             var result = {},
-                boundsFields = this.type.boundsFields;
+                dataComponents = this.type.dataComponents;
 
-            if (boundsFields) {
+            if (dataComponents) {
                 $.each(boundsRange, function (i, bound) {
-                    var fields = boundsFields[bound];
-
-                    if (fields) {
-                        $.each(fields, function (i, field) {
-                            if (data[field] != null) {
-                                result[field] = data[field];
-                            }
-                        })
-                    }
+                    $.each(dataComponents, function(){
+                        if (this.id === bound) {
+                            $.each(this.fields, function (i, field) {
+                                if (data[field] != null) {
+                                    result[field] = data[field];
+                                }
+                            })
+                        }
+                    });
                 });
             }
 
