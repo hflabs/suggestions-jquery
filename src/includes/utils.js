@@ -56,6 +56,13 @@
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
             },
+            indexBy: function (data, field) {
+                var result = {};
+                $.each(data, function () {
+                    result[this[field]] = this;
+                });
+                return result;
+            },
 
             /**
              * Compares two objects, but only fields that are set in both

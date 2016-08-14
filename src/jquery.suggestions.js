@@ -491,18 +491,20 @@
 
                 if (that.bounds.own.length) {
                     that.checkValueBounds(suggestion);
-                    data = that.copyBoundedData(suggestion.data, that.bounds.all);
+                    data = that.copyDataComponents(suggestion.data, that.bounds.all);
                     if (suggestion.data.kladr_id) {
                         data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
                     }
                     suggestion.data = data;
                 }
 
+                that.selection = suggestion;
+
+                // `that.suggestions` required by `that.getSuggestionValue` and must be set before
+                that.suggestions = [suggestion];
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
-                that.selection = suggestion;
-                that.suggestions = [suggestion];
                 that.abortRequest();
                 that.el.trigger('suggestions-set');
             }
@@ -812,6 +814,7 @@
         getSuggestionValue: function (suggestion, hasBeenEnriched) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
+                hasSameValues,
                 formattedValue;
 
             if ($.isFunction(formatSelected)) {
@@ -819,16 +822,52 @@
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
-                // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
-                // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
-                if (hasBeenEnriched && that.options.restrict_value && that.type.composeValue) {
-                    formattedValue = that.type.composeValue(that.getUnrestrictedData(suggestion.data));
-                } else {
-                    formattedValue = suggestion.value;
+                formattedValue = suggestion.value;
+
+                if (that.type.composeValue) {
+                    hasSameValues = that.hasSameValues(suggestion);
+
+                    if (hasBeenEnriched && that.options.restrict_value) {
+                        // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
+                        // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                        // see: SUG-674
+                        formattedValue = that.type.composeValue(
+                            that.getUnrestrictedData(suggestion.data),
+                            hasSameValues && ['city_district']
+                        );
+                    } else {
+                        if (hasSameValues) {
+                            // Include city_district to enter house for appropriate street
+                            // see: SUG-668
+                            if (that.options.restrict_value) {
+                                // Can not use unrestricted address, because some components (from constraints) must be omitted
+                                formattedValue = that.type.composeValue(
+                                    that.getUnrestrictedData(suggestion.data),
+                                    ['city_district']
+                                );
+                            } else {
+                                // Can use full unrestricted address
+                                formattedValue = suggestion.unrestricted_value;
+                            }
+                        }
+                    }
                 }
             }
 
             return formattedValue;
+        },
+
+        hasSameValues: function(suggestion){
+            var hasSame = false;
+
+            $.each(this.suggestions, function(i, anotherSuggestion){
+                if (anotherSuggestion.value === suggestion.value && anotherSuggestion !== suggestion) {
+                    hasSame = true;
+                    return false;
+                }
+            });
+
+            return hasSame;
         },
 
         assignSuggestions: function (suggestions, query) {

@@ -95,26 +95,22 @@
 
             // If any bounds set up
             if (that.bounds.own.length && that.type.composeValue) {
-                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
+                valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
                 suggestion.value = that.type.composeValue(valueData);
             }
         },
 
-        copyBoundedData: function (data, boundsRange) {
+        copyDataComponents: function (data, components) {
             var result = {},
-                dataComponents = this.type.dataComponents;
+                dataComponentsById = this.type.dataComponentsById;
 
-            if (dataComponents) {
-                $.each(boundsRange, function (i, bound) {
-                    $.each(dataComponents, function(){
-                        if (this.id === bound) {
-                            $.each(this.fields, function (i, field) {
-                                if (data[field] != null) {
-                                    result[field] = data[field];
-                                }
-                            })
+            if (dataComponentsById) {
+                $.each(components, function (i, component) {
+                    $.each(dataComponentsById[component].fields, function (i, field) {
+                        if (data[field] != null) {
+                            result[field] = data[field];
                         }
-                    });
+                    })
                 });
             }
 
