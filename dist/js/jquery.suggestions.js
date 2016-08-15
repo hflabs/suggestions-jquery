@@ -1532,14 +1532,23 @@
                 if (that.type.composeValue) {
                     hasSameValues = that.hasSameValues(suggestion);
 
-                    if (hasBeenEnriched && that.options.restrict_value) {
+                    if (hasBeenEnriched) {
                         // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
                         // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
                         // see: SUG-674
-                        formattedValue = that.type.composeValue(
-                            that.getUnrestrictedData(suggestion.data),
-                            hasSameValues && ['city_district']
-                        );
+                        if (that.options.restrict_value) {
+                            formattedValue = that.type.composeValue(
+                                that.getUnrestrictedData(suggestion.data),
+                                hasSameValues && ['city_district']
+                            );
+                        } else {
+                            if (that.bounds.own.indexOf('street') >= 0) {
+                                formattedValue = that.type.composeValue(
+                                    that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
+                                    hasSameValues && ['city_district']
+                                );
+                            }
+                        }
                     } else {
                         if (hasSameValues) {
                             // Include city_district to enter house for appropriate street
@@ -1551,8 +1560,16 @@
                                     ['city_district']
                                 );
                             } else {
-                                // Can use full unrestricted address
-                                formattedValue = suggestion.unrestricted_value;
+                                if (that.bounds.own.indexOf('street') >= 0) {
+                                    // Can not use unrestricted address, because only components from bounds must be included
+                                    formattedValue = that.type.composeValue(
+                                        that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
+                                        ['city_district']
+                                    );
+                                } else {
+                                    // Can use full unrestricted address
+                                    formattedValue = suggestion.unrestricted_value;
+                                }
                             }
                         }
                     }
