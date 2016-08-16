@@ -1,6 +1,6 @@
 {
   "name": "suggestions-jquery",
-  "version": "16.8.4",
+  "version": "16.8.5",
   "description": "DaData.ru Suggestions jQuery plugin",
   "homepage": "https://github.com/hflabs/suggestions-jquery",
   "author": {
@@ -18,13 +18,14 @@
   "devDependencies": {
     "grunt": "~ 0.4",
     "grunt-cli": ">= 0.1",
-    "grunt-contrib-uglify": ">= 0.5",
-    "grunt-contrib-jasmine": ">= 0.7",
     "grunt-contrib-concat": ">= 0.5",
+    "grunt-contrib-jasmine": ">= 0.7",
     "grunt-contrib-less": ">= 0.10",
+    "grunt-contrib-uglify": ">= 0.5",
+    "grunt-contrib-watch": "^1.0.0",
     "grunt-includes": "~ 0.5",
-    "grunt-sed": "*",
-    "grunt-lineending": ">= 0.2"
+    "grunt-lineending": ">= 0.2",
+    "grunt-sed": "*"
   },
   "main": "dist/js/jquery.suggestions.js",
   "scripts": {

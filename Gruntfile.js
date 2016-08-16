@@ -1,4 +1,4 @@
-module.exports = function(grunt){
+module.exports = function (grunt) {
 
     grunt.initConfig({
 
@@ -110,6 +110,23 @@ module.exports = function(grunt){
                 recursive: true,
                 replacement: '<%= pkg.version %>'
             }
+        },
+
+        watch: {
+            src: {
+                files: ['src/**/*.js'],
+                tasks: ['includes', 'sed'],
+                options: {
+                    spawn: false
+                }
+            },
+            less: {
+                files: ['less/**/*.js'],
+                tasks: ['less'],
+                options: {
+                    spawn: false
+                }
+            }
         }
     });
 
@@ -119,6 +136,7 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-includes');
     grunt.loadNpmTasks('grunt-sed');
     grunt.loadNpmTasks('grunt-lineending');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     grunt.registerTask('test', ['jasmine:js', 'jasmine:jsmin']);
     grunt.registerTask('build', ['lineending:src', 'lineending:tests', 'less', 'includes', 'uglify:jsmin', 'sed:version', 'lineending:dist']);

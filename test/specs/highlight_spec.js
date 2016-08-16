@@ -95,6 +95,27 @@ describe('Highlight suggestions', function () {
         expect($item.html()).toContain('ОАО <strong>АЛЬФА</strong>-<strong>БАНК<\/strong>');
     });
 
+    it('Should not use object type for highlight if there are matching name', function () {
+        this.instance.setOptions({
+            type: 'ADDRESS'
+        });
+
+        this.input.value = 'Приморский край, Партизанский р-н нико';
+        this.instance.onValueChange();
+
+        this.server.respond(helpers.responseFor(['Приморский край, Партизанский р-н, поселок Николаевка']));
+
+        var $item = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($item.length).toEqual(1);
+
+        // Слово "р-н" разбивается на два слова "р" и "н", и поскольку "н" находится раньше, чем "нико",
+        // оно было бы выбрано для подсветки "Николаевка": <strong>Н</strong>иколаевка
+        // Но т.к. "р-н" это наименование типа объекта, оно (и его части) будет подставляться в последнюю очередь.
+        // и для подсветки "Николаевка" в итоге будет выбрано более "нико"
+        expect($item.html()).toContain('<strong>Нико</strong>лаевка');
+    });
+
     it('Should highlight search phrase in quotes', function () {
         this.instance.setOptions({
             type: 'PARTY'

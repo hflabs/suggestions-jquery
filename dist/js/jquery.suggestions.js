@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.4
+ * DaData.ru Suggestions jQuery plugin, version 16.8.5
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -894,7 +894,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.4';
+    Suggestions.version = '16.8.5';
 
     $.Suggestions = Suggestions;
 
@@ -2394,14 +2394,18 @@
                     chunks = [],
                     unformattableTokens = options && options.unformattableTokens,
                     maxLength = options && options.maxLength,
-                    tokens, tokenMatchers,
+                    tokens, tokenMatchers, preferredTokens,
                     rWords = utils.reWordExtractor(),
                     match, word, i, chunk, formattedStr;
 
                 if (!value) return '';
 
-                tokens = utils.formatToken(currentValue).split(wordSplitter);
-                tokens = utils.withSubTokens(tokens);
+                tokens = utils.compact(utils.formatToken(currentValue).split(wordSplitter));
+
+                // Move unformattableTokens to the end.
+                // This will help to apply them only if no other tokens match
+                preferredTokens = utils.arrayMinus(tokens, unformattableTokens);
+                tokens = utils.withSubTokens(preferredTokens.concat(utils.arrayMinus(tokens, preferredTokens)));
 
                 tokenMatchers = $.map(tokens, function (token) {
                     return new RegExp('^((.*)([' + wordPartsDelimiters + ']+))?' +
@@ -2414,7 +2418,9 @@
                     word = match[1];
                     chunks.push({
                         text: word,
-                        inUpperCase: word.toLowerCase() !== word,
+
+                        // upper case means a word is a name and can be highlighted even if presents in unformattableTokens
+                        hasUpperCase: word.toLowerCase() !== word,
                         formatted: utils.formatToken(word),
                         matchable: true
                     });
@@ -2428,7 +2434,7 @@
                 // use simple loop because length can change
                 for (i = 0; i < chunks.length; i++) {
                     chunk = chunks[i];
-                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.inUpperCase)) {
+                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.hasUpperCase)) {
                         $.each(tokenMatchers, function (j, matcher) {
                             var tokenMatch = matcher.exec(chunk.formatted),
                                 length, nextIndex = i + 1;
