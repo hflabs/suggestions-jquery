@@ -528,4 +528,154 @@ describe('Address constraints', function () {
 
     });
 
+    describe('can restrict values', function () {
+
+        it('one constraint (region)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        region: 'тульская'
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
+        });
+
+        it('one constraint (city)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        city: 'узловая'
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('поселок Брусянский, ул Строителей, д 1-бара');
+        });
+
+        it('one constraint (street)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        street: 'строителей'
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('д 1-бара');
+        });
+
+        it('one constraint (region by kladr_id)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        // kladr of region
+                        kladr_id: '7100000000'
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
+        });
+
+        it('one constraint (street by kladr_id)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        // Kladr of street
+                        kladr_id: '71022001002003100'
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('д 1-бара');
+        });
+
+        describe('set of constraints', function () {
+            beforeEach(function () {
+                this.instance.setOptions({
+                    constraints: [
+                        // Москва
+                        {
+                            locations: { region: 'Москва' },
+                            deletable: true
+                        },
+                        // Московская область
+                        {
+                            label: 'МО',
+                            locations: { kladr_id: '50' },
+                            deletable: true
+                        }
+                    ],
+                    restrict_value: true
+                });
+            });
+
+            it('crop city if matches', function () {
+
+                expect(this.instance.getSuggestionValue({
+                    data: {
+                        city: "Москва",
+                        city_area: "Центральный",
+                        city_district: "Хамовники р-н",
+                        city_fias_id: "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+                        city_kladr_id: "7700000000000",
+                        city_type: "г",
+                        city_type_full: "город",
+                        city_with_type: "г Москва",
+                        kladr_id: "77000000000714800",
+                        okato: "45286590000",
+                        oktmo: "45383000",
+                        region: "Москва",
+                        region_fias_id: "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+                        region_kladr_id: "7700000000000",
+                        region_type: "г",
+                        region_type_full: "город",
+                        region_with_type: "г Москва",
+                        street: "Турчанинов",
+                        street_fias_id: "0f7981e6-65c6-4513-b771-f5db3bfafe60",
+                        street_kladr_id: "77000000000714800",
+                        street_type: "пер",
+                        street_type_full: "переулок",
+                        street_with_type: "Турчанинов пер"
+                    }
+                }, true)).toEqual('Турчанинов пер');
+            });
+
+            it('crop region if matches', function () {
+
+                expect(this.instance.getSuggestionValue({
+                    data: {
+                        city: "Коломна",
+                        city_fias_id: "b367fb03-29f9-4dac-8d85-01595cfb6ad9",
+                        city_kladr_id: "5000002700000",
+                        city_type: "г",
+                        city_type_full: "город",
+                        city_with_type: "г Коломна",
+                        country: "Россия",
+                        fias_id: "b367fb03-29f9-4dac-8d85-01595cfb6ad9",
+                        fias_level: "4",
+                        kladr_id: "5000002700000",
+                        okato: "46438000000",
+                        oktmo: "46738000001",
+                        region: "Московская",
+                        region_fias_id: "29251dcf-00a1-4e34-98d4-5c47484a36d4",
+                        region_kladr_id: "5000000000000",
+                        region_type: "обл",
+                        region_type_full: "область",
+                        region_with_type: "Московская обл"
+                    }
+                }, true)).toEqual('г Коломна');
+            });
+
+        });
+
+    });
+
 });

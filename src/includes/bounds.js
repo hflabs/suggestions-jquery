@@ -7,15 +7,6 @@
         bounds: null
     };
 
-    var KLADR_LENGTH = {
-            'region': { digits: 2, zeros: 11 },
-            'area': { digits: 5, zeros: 8 },
-            'city': { digits: 8, zeros: 5 },
-            'settlement': { digits: 11, zeros: 2 },
-            'street': { digits: 15, zeros: 2 },
-            'house': {digits: 19 }
-        };
-
     var methods = {
 
         setupBounds: function () {
@@ -123,14 +114,16 @@
 
         getBoundedKladrId: function (kladr_id, boundsRange) {
             var boundTo = boundsRange[boundsRange.length - 1],
-                kladrLength = KLADR_LENGTH[boundTo],
-                result = kladr_id.substr(0, kladrLength.digits);
+                kladrFormat;
 
-            if (kladrLength.zeros) {
-                result += new Array(kladrLength.zeros + 1).join('0');
-            }
+            $.each(this.type.dataComponents, function(i, component){
+                if (component.id === boundTo) {
+                    kladrFormat = component.kladrFormat;
+                    return false;
+                }
+            });
 
-            return result;
+            return kladr_id.substr(0, kladrFormat.digits) + (new Array((kladrFormat.zeros || 0) + 1).join('0'));
         }
 
     };

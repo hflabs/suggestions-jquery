@@ -24,6 +24,134 @@
             return result;
         }
 
+        /**
+         * @param {Object} data  fields
+         * @param {Suggestions} instance
+         * @constructor
+         */
+        var ConstraintLocation = function(data, instance){
+            var that = this;
+
+            that.instance = instance;
+            that.fields = {};
+            that.specificity = -1;
+
+            if ($.isPlainObject(data) && instance.type.dataComponents) {
+                $.each(instance.type.dataComponents, function (i, component) {
+                    var fieldName = component.id;
+
+                    if (component.forLocations && data[fieldName]) {
+                        that.fields[fieldName] = data[fieldName];
+                        that.specificity = i;
+                    }
+                });
+            }
+
+            if (that.fields.kladr_id) {
+                that.fields = { kladr_id: that.fields.kladr_id };
+                that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
+            }
+        };
+
+        $.extend(ConstraintLocation.prototype, {
+            getLabel: function(){
+                return this.instance.type.composeValue(this.fields);
+            },
+
+            getFields: function () {
+                return this.fields;
+            },
+
+            isValid: function(){
+                return !$.isEmptyObject(this.fields);
+            },
+
+            getKladrSpecificity: function (kladr_id) {
+                var specificity = -1,
+                    significantLength;
+
+                this.significantKladr = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+                significantLength = this.significantKladr.length;
+
+                $.each(this.instance.type.dataComponents, function (i, component) {
+                    if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+                        specificity = i;
+                    }
+                });
+
+                return specificity;
+            },
+
+            containsData: function (data){
+                var result = true;
+
+                if (this.fields.kladr_id) {
+                    return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
+                } else {
+                    $.each(this.fields, function(fieldName, value){
+                        return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
+                    });
+
+                    return result;
+                }
+            }
+        });
+
+        Suggestions.ConstraintLocation = ConstraintLocation;
+
+        /**
+         * @param {Object} data
+         * @param {Object|Array} data.locations
+         * @param {string} [data.label]
+         * @param {boolean} [data.deletable]
+         * @param {Suggestions} [instance]
+         * @constructor
+         */
+        var Constraint = function(data, instance) {
+            this.id = utils.uniqueId('c');
+            this.deletable = !!data.deletable;
+            this.instance = instance;
+
+            this.locations = $.map($.makeArray(data && (data.locations || data.restrictions)), function (data) {
+                return new ConstraintLocation(data, instance);
+            });
+
+            this.locations = $.grep(this.locations, function(location) {
+                return location.isValid();
+            });
+
+            this.label = data.label;
+            if (this.label == null && instance.type.composeValue) {
+                this.label = $.map(this.locations, function (location) {
+                    return location.getLabel();
+                }).join(', ');
+            }
+
+            if (this.label && this.isValid()) {
+                this.$el = $(document.createElement('li'))
+                    .append($(document.createElement('span')).text(this.label))
+                    .attr('data-constraint-id', this.id);
+
+                if (this.deletable) {
+                    this.$el.append(
+                        $(document.createElement('span'))
+                            .addClass(instance.classes.removeConstraint)
+                    );
+                }
+            }
+        };
+
+        $.extend(Constraint.prototype, {
+            isValid: function () {
+                return this.locations.length > 0;
+            },
+            getFields: function(){
+                return $.map(this.locations, function(location){
+                    return location.getFields();
+                });
+            }
+        });
+
         var methods = {
 
             createConstraints: function () {
@@ -114,60 +242,19 @@
                 }
             },
 
-            /**
-             * Checks for required fields
-             * Also checks `locations` objects for having acceptable fields
-             * @param constraint
-             * @returns {*}
-             */
-            formatConstraint: function (constraint) {
-                var that = this,
-                    locations;
-
-                if (constraint && (constraint.locations || constraint.restrictions)) {
-                    locations = $.makeArray(constraint.locations || constraint.restrictions);
-                    if (constraint.label == null && that.type.composeValue) {
-                        constraint.label = $.map(locations, function(location){
-                            return that.type.composeValue(location);
-                        }).join(', ');
-                    }
-
-                    constraint.locations = [];
-                    $.each(locations, function (i, location) {
-                        var filtered = that.filteredLocation(location);
-
-                        if (filtered) {
-                            constraint.locations.push(filtered);
-                        }
-                    });
-
-                    return constraint.locations.length ? constraint : null;
-                }
-            },
-
             addConstraint: function (constraint) {
-                var that = this,
-                    $item,
-                    id;
+                var that = this;
 
-                constraint = that.formatConstraint(constraint);
-                if (!constraint) {
-                    return;
-                }
+                constraint = new Constraint(constraint, that);
 
-                id = utils.uniqueId('c');
-                that.constraints[id] = constraint;
+                if (constraint.isValid()) {
+                    that.constraints[constraint.id] = constraint;
 
-                if (constraint.label) {
-                    $item = $('<li/>')
-                        .append($('<span/>').text(constraint.label))
-                        .attr('data-constraint-id', id);
-                    if (constraint.deletable) {
-                        $item.append($('<span class="suggestions-remove"/>'));
-                    }
-                    that.$constraints.append($item);
-                    if (!that._constraintsUpdating) {
-                        that.fixPosition();
+                    if (constraint.$el) {
+                        that.$constraints.append(constraint.$el);
+                        if (!that._constraintsUpdating) {
+                            that.fixPosition();
+                        }
                     }
                 }
             },
@@ -196,7 +283,9 @@
                 }
 
                 if (constraints instanceof $) {
-                    parentData = that.filteredLocation(parentData);
+                    parentData = (new ConstraintLocation(parentData, parentInstance))
+                        .getFields();
+
                     if (parentData) {
                         params.locations = [ parentData ];
                         params.restrict_value = true;
@@ -204,8 +293,9 @@
                 } else {
                     if (constraints) {
                         $.each(constraints, function (id, constraint) {
-                            locations = locations.concat(constraint.locations);
+                            locations = locations.concat(constraint.getFields());
                         });
+
                         if (locations.length) {
                             params.locations = locations;
                             params.restrict_value = that.options.restrict_value;
@@ -284,33 +374,32 @@
                 var that = this,
                     restrictedKeys = [],
                     unrestrictedData = {},
-                    lastRestrictedComponent = -1;
+                    maxSpecificity = -1;
 
-                // Collect all keys from all locations
+                // Find most specific location that could restrict current data
                 $.each(that.constraints, function (id, constraint) {
-                    $.each(constraint.locations, function () {
-                        // Parse each location
-                        $.each(this, function (key) {
-                            if (restrictedKeys.indexOf(key) === -1) {
-                                restrictedKeys.push(key);
-                            }
-                        });
+                    $.each(constraint.locations, function (i, location) {
+                        if (location.containsData(data) && location.specificity > maxSpecificity) {
+                            maxSpecificity = location.specificity;
+                        }
                     });
                 });
 
-                // Get most specific data component
-                $.each(that.type.dataComponents, function(i){
-                    if (restrictedKeys.indexOf(this.id) >= 0) {
-                        lastRestrictedComponent = i;
-                    }
-                });
+                if (maxSpecificity >= 0) {
 
-                if (lastRestrictedComponent >= 0) {
+                    // Для городов-регионов нужно также отсечь и город
+                    if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
+                        $.each(that.type.dataComponents, function (i, component) {
+                            if (component.id === 'city') {
+                                maxSpecificity = Math.max(maxSpecificity, i);
+                                return false;
+                            }
+                        });
+                    }
 
                     // Collect all fieldnames from all restricted components
-                    restrictedKeys = [];
-                    $.each(that.type.dataComponents.slice(0, lastRestrictedComponent + 1), function () {
-                        restrictedKeys.push.apply(restrictedKeys, this.fields);
+                    $.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (i, component) {
+                        restrictedKeys.push.apply(restrictedKeys, component.fields);
                     });
 
                     // Copy skipping restricted fields
