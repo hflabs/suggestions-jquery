@@ -47,19 +47,22 @@
                 id: 'region',
                 fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
                 forBounds: true,
-                forLocations: true
+                forLocations: true,
+                kladrFormat: { digits: 2, zeros: 11 }
             },
             {
                 id: 'area',
                 fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
                 forBounds: true,
-                forLocations: true
+                forLocations: true,
+                kladrFormat: { digits: 5, zeros: 8 }
             },
             {
                 id: 'city',
                 fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
                 forBounds: true,
-                forLocations: true
+                forLocations: true,
+                kladrFormat: { digits: 8, zeros: 5 }
             },
             {
                 id: 'city_district',
@@ -71,20 +74,23 @@
                 id: 'settlement',
                 fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
                 forBounds: true,
-                forLocations: true
+                forLocations: true,
+                kladrFormat: { digits: 11, zeros: 2 }
             },
             {
                 id: 'street',
                 fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
                 forBounds: true,
-                forLocations: true
+                forLocations: true,
+                kladrFormat: { digits: 15, zeros: 2 }
             },
             {
                 id: 'house',
                 fields: ['house', 'house_type', 'house_type_full',
                     'block', 'block_type'],
                 forBounds: true,
-                forLocations: false
+                forLocations: false,
+                kladrFormat: { digits: 19 }
             }
         ];
 

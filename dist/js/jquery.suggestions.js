@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.5
+ * DaData.ru Suggestions jQuery plugin, version 16.6.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -141,13 +141,6 @@
             },
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
-            },
-            indexBy: function (data, field) {
-                var result = {};
-                $.each(data, function () {
-                    result[this[field]] = this;
-                });
-                return result;
             },
 
             /**
@@ -457,70 +450,6 @@
 
         var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
-        var ADDRESS_COMPONENTS = [
-            {
-                id: 'kladr_id',
-                fields: ['kladr_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'postal_code',
-                fields: ['postal_code'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'country',
-                fields: ['country'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'region',
-                fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
-                forBounds: true,
-                forLocations: true
-            },
-            {
-                id: 'area',
-                fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
-                forBounds: true,
-                forLocations: true
-            },
-            {
-                id: 'city',
-                fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
-                forBounds: true,
-                forLocations: true
-            },
-            {
-                id: 'city_district',
-                fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: false,
-                forLocations: false
-            },
-            {
-                id: 'settlement',
-                fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
-                forBounds: true,
-                forLocations: true
-            },
-            {
-                id: 'street',
-                fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
-                forBounds: true,
-                forLocations: true
-            },
-            {
-                id: 'house',
-                fields: ['house', 'house_type', 'house_type_full',
-                    'block', 'block_type'],
-                forBounds: true,
-                forLocations: false
-            }
-        ];
-
         var rHasMatch = /<strong>/;
 
         var innPartsLengths = {
@@ -595,8 +524,68 @@
                 $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
                 $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
-            dataComponents: ADDRESS_COMPONENTS,
-            dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id'),
+            dataComponents: [
+                {
+                    id: 'kladr_id',
+                    fields: ['kladr_id'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'postal_code',
+                    fields: ['postal_code'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'country',
+                    fields: ['country'],
+                    forBounds: false,
+                    forLocations: true
+                },
+                {
+                    id: 'region',
+                    fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
+                    forBounds: true,
+                    forLocations: true,
+                    kladrFormat: { digits: 2, zeros: 11 }
+                },
+                {
+                    id:'area',
+                    fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
+                    forBounds: true,
+                    forLocations: true,
+                    kladrFormat: { digits: 5, zeros: 8 }
+                },
+                {
+                    id:'city',
+                    fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
+                    forBounds: true,
+                    forLocations: true,
+                    kladrFormat: { digits: 8, zeros: 5 }
+                }, {
+                    id: 'settlement',
+                    fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
+                    forBounds: true,
+                    forLocations: true,
+                    kladrFormat: { digits: 11, zeros: 2 }
+                },
+                {
+                    id: 'street',
+                    fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
+                    forBounds: true,
+                    forLocations: true,
+                    kladrFormat: { digits: 15, zeros: 2 }
+                },
+                {
+                    id: 'house',
+                    fields: ['house', 'house_type', 'house_type_full',
+                        'block', 'block_type'],
+                    forBounds: true,
+                    forLocations: false,
+                    kladrFormat: { digits: 19 }
+                }
+            ],
             unformattableTokens: ADDRESS_STOPWORDS,
             enrichmentEnabled: true,
             geoEnabled: true,
@@ -606,46 +595,18 @@
 
                 return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
-            composeValue: function (data, optionalComponents) {
+            composeValue: function (data) {
                 return utils.compact([
                     data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
                     data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
                     data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
-                    $.inArray('city_district', optionalComponents) >= 0 && (data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' ')),
                     data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
                     data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
                     utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' '),
-                    data.postal_box && ('а/я ' + data.postal_box)
+                    data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
-            },
-            formatResult: function() {
-                var componentsUnderCityDistrict = [],
-                    _underCityDistrict = false;
-
-                $.each(ADDRESS_COMPONENTS, function () {
-                    if (_underCityDistrict) componentsUnderCityDistrict.push(this.id);
-                    if (this.id === 'city_district') _underCityDistrict = true;
-                });
-
-                return function (value, currentValue, suggestion, options) {
-                    var that = this,
-                        district = suggestion.data && suggestion.data.city_district_with_type;
-
-                    value = that.highlightMatches(value, currentValue, suggestion, options);
-                    value = that.wrapFormattedValue(value, suggestion);
-
-                    if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                        && !$.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
-                        value +=
-                            '<div class="' + that.classes.subtext + '">' +
-                            that.highlightMatches(district, currentValue, suggestion) +
-                            '</div>';
-                    }
-
-                    return value;
-                };
-            }()
+            }
         };
 
         types['PARTY'] = {
@@ -894,7 +855,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.5';
+    Suggestions.version = '16.6.2';
 
     $.Suggestions = Suggestions;
 
@@ -1196,20 +1157,18 @@
 
                 if (that.bounds.own.length) {
                     that.checkValueBounds(suggestion);
-                    data = that.copyDataComponents(suggestion.data, that.bounds.all);
+                    data = that.copyBoundedData(suggestion.data, that.bounds.all);
                     if (suggestion.data.kladr_id) {
                         data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
                     }
                     suggestion.data = data;
                 }
 
-                that.selection = suggestion;
-
-                // `that.suggestions` required by `that.getSuggestionValue` and must be set before
-                that.suggestions = [suggestion];
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
+                that.selection = suggestion;
+                that.suggestions = [suggestion];
                 that.abortRequest();
                 that.el.trigger('suggestions-set');
             }
@@ -1519,7 +1478,6 @@
         getSuggestionValue: function (suggestion, hasBeenEnriched) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
-                hasSameValues,
                 formattedValue;
 
             if ($.isFunction(formatSelected)) {
@@ -1527,69 +1485,16 @@
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
-                formattedValue = suggestion.value;
-
-                if (that.type.composeValue) {
-                    hasSameValues = that.hasSameValues(suggestion);
-
-                    if (hasBeenEnriched) {
-                        // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
-                        // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
-                        // see: SUG-674
-                        if (that.options.restrict_value) {
-                            formattedValue = that.type.composeValue(
-                                that.getUnrestrictedData(suggestion.data),
-                                hasSameValues && ['city_district']
-                            );
-                        } else {
-                            if (that.bounds.own.indexOf('street') >= 0) {
-                                formattedValue = that.type.composeValue(
-                                    that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                    hasSameValues && ['city_district']
-                                );
-                            }
-                        }
-                    } else {
-                        if (hasSameValues) {
-                            // Include city_district to enter house for appropriate street
-                            // see: SUG-668
-                            if (that.options.restrict_value) {
-                                // Can not use unrestricted address, because some components (from constraints) must be omitted
-                                formattedValue = that.type.composeValue(
-                                    that.getUnrestrictedData(suggestion.data),
-                                    ['city_district']
-                                );
-                            } else {
-                                if (that.bounds.own.indexOf('street') >= 0) {
-                                    // Can not use unrestricted address, because only components from bounds must be included
-                                    formattedValue = that.type.composeValue(
-                                        that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                        ['city_district']
-                                    );
-                                } else {
-                                    // Can use full unrestricted address
-                                    formattedValue = suggestion.unrestricted_value;
-                                }
-                            }
-                        }
-                    }
+                // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
+                // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasBeenEnriched && that.options.restrict_value && that.type.composeValue) {
+                    formattedValue = that.type.composeValue(that.getUnrestrictedData(suggestion.data));
+                } else {
+                    formattedValue = suggestion.value;
                 }
             }
 
             return formattedValue;
-        },
-
-        hasSameValues: function(suggestion){
-            var hasSame = false;
-
-            $.each(this.suggestions, function(i, anotherSuggestion){
-                if (anotherSuggestion.value === suggestion.value && anotherSuggestion !== suggestion) {
-                    hasSame = true;
-                    return false;
-                }
-            });
-
-            return hasSame;
         },
 
         assignSuggestions: function (suggestions, query) {
@@ -2394,18 +2299,14 @@
                     chunks = [],
                     unformattableTokens = options && options.unformattableTokens,
                     maxLength = options && options.maxLength,
-                    tokens, tokenMatchers, preferredTokens,
+                    tokens, tokenMatchers,
                     rWords = utils.reWordExtractor(),
                     match, word, i, chunk, formattedStr;
 
                 if (!value) return '';
 
-                tokens = utils.compact(utils.formatToken(currentValue).split(wordSplitter));
-
-                // Move unformattableTokens to the end.
-                // This will help to apply them only if no other tokens match
-                preferredTokens = utils.arrayMinus(tokens, unformattableTokens);
-                tokens = utils.withSubTokens(preferredTokens.concat(utils.arrayMinus(tokens, preferredTokens)));
+                tokens = utils.formatToken(currentValue).split(wordSplitter);
+                tokens = utils.withSubTokens(tokens);
 
                 tokenMatchers = $.map(tokens, function (token) {
                     return new RegExp('^((.*)([' + wordPartsDelimiters + ']+))?' +
@@ -2418,9 +2319,7 @@
                     word = match[1];
                     chunks.push({
                         text: word,
-
-                        // upper case means a word is a name and can be highlighted even if presents in unformattableTokens
-                        hasUpperCase: word.toLowerCase() !== word,
+                        inUpperCase: word.toLowerCase() !== word,
                         formatted: utils.formatToken(word),
                         matchable: true
                     });
@@ -2434,7 +2333,7 @@
                 // use simple loop because length can change
                 for (i = 0; i < chunks.length; i++) {
                     chunk = chunks[i];
-                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.hasUpperCase)) {
+                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.inUpperCase)) {
                         $.each(tokenMatchers, function (j, matcher) {
                             var tokenMatch = matcher.exec(chunk.formatted),
                                 length, nextIndex = i + 1;
@@ -2922,6 +2821,134 @@
             return result;
         }
 
+        /**
+         * @param {Object} data  fields
+         * @param {Suggestions} instance
+         * @constructor
+         */
+        var ConstraintLocation = function(data, instance){
+            var that = this;
+
+            that.instance = instance;
+            that.fields = {};
+            that.specificity = -1;
+
+            if ($.isPlainObject(data) && instance.type.dataComponents) {
+                $.each(instance.type.dataComponents, function (i, component) {
+                    var fieldName = component.id;
+
+                    if (component.forLocations && data[fieldName]) {
+                        that.fields[fieldName] = data[fieldName];
+                        that.specificity = i;
+                    }
+                });
+            }
+
+            if (that.fields.kladr_id) {
+                that.fields = { kladr_id: that.fields.kladr_id };
+                that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
+            }
+        };
+
+        $.extend(ConstraintLocation.prototype, {
+            getLabel: function(){
+                return this.instance.type.composeValue(this.fields);
+            },
+
+            getFields: function () {
+                return this.fields;
+            },
+
+            isValid: function(){
+                return !$.isEmptyObject(this.fields);
+            },
+
+            getKladrSpecificity: function (kladr_id) {
+                var specificity = -1,
+                    significantLength;
+
+                this.significantKladr = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+                significantLength = this.significantKladr.length;
+
+                $.each(this.instance.type.dataComponents, function (i, component) {
+                    if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+                        specificity = i;
+                    }
+                });
+
+                return specificity;
+            },
+
+            containsData: function (data){
+                var result = true;
+
+                if (this.fields.kladr_id) {
+                    return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
+                } else {
+                    $.each(this.fields, function(fieldName, value){
+                        return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
+                    });
+
+                    return result;
+                }
+            }
+        });
+
+        Suggestions.ConstraintLocation = ConstraintLocation;
+
+        /**
+         * @param {Object} data
+         * @param {Object|Array} data.locations
+         * @param {string} [data.label]
+         * @param {boolean} [data.deletable]
+         * @param {Suggestions} [instance]
+         * @constructor
+         */
+        var Constraint = function(data, instance) {
+            this.id = utils.uniqueId('c');
+            this.deletable = !!data.deletable;
+            this.instance = instance;
+
+            this.locations = $.map($.makeArray(data && (data.locations || data.restrictions)), function (data) {
+                return new ConstraintLocation(data, instance);
+            });
+
+            this.locations = $.grep(this.locations, function(location) {
+                return location.isValid();
+            });
+
+            this.label = data.label;
+            if (this.label == null && instance.type.composeValue) {
+                this.label = $.map(this.locations, function (location) {
+                    return location.getLabel();
+                }).join(', ');
+            }
+
+            if (this.label && this.isValid()) {
+                this.$el = $(document.createElement('li'))
+                    .append($(document.createElement('span')).text(this.label))
+                    .attr('data-constraint-id', this.id);
+
+                if (this.deletable) {
+                    this.$el.append(
+                        $(document.createElement('span'))
+                            .addClass(instance.classes.removeConstraint)
+                    );
+                }
+            }
+        };
+
+        $.extend(Constraint.prototype, {
+            isValid: function () {
+                return this.locations.length > 0;
+            },
+            getFields: function(){
+                return $.map(this.locations, function(location){
+                    return location.getFields();
+                });
+            }
+        });
+
         var methods = {
 
             createConstraints: function () {
@@ -3012,60 +3039,19 @@
                 }
             },
 
-            /**
-             * Checks for required fields
-             * Also checks `locations` objects for having acceptable fields
-             * @param constraint
-             * @returns {*}
-             */
-            formatConstraint: function (constraint) {
-                var that = this,
-                    locations;
-
-                if (constraint && (constraint.locations || constraint.restrictions)) {
-                    locations = $.makeArray(constraint.locations || constraint.restrictions);
-                    if (constraint.label == null && that.type.composeValue) {
-                        constraint.label = $.map(locations, function(location){
-                            return that.type.composeValue(location);
-                        }).join(', ');
-                    }
-
-                    constraint.locations = [];
-                    $.each(locations, function (i, location) {
-                        var filtered = that.filteredLocation(location);
-
-                        if (filtered) {
-                            constraint.locations.push(filtered);
-                        }
-                    });
-
-                    return constraint.locations.length ? constraint : null;
-                }
-            },
-
             addConstraint: function (constraint) {
-                var that = this,
-                    $item,
-                    id;
+                var that = this;
 
-                constraint = that.formatConstraint(constraint);
-                if (!constraint) {
-                    return;
-                }
+                constraint = new Constraint(constraint, that);
 
-                id = utils.uniqueId('c');
-                that.constraints[id] = constraint;
+                if (constraint.isValid()) {
+                    that.constraints[constraint.id] = constraint;
 
-                if (constraint.label) {
-                    $item = $('<li/>')
-                        .append($('<span/>').text(constraint.label))
-                        .attr('data-constraint-id', id);
-                    if (constraint.deletable) {
-                        $item.append($('<span class="suggestions-remove"/>'));
-                    }
-                    that.$constraints.append($item);
-                    if (!that._constraintsUpdating) {
-                        that.fixPosition();
+                    if (constraint.$el) {
+                        that.$constraints.append(constraint.$el);
+                        if (!that._constraintsUpdating) {
+                            that.fixPosition();
+                        }
                     }
                 }
             },
@@ -3094,7 +3080,9 @@
                 }
 
                 if (constraints instanceof $) {
-                    parentData = that.filteredLocation(parentData);
+                    parentData = (new ConstraintLocation(parentData, parentInstance))
+                        .getFields();
+
                     if (parentData) {
                         params.locations = [ parentData ];
                         params.restrict_value = true;
@@ -3102,8 +3090,9 @@
                 } else {
                     if (constraints) {
                         $.each(constraints, function (id, constraint) {
-                            locations = locations.concat(constraint.locations);
+                            locations = locations.concat(constraint.getFields());
                         });
+
                         if (locations.length) {
                             params.locations = locations;
                             params.restrict_value = that.options.restrict_value;
@@ -3182,33 +3171,32 @@
                 var that = this,
                     restrictedKeys = [],
                     unrestrictedData = {},
-                    lastRestrictedComponent = -1;
+                    maxSpecificity = -1;
 
-                // Collect all keys from all locations
+                // Find most specific location that could restrict current data
                 $.each(that.constraints, function (id, constraint) {
-                    $.each(constraint.locations, function () {
-                        // Parse each location
-                        $.each(this, function (key) {
-                            if (restrictedKeys.indexOf(key) === -1) {
-                                restrictedKeys.push(key);
-                            }
-                        });
+                    $.each(constraint.locations, function (i, location) {
+                        if (location.containsData(data) && location.specificity > maxSpecificity) {
+                            maxSpecificity = location.specificity;
+                        }
                     });
                 });
 
-                // Get most specific data component
-                $.each(that.type.dataComponents, function(i){
-                    if (restrictedKeys.indexOf(this.id) >= 0) {
-                        lastRestrictedComponent = i;
-                    }
-                });
+                if (maxSpecificity >= 0) {
 
-                if (lastRestrictedComponent >= 0) {
+                    // Для городов-регионов нужно также отсечь и город
+                    if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
+                        $.each(that.type.dataComponents, function (i, component) {
+                            if (component.id === 'city') {
+                                maxSpecificity = Math.max(maxSpecificity, i);
+                                return false;
+                            }
+                        });
+                    }
 
                     // Collect all fieldnames from all restricted components
-                    restrictedKeys = [];
-                    $.each(that.type.dataComponents.slice(0, lastRestrictedComponent + 1), function () {
-                        restrictedKeys.push.apply(restrictedKeys, this.fields);
+                    $.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (i, component) {
+                        restrictedKeys.push.apply(restrictedKeys, component.fields);
                     });
 
                     // Copy skipping restricted fields
@@ -3475,15 +3463,6 @@
         bounds: null
     };
 
-    var KLADR_LENGTH = {
-            'region': { digits: 2, zeros: 11 },
-            'area': { digits: 5, zeros: 8 },
-            'city': { digits: 8, zeros: 5 },
-            'settlement': { digits: 11, zeros: 2 },
-            'street': { digits: 15, zeros: 2 },
-            'house': {digits: 19 }
-        };
-
     var methods = {
 
         setupBounds: function () {
@@ -3563,22 +3542,26 @@
 
             // If any bounds set up
             if (that.bounds.own.length && that.type.composeValue) {
-                valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
+                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
                 suggestion.value = that.type.composeValue(valueData);
             }
         },
 
-        copyDataComponents: function (data, components) {
+        copyBoundedData: function (data, boundsRange) {
             var result = {},
-                dataComponentsById = this.type.dataComponentsById;
+                dataComponents = this.type.dataComponents;
 
-            if (dataComponentsById) {
-                $.each(components, function (i, component) {
-                    $.each(dataComponentsById[component].fields, function (i, field) {
-                        if (data[field] != null) {
-                            result[field] = data[field];
+            if (dataComponents) {
+                $.each(boundsRange, function (i, bound) {
+                    $.each(dataComponents, function(){
+                        if (this.id === bound) {
+                            $.each(this.fields, function (i, field) {
+                                if (data[field] != null) {
+                                    result[field] = data[field];
+                                }
+                            })
                         }
-                    })
+                    });
                 });
             }
 
@@ -3587,14 +3570,16 @@
 
         getBoundedKladrId: function (kladr_id, boundsRange) {
             var boundTo = boundsRange[boundsRange.length - 1],
-                kladrLength = KLADR_LENGTH[boundTo],
-                result = kladr_id.substr(0, kladrLength.digits);
+                kladrFormat;
 
-            if (kladrLength.zeros) {
-                result += new Array(kladrLength.zeros + 1).join('0');
-            }
+            $.each(this.type.dataComponents, function(i, component){
+                if (component.id === boundTo) {
+                    kladrFormat = component.kladrFormat;
+                    return false;
+                }
+            });
 
-            return result;
+            return kladr_id.substr(0, kladrFormat.digits) + (new Array((kladrFormat.zeros || 0) + 1).join('0'));
         }
 
     };
