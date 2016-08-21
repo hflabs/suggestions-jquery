@@ -169,7 +169,7 @@
                 $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
             dataComponents: ADDRESS_COMPONENTS,
-            dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id'),
+            dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
             unformattableTokens: ADDRESS_STOPWORDS,
             enrichmentEnabled: true,
             geoEnabled: true,

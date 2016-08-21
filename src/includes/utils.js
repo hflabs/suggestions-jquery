@@ -56,11 +56,20 @@
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
             },
-            indexBy: function (data, field) {
+            indexBy: function (data, field, indexField) {
                 var result = {};
-                $.each(data, function () {
-                    result[this[field]] = this;
+
+                $.each(data, function (i, obj) {
+                    var key = obj[field],
+                        val = {};
+
+                    if (indexField) {
+                        val[indexField] = i;
+                    }
+
+                    result[key] = $.extend(true, val, obj);
                 });
+
                 return result;
             },
 

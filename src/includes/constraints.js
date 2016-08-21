@@ -389,12 +389,7 @@
 
                     // Для городов-регионов нужно также отсечь и город
                     if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                        $.each(that.type.dataComponents, function (i, component) {
-                            if (component.id === 'city') {
-                                maxSpecificity = Math.max(maxSpecificity, i);
-                                return false;
-                            }
-                        });
+                        maxSpecificity = Math.max(maxSpecificity, that.type.dataComponentsById['city'].index);
                     }
 
                     // Collect all fieldnames from all restricted components
