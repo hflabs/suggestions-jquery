@@ -90,15 +90,16 @@
             /**
              * Selects a suggestion at specified index
              * @param index index of suggestion to select. Can be -1
-             * @param selectionOptions  Contains flags:
-             *          `continueSelecting` prevents hiding after selection,
-             *          `noSpace` - prevents adding space at the end of current value
+             * @param {Object} selectionOptions
+             * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
+             * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
              */
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    currentValue = that.currentValue;
+                    currentValue = that.currentValue,
+                    hasSameValues;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -113,10 +114,13 @@
                     return;
                 }
 
+                hasSameValues = that.hasSameValues(suggestion);
+
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
                         that.selectSuggestion(enrichedSuggestion, index, currentValue, $.extend({
-                            hasBeenEnriched: hasBeenEnriched
+                            hasBeenEnriched: hasBeenEnriched,
+                            hasSameValues: hasSameValues
                         }, selectionOptions));
                     });
 
@@ -127,7 +131,11 @@
              * @param suggestion
              * @param index
              * @param lastValue
-             * @param selectionOptions
+             * @param {Object} selectionOptions
+             * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
+             * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
+             * @param {boolean} selectionOptions.hasBeenEnriched
+             * @param {boolean} selectionOptions.hasSameValues
              */
             selectSuggestion: function (suggestion, index, lastValue, selectionOptions) {
                 var that = this,
@@ -154,7 +162,7 @@
 
                 if (that.requestMode.updateValue) {
                     that.checkValueBounds(suggestion);
-                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions.hasBeenEnriched);
+                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions);
 
                     if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
                         that.currentValue += ' ';

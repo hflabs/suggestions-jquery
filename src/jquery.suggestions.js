@@ -808,13 +808,16 @@
          * Gets string to set as input value
          *
          * @param suggestion
-         * @param {boolean} [hasBeenEnriched]  if set, calculation of restricted value will be applied
+         * @param {Object} [selectionOptions]
+         * @param {boolean} selectionOptions.hasBeenEnriched
+         * @param {boolean} selectionOptions.hasSameValues
          * @return {string}
          */
-        getSuggestionValue: function (suggestion, hasBeenEnriched) {
+        getSuggestionValue: function (suggestion, selectionOptions) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
-                hasSameValues,
+                hasSameValues = selectionOptions && selectionOptions.hasSameValues,
+                hasBeenEnriched = selectionOptions && selectionOptions.hasBeenEnriched,
                 formattedValue;
 
             if ($.isFunction(formatSelected)) {
@@ -825,8 +828,6 @@
                 formattedValue = suggestion.value;
 
                 if (that.type.composeValue) {
-                    hasSameValues = that.hasSameValues(suggestion);
-
                     if (hasBeenEnriched) {
                         // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
                         // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.

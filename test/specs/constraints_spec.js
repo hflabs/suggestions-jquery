@@ -540,7 +540,7 @@ describe('Address constraints', function () {
                 restrict_value: true
             });
 
-            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
         });
 
         it('one constraint (city)', function () {
@@ -553,7 +553,7 @@ describe('Address constraints', function () {
                 restrict_value: true
             });
 
-            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('поселок Брусянский, ул Строителей, д 1-бара');
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('поселок Брусянский, ул Строителей, д 1-бара');
         });
 
         it('one constraint (street)', function () {
@@ -566,7 +566,7 @@ describe('Address constraints', function () {
                 restrict_value: true
             });
 
-            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('д 1-бара');
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('д 1-бара');
         });
 
         it('one constraint (region by kladr_id)', function () {
@@ -580,7 +580,7 @@ describe('Address constraints', function () {
                 restrict_value: true
             });
 
-            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('Узловский р-н, г Узловая, поселок Брусянский, ул Строителей, д 1-бара');
         });
 
         it('one constraint (street by kladr_id)', function () {
@@ -594,7 +594,7 @@ describe('Address constraints', function () {
                 restrict_value: true
             });
 
-            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, true)).toEqual('д 1-бара');
+            expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('д 1-бара');
         });
 
         describe('set of constraints', function () {
@@ -645,7 +645,7 @@ describe('Address constraints', function () {
                         street_type_full: "переулок",
                         street_with_type: "Турчанинов пер"
                     }
-                }, true)).toEqual('Турчанинов пер');
+                }, { hasBeenEnriched: true })).toEqual('Турчанинов пер');
             });
 
             it('crop region if matches', function () {
@@ -671,7 +671,7 @@ describe('Address constraints', function () {
                         region_type_full: "область",
                         region_with_type: "Московская обл"
                     }
-                }, true)).toEqual('г Коломна');
+                }, { hasBeenEnriched: true })).toEqual('г Коломна');
             });
 
         });
