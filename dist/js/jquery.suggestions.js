@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.6
+ * DaData.ru Suggestions jQuery plugin, version 16.8.7
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -909,7 +909,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.6';
+    Suggestions.version = '16.8.7';
 
     $.Suggestions = Suggestions;
 
@@ -3303,7 +3303,7 @@
 
                     // Для городов-регионов нужно также отсечь и город
                     if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                        maxSpecificity = Math.max(maxSpecificity, that.type.dataComponentsById['city'].index);
+                        restrictedKeys.push.apply(restrictedKeys, that.type.dataComponentsById['city'].fields);
                     }
 
                     // Collect all fieldnames from all restricted components

@@ -389,7 +389,7 @@
 
                     // Для городов-регионов нужно также отсечь и город
                     if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                        maxSpecificity = Math.max(maxSpecificity, that.type.dataComponentsById['city'].index);
+                        restrictedKeys.push.apply(restrictedKeys, that.type.dataComponentsById['city'].fields);
                     }
 
                     // Collect all fieldnames from all restricted components
