@@ -205,6 +205,43 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":' + JSON.stringify(locations[0].concat(locations[1])));
     });
 
+    it('Should have `locations` parameter for parties', function () {
+        var locations = [
+            [
+                { 'region': 'адыгея' },
+                { 'region': 'астраханская' },
+                { 'region': 'волгоградская' },
+                { 'region': 'калмыкия' },
+                { 'region': 'краснодарский' },
+                { 'region': 'ростовская' }
+            ],
+            [
+                { region: 'курганская' },
+                { region: 'свердловская' },
+                { region: 'тюменская' },
+                { region: 'ханты-мансийский' },
+                { region: 'челябинская' },
+                { region: 'ямало-ненецкая' }
+            ]
+        ];
+
+        this.instance.setOptions({
+            type: 'PARTY',
+            constraints: {
+                locations: { kladr_id: '77' }
+            },
+            restrict_value: true
+        });
+
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"77"}]');
+    });
+
     it('Should show label for added constraint, which is build from locations', function () {
         this.instance.setOptions({
             constraints: {
