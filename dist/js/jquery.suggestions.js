@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.8
+ * DaData.ru Suggestions jQuery plugin, version 16.8.9
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -760,7 +760,8 @@
                 // These fields of suggestion's `data` used by by-words matcher
                 fieldsStopwords: {
                     'value': null,
-                    'data.bic': null
+                    'data.bic': null,
+                    'data.swift': null
                 }
             })],
             formatResult: function (value, currentValue, suggestion, options) {
@@ -910,7 +911,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.8';
+    Suggestions.version = '16.8.9';
 
     $.Suggestions = Suggestions;
 
