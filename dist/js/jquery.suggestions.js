@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.8.7
+ * DaData.ru Suggestions jQuery plugin, version 16.6.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -141,22 +141,6 @@
             },
             slice: function(obj, start) {
                 return Array.prototype.slice.call(obj, start);
-            },
-            indexBy: function (data, field, indexField) {
-                var result = {};
-
-                $.each(data, function (i, obj) {
-                    var key = obj[field],
-                        val = {};
-
-                    if (indexField) {
-                        val[indexField] = i;
-                    }
-
-                    result[key] = $.extend(true, val, obj);
-                });
-
-                return result;
             },
 
             /**
@@ -493,26 +477,19 @@
                 kladrFormat: { digits: 2, zeros: 11 }
             },
             {
-                id: 'area',
+                id:'area',
                 fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
                 forBounds: true,
                 forLocations: true,
                 kladrFormat: { digits: 5, zeros: 8 }
             },
             {
-                id: 'city',
+                id:'city',
                 fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
                 forBounds: true,
                 forLocations: true,
                 kladrFormat: { digits: 8, zeros: 5 }
-            },
-            {
-                id: 'city_district',
-                fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: false,
-                forLocations: false
-            },
-            {
+            }, {
                 id: 'settlement',
                 fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
                 forBounds: true,
@@ -611,7 +588,6 @@
                 $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
             ],
             dataComponents: ADDRESS_COMPONENTS,
-            dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
             unformattableTokens: ADDRESS_STOPWORDS,
             enrichmentEnabled: true,
             geoEnabled: true,
@@ -621,46 +597,18 @@
 
                 return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
             },
-            composeValue: function (data, optionalComponents) {
+            composeValue: function (data) {
                 return utils.compact([
                     data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
                     data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
                     data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
-                    $.inArray('city_district', optionalComponents) >= 0 && (data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' ')),
                     data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
                     data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
                     utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
                     utils.compact([data.flat_type, data.flat]).join(' '),
-                    data.postal_box && ('а/я ' + data.postal_box)
+                    data.postal_box ? 'а/я ' + data.postal_box : null
                 ]).join(', ');
-            },
-            formatResult: function() {
-                var componentsUnderCityDistrict = [],
-                    _underCityDistrict = false;
-
-                $.each(ADDRESS_COMPONENTS, function () {
-                    if (_underCityDistrict) componentsUnderCityDistrict.push(this.id);
-                    if (this.id === 'city_district') _underCityDistrict = true;
-                });
-
-                return function (value, currentValue, suggestion, options) {
-                    var that = this,
-                        district = suggestion.data && suggestion.data.city_district_with_type;
-
-                    value = that.highlightMatches(value, currentValue, suggestion, options);
-                    value = that.wrapFormattedValue(value, suggestion);
-
-                    if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                        && !$.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
-                        value +=
-                            '<div class="' + that.classes.subtext + '">' +
-                            that.highlightMatches(district, currentValue, suggestion) +
-                            '</div>';
-                    }
-
-                    return value;
-                };
-            }()
+            }
         };
 
         types['PARTY'] = {
@@ -676,6 +624,7 @@
                     }
                 })
             ],
+            dataComponents: ADDRESS_COMPONENTS,
             geoEnabled: true,
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
@@ -909,7 +858,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.8.7';
+    Suggestions.version = '16.6.4';
 
     $.Suggestions = Suggestions;
 
@@ -1211,20 +1160,18 @@
 
                 if (that.bounds.own.length) {
                     that.checkValueBounds(suggestion);
-                    data = that.copyDataComponents(suggestion.data, that.bounds.all);
+                    data = that.copyBoundedData(suggestion.data, that.bounds.all);
                     if (suggestion.data.kladr_id) {
                         data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
                     }
                     suggestion.data = data;
                 }
 
-                that.selection = suggestion;
-
-                // `that.suggestions` required by `that.getSuggestionValue` and must be set before
-                that.suggestions = [suggestion];
                 value = that.getSuggestionValue(suggestion) || '';
                 that.currentValue = value;
                 that.el.val(value);
+                that.selection = suggestion;
+                that.suggestions = [suggestion];
                 that.abortRequest();
                 that.el.trigger('suggestions-set');
             }
@@ -1528,16 +1475,12 @@
          * Gets string to set as input value
          *
          * @param suggestion
-         * @param {Object} [selectionOptions]
-         * @param {boolean} selectionOptions.hasBeenEnriched
-         * @param {boolean} selectionOptions.hasSameValues
+         * @param {boolean} [hasBeenEnriched]  if set, calculation of restricted value will be applied
          * @return {string}
          */
-        getSuggestionValue: function (suggestion, selectionOptions) {
+        getSuggestionValue: function (suggestion, hasBeenEnriched) {
             var that = this,
                 formatSelected = that.options.formatSelected || that.type.formatSelected,
-                hasSameValues = selectionOptions && selectionOptions.hasSameValues,
-                hasBeenEnriched = selectionOptions && selectionOptions.hasBeenEnriched,
                 formattedValue;
 
             if ($.isFunction(formatSelected)) {
@@ -1545,67 +1488,16 @@
             }
 
             if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
-                formattedValue = suggestion.value;
-
-                if (that.type.composeValue) {
-                    if (hasBeenEnriched) {
-                        // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
-                        // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
-                        // see: SUG-674
-                        if (that.options.restrict_value) {
-                            formattedValue = that.type.composeValue(
-                                that.getUnrestrictedData(suggestion.data),
-                                hasSameValues && ['city_district']
-                            );
-                        } else {
-                            if (that.bounds.own.indexOf('street') >= 0) {
-                                formattedValue = that.type.composeValue(
-                                    that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                    hasSameValues && ['city_district']
-                                );
-                            }
-                        }
-                    } else {
-                        if (hasSameValues) {
-                            // Include city_district to enter house for appropriate street
-                            // see: SUG-668
-                            if (that.options.restrict_value) {
-                                // Can not use unrestricted address, because some components (from constraints) must be omitted
-                                formattedValue = that.type.composeValue(
-                                    that.getUnrestrictedData(suggestion.data),
-                                    ['city_district']
-                                );
-                            } else {
-                                if (that.bounds.own.indexOf('street') >= 0) {
-                                    // Can not use unrestricted address, because only components from bounds must be included
-                                    formattedValue = that.type.composeValue(
-                                        that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                        ['city_district']
-                                    );
-                                } else {
-                                    // Can use full unrestricted address
-                                    formattedValue = suggestion.unrestricted_value;
-                                }
-                            }
-                        }
-                    }
+                // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
+                // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasBeenEnriched && that.options.restrict_value && that.type.composeValue) {
+                    formattedValue = that.type.composeValue(that.getUnrestrictedData(suggestion.data));
+                } else {
+                    formattedValue = suggestion.value;
                 }
             }
 
             return formattedValue;
-        },
-
-        hasSameValues: function(suggestion){
-            var hasSame = false;
-
-            $.each(this.suggestions, function(i, anotherSuggestion){
-                if (anotherSuggestion.value === suggestion.value && anotherSuggestion !== suggestion) {
-                    hasSame = true;
-                    return false;
-                }
-            });
-
-            return hasSame;
         },
 
         assignSuggestions: function (suggestions, query) {
@@ -2410,18 +2302,14 @@
                     chunks = [],
                     unformattableTokens = options && options.unformattableTokens,
                     maxLength = options && options.maxLength,
-                    tokens, tokenMatchers, preferredTokens,
+                    tokens, tokenMatchers,
                     rWords = utils.reWordExtractor(),
                     match, word, i, chunk, formattedStr;
 
                 if (!value) return '';
 
-                tokens = utils.compact(utils.formatToken(currentValue).split(wordSplitter));
-
-                // Move unformattableTokens to the end.
-                // This will help to apply them only if no other tokens match
-                preferredTokens = utils.arrayMinus(tokens, unformattableTokens);
-                tokens = utils.withSubTokens(preferredTokens.concat(utils.arrayMinus(tokens, preferredTokens)));
+                tokens = utils.formatToken(currentValue).split(wordSplitter);
+                tokens = utils.withSubTokens(tokens);
 
                 tokenMatchers = $.map(tokens, function (token) {
                     return new RegExp('^((.*)([' + wordPartsDelimiters + ']+))?' +
@@ -2434,9 +2322,7 @@
                     word = match[1];
                     chunks.push({
                         text: word,
-
-                        // upper case means a word is a name and can be highlighted even if presents in unformattableTokens
-                        hasUpperCase: word.toLowerCase() !== word,
+                        inUpperCase: word.toLowerCase() !== word,
                         formatted: utils.formatToken(word),
                         matchable: true
                     });
@@ -2450,7 +2336,7 @@
                 // use simple loop because length can change
                 for (i = 0; i < chunks.length; i++) {
                     chunk = chunks[i];
-                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.hasUpperCase)) {
+                    if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.inUpperCase)) {
                         $.each(tokenMatchers, function (j, matcher) {
                             var tokenMatch = matcher.exec(chunk.formatted),
                                 length, nextIndex = i + 1;
@@ -3303,7 +3189,12 @@
 
                     // Для городов-регионов нужно также отсечь и город
                     if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                        restrictedKeys.push.apply(restrictedKeys, that.type.dataComponentsById['city'].fields);
+                        $.each(that.type.dataComponents, function(i, component){
+                            if (component.id === 'city') {
+                                restrictedKeys.push.apply(restrictedKeys, component.fields);
+                                return false;
+                            }
+                        });
                     }
 
                     // Collect all fieldnames from all restricted components
@@ -3436,16 +3327,15 @@
             /**
              * Selects a suggestion at specified index
              * @param index index of suggestion to select. Can be -1
-             * @param {Object} selectionOptions
-             * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
-             * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
+             * @param selectionOptions  Contains flags:
+             *          `continueSelecting` prevents hiding after selection,
+             *          `noSpace` - prevents adding space at the end of current value
              */
             select: function (index, selectionOptions) {
                 var that = this,
                     suggestion = that.suggestions[index],
                     continueSelecting = selectionOptions && selectionOptions.continueSelecting,
-                    currentValue = that.currentValue,
-                    hasSameValues;
+                    currentValue = that.currentValue;
 
                 // Prevent recursive execution
                 if (that.triggering['Select'])
@@ -3460,13 +3350,10 @@
                     return;
                 }
 
-                hasSameValues = that.hasSameValues(suggestion);
-
                 that.enrichSuggestion(suggestion, selectionOptions)
                     .done(function (enrichedSuggestion, hasBeenEnriched) {
                         that.selectSuggestion(enrichedSuggestion, index, currentValue, $.extend({
-                            hasBeenEnriched: hasBeenEnriched,
-                            hasSameValues: hasSameValues
+                            hasBeenEnriched: hasBeenEnriched
                         }, selectionOptions));
                     });
 
@@ -3477,11 +3364,7 @@
              * @param suggestion
              * @param index
              * @param lastValue
-             * @param {Object} selectionOptions
-             * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
-             * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
-             * @param {boolean} selectionOptions.hasBeenEnriched
-             * @param {boolean} selectionOptions.hasSameValues
+             * @param selectionOptions
              */
             selectSuggestion: function (suggestion, index, lastValue, selectionOptions) {
                 var that = this,
@@ -3508,7 +3391,7 @@
 
                 if (that.requestMode.updateValue) {
                     that.checkValueBounds(suggestion);
-                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions);
+                    that.currentValue = that.getSuggestionValue(suggestion, selectionOptions.hasBeenEnriched);
 
                     if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
                         that.currentValue += ' ';
@@ -3662,22 +3545,26 @@
 
             // If any bounds set up
             if (that.bounds.own.length && that.type.composeValue) {
-                valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
+                valueData = that.copyBoundedData(suggestion.data, that.bounds.own);
                 suggestion.value = that.type.composeValue(valueData);
             }
         },
 
-        copyDataComponents: function (data, components) {
+        copyBoundedData: function (data, boundsRange) {
             var result = {},
-                dataComponentsById = this.type.dataComponentsById;
+                dataComponents = this.type.dataComponents;
 
-            if (dataComponentsById) {
-                $.each(components, function (i, component) {
-                    $.each(dataComponentsById[component].fields, function (i, field) {
-                        if (data[field] != null) {
-                            result[field] = data[field];
+            if (dataComponents) {
+                $.each(boundsRange, function (i, bound) {
+                    $.each(dataComponents, function(){
+                        if (this.id === bound) {
+                            $.each(this.fields, function (i, field) {
+                                if (data[field] != null) {
+                                    result[field] = data[field];
+                                }
+                            })
                         }
-                    })
+                    });
                 });
             }
 

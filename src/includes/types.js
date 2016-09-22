@@ -234,6 +234,7 @@
                     }
                 })
             ],
+            dataComponents: ADDRESS_COMPONENTS,
             geoEnabled: true,
             formatResult: function (value, currentValue, suggestion, options) {
                 var that = this,
