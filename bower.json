@@ -1,0 +1,22 @@
+{
+  "name": "dadata-suggestions-jquery",
+  "description": "DaData.ru Suggestions jQuery plugin",
+  "license": "MIT",
+  "main": [
+    "dist/js/jquery.suggestions.js",
+    "dist/css/suggestions.css"
+  ],
+  "ignore": [
+    "less",
+    "test",
+    ".gitignore",
+    "CHANGELOG.md",
+    "Gruntfile.js",
+    "package.json",
+    ".travis.yml"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hflabs/suggestions-jquery.git"
+  }
+}
