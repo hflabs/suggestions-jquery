@@ -40,7 +40,7 @@
   opacity: 1;
 }
 .suggestions-suggestions {
-  background: #ffffff;
+  background: #fff;
   border: 1px solid #999;
   -ms-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -118,7 +118,7 @@
   vertical-align: middle;
 }
 .suggestions-subtext {
-  color: #777777;
+  color: #777;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
