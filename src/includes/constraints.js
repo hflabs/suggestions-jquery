@@ -7,6 +7,15 @@
             restrict_value: false
         };
 
+        var fiasParamNames = [
+          'region_fias_id',
+          'area_fias_id',
+          'city_fias_id',
+          'city_district_fias_id',
+          'settlement_fias_id',
+          'street_fias_id'
+        ];
+
         /**
          * Compares two suggestion objects
          * @param suggestion
@@ -30,7 +39,10 @@
          * @constructor
          */
         var ConstraintLocation = function(data, instance){
-            var that = this;
+            var that = this,
+                fieldNames,
+                fiasFieldNames,
+                fiasFields = {};
 
             that.instance = instance;
             that.fields = {};
@@ -47,7 +59,14 @@
                 });
             }
 
-            if (that.fields.kladr_id) {
+            fieldNames = utils.objectKeys(that.fields);
+            fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
+            if (fiasFieldNames.length) {
+                $.each(fiasFieldNames, function(index, fieldName) {
+                    fiasFields[fieldName] = that.fields[fieldName];
+                });
+                that.fields = fiasFields;
+            } else if (that.fields.kladr_id) {
                 that.fields = { kladr_id: that.fields.kladr_id };
                 that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
             }

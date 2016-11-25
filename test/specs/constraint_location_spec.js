@@ -42,6 +42,18 @@ describe('Constraint Location', function () {
         expect(Object.keys(location.getFields())).toEqual(['kladr_id']);
     });
 
+    // наличие фиас параметров если переданы
+    it('should use fias params if specified', function () {
+        var location = new $.Suggestions.ConstraintLocation({
+            'city': 'Тольятти',
+            'kladr_id': '6300000700000',
+            'city_fias_id': '1000000',
+            'street_fias_id': '1000000'
+        }, this.instance);
+
+        expect(Object.keys(location.getFields())).toEqual(['city_fias_id', 'street_fias_id']);
+    });
+
     it('should determine specificity', function () {
         var location = new $.Suggestions.ConstraintLocation({
                 'city': 'Тольятти'
