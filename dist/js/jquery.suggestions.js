@@ -546,7 +546,7 @@
             {
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: false,
+                forBounds: true,
                 forLocations: false
             },
             {
@@ -3757,7 +3757,7 @@
             // If any bounds set up
             if (that.bounds.own.length && that.type.composeValue) {
                 valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
-                suggestion.value = that.type.composeValue(valueData);
+                suggestion.value = that.type.composeValue(valueData, ['city_district']);
             }
         },
 
