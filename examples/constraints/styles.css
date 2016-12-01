@@ -1,0 +1,14 @@
+input {
+    font-size: 16px;
+    padding: 4px;
+}
+#switcher a {
+    text-decoration: none;
+    border-bottom: 1px dotted blue;
+}
+#switcher a:hover {
+    border-bottom: none;
+}
+#switcher li {
+    line-height: 1.5
+}
