@@ -66,6 +66,7 @@
                     fiasFields[fieldName] = that.fields[fieldName];
                 });
                 that.fields = fiasFields;
+                that.specificity = that.getFiasSpecificity(fiasFieldNames);
             } else if (that.fields.kladr_id) {
                 that.fields = { kladr_id: that.fields.kladr_id };
                 that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
@@ -85,6 +86,12 @@
                 return !$.isEmptyObject(this.fields);
             },
 
+            /**
+             * Возвращает specificity для КЛАДР
+             * Описание ниже, в getFiasSpecificity
+             * @param kladr_id
+             * @returns {number}
+             */
             getKladrSpecificity: function (kladr_id) {
                 var specificity = -1,
                     significantLength;
@@ -94,6 +101,31 @@
 
                 $.each(this.instance.type.dataComponents, function (i, component) {
                     if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+                        specificity = i;
+                    }
+                });
+
+                return specificity;
+            },
+
+            /**
+             * Возвращает особую величину specificity для ФИАС
+             * Specificity это индекс для массива this.instance.type.dataComponents
+             * до которого (включительно) обрежется этот массив при формировании строки адреса.
+             * Этот параметр нужен для случаев, когда в настройках плагина restrict_value = true
+             * Например, установлено ограничение (locations) по region_fias_id (Краснодарский край)
+             * В выпадашке нажимаем на "г. Сочи"
+             * Если restrict_value отключен, то выведется значение "Краснодарский край, г Сочи"
+             * Если включен, то просто "г Сочи"
+             *
+             * @param fiasFieldNames
+             * @returns {number}
+             */
+            getFiasSpecificity: function (fiasFieldNames) {
+                var specificity = -1;
+
+                $.each(this.instance.type.dataComponents, function (i, component) {
+                    if (component.fiasType && ($.inArray(component.fiasType, fiasFieldNames) > -1) && specificity < i) {
                         specificity = i;
                     }
                 });

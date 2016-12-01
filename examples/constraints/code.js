@@ -65,6 +65,32 @@
             });
         };
 
+        switchers["fias"] = function(sgt, lbl) {
+            lbl.text("Ограничение по коду ФИАС (Краснодарский край, restrict_value = true)");
+            sgt.setOptions({
+                constraints: {
+                    label: "Краснодарский край",
+                    // ограничиваем поиск Красндарским Краем по коду ФИАС
+                    locations: { region_fias_id: "d00e1013-16bd-4c09-b3d5-3cb09fc54bd8" }
+                },
+                // в списке подсказок не показываем регион
+                restrict_value: true
+            });
+        };
+
+        switchers["fias-no-restrict"] = function(sgt, lbl) {
+            lbl.text("Ограничение по коду ФИАС (Краснодарский край, restrict_value = false)");
+            sgt.setOptions({
+                constraints: {
+                    label: "Краснодарский край",
+                    // ограничиваем поиск Красндарским Краем по коду ФИАС
+                    locations: { region_fias_id: "d00e1013-16bd-4c09-b3d5-3cb09fc54bd8" }
+                },
+                // в списке подсказок не показываем регион
+                restrict_value: false
+            });
+        };
+
         switchers['regions'] = function (sgt, lbl) {
             lbl.text('Несколько регионов (Москва и Московская область)');
             sgt.setOptions({

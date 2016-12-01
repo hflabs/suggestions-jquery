@@ -523,59 +523,18 @@
                 forLocations: true
             },
             {
-                id: 'region',
-                fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
-                forBounds: true,
-                forLocations: true,
-                kladrFormat: { digits: 2, zeros: 11 }
-            },
-            {
-                id: 'area',
-                fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
-                forBounds: true,
-                forLocations: true,
-                kladrFormat: { digits: 5, zeros: 8 }
-            },
-            {
-                id: 'city',
-                fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
-                forBounds: true,
-                forLocations: true,
-                kladrFormat: { digits: 8, zeros: 5 }
-            },
-            {
-                id: 'city_district',
-                fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: true,
-                forLocations: false
-            },
-            {
-                id: 'settlement',
-                fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
-                forBounds: true,
-                forLocations: true,
-                kladrFormat: { digits: 11, zeros: 2 }
-            },
-            {
-                id: 'street',
-                fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
-                forBounds: true,
-                forLocations: true,
-                kladrFormat: { digits: 15, zeros: 2 }
-            },
-            {
-                id: 'house',
-                fields: ['house', 'house_type', 'house_type_full',
-                    'block', 'block_type'],
-                forBounds: true,
-                forLocations: false,
-                kladrFormat: { digits: 19 }
-            },
-            {
                 id: 'region_fias_id',
                 fields: ['region_fias_id'],
                 forBounds: false,
                 forLocations: true
+            },
+            {
+                id: 'region',
+                fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
+                forBounds: true,
+                forLocations: true,
+                kladrFormat: { digits: 2, zeros: 11 },
+                fiasType: 'region_fias_id'
             },
             {
                 id: 'area_fias_id',
@@ -584,10 +543,26 @@
                 forLocations: true
             },
             {
+                id: 'area',
+                fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
+                forBounds: true,
+                forLocations: true,
+                kladrFormat: { digits: 5, zeros: 8 },
+                fiasType: 'area_fias_id'
+            },
+            {
                 id: 'city_fias_id',
                 fields: ['city_fias_id'],
                 forBounds: false,
                 forLocations: true
+            },
+            {
+                id: 'city',
+                fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
+                forBounds: true,
+                forLocations: true,
+                kladrFormat: { digits: 8, zeros: 5 },
+                fiasType: 'city_fias_id'
             },
             {
                 id: 'city_district_fias_id',
@@ -596,17 +571,49 @@
                 forLocations: true
             },
             {
+                id: 'city_district',
+                fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
+                forBounds: true,
+                forLocations: false,
+                fiasType: 'city_district_fias_id'
+            },
+            {
                 id: 'settlement_fias_id',
                 fields: ['settlement_fias_id'],
                 forBounds: false,
                 forLocations: true
             },
             {
+                id: 'settlement',
+                fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
+                forBounds: true,
+                forLocations: true,
+                kladrFormat: { digits: 11, zeros: 2 },
+                fiasType: 'settlement_fias_id'
+            },
+            {
                 id: 'street_fias_id',
                 fields: ['street_fias_id'],
                 forBounds: false,
                 forLocations: true
+            },
+            {
+                id: 'street',
+                fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
+                forBounds: true,
+                forLocations: true,
+                kladrFormat: { digits: 15, zeros: 2 },
+                fiasType: 'street_fias_id'
+            },
+            {
+                id: 'house',
+                fields: ['house', 'house_type', 'house_type_full',
+                    'block', 'block_type'],
+                forBounds: true,
+                forLocations: false,
+                kladrFormat: { digits: 19 }
             }
+
         ];
 
         var rHasMatch = /<strong>/;
@@ -3055,6 +3062,7 @@
                     fiasFields[fieldName] = that.fields[fieldName];
                 });
                 that.fields = fiasFields;
+                that.specificity = that.getFiasSpecificity(fiasFieldNames);
             } else if (that.fields.kladr_id) {
                 that.fields = { kladr_id: that.fields.kladr_id };
                 that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
@@ -3074,6 +3082,12 @@
                 return !$.isEmptyObject(this.fields);
             },
 
+            /**
+             * Возвращает specificity для КЛАДР
+             * Описание ниже, в getFiasSpecificity
+             * @param kladr_id
+             * @returns {number}
+             */
             getKladrSpecificity: function (kladr_id) {
                 var specificity = -1,
                     significantLength;
@@ -3083,6 +3097,31 @@
 
                 $.each(this.instance.type.dataComponents, function (i, component) {
                     if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+                        specificity = i;
+                    }
+                });
+
+                return specificity;
+            },
+
+            /**
+             * Возвращает особую величину specificity для ФИАС
+             * Specificity это индекс для массива this.instance.type.dataComponents
+             * до которого (включительно) обрежется этот массив при формировании строки адреса.
+             * Этот параметр нужен для случаев, когда в настройках плагина restrict_value = true
+             * Например, установлено ограничение (locations) по region_fias_id (Краснодарский край)
+             * В выпадашке нажимаем на "г. Сочи"
+             * Если restrict_value отключен, то выведется значение "Краснодарский край, г Сочи"
+             * Если включен, то просто "г Сочи"
+             *
+             * @param fiasFieldNames
+             * @returns {number}
+             */
+            getFiasSpecificity: function (fiasFieldNames) {
+                var specificity = -1;
+
+                $.each(this.instance.type.dataComponents, function (i, component) {
+                    if (component.fiasType && ($.inArray(component.fiasType, fiasFieldNames) > -1) && specificity < i) {
                         specificity = i;
                     }
                 });
