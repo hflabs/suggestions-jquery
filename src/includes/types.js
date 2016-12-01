@@ -67,7 +67,7 @@
             {
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: true,
+                forBounds: false,
                 forLocations: false
             },
             {
@@ -91,42 +91,6 @@
                 forBounds: true,
                 forLocations: false,
                 kladrFormat: { digits: 19 }
-            },
-            {
-                id: 'region_fias_id',
-                fields: ['region_fias_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'area_fias_id',
-                fields: ['area_fias_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'city_fias_id',
-                fields: ['city_fias_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'city_district_fias_id',
-                fields: ['city_district_fias_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'settlement_fias_id',
-                fields: ['settlement_fias_id'],
-                forBounds: false,
-                forLocations: true
-            },
-            {
-                id: 'street_fias_id',
-                fields: ['street_fias_id'],
-                forBounds: false,
-                forLocations: true
             }
         ];
 

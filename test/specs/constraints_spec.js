@@ -110,69 +110,6 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"77"}]');
     });
 
-    // если в locations указан фиас параметр, то другие параметры не используются
-    it('Should have `locations` parameter in request with only `region_fias_id` if it is specified', function () {
-        this.instance.setOptions({
-            constraints: {
-                locations: {
-                    country: 'россия',
-                    region: 'москва',
-                    city: 'москва',
-                    qc_complete: 1,
-                    region_fias_id: '44'
-                }
-            }
-        });
-
-        this.input.value = 'A';
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44"}]');
-    });
-
-    // если в locations указан фиас параметр, то другие параметры не используются, даже кладр
-    it('Should have `locations` parameter in request with only `region_fias_id` if specified fias and kladr', function () {
-        this.instance.setOptions({
-            constraints: {
-                locations: {
-                    country: 'россия',
-                    region: 'москва',
-                    city: 'москва',
-                    kladr_id: '77',
-                    qc_complete: 1,
-                    region_fias_id: '44'
-                }
-            }
-        });
-
-        this.input.value = 'A';
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44"}]');
-    });
-
-    // можно указать несколько фиас параметров
-    it('Should have `locations` parameter in request with several fias params', function () {
-        this.instance.setOptions({
-            constraints: {
-                locations: {
-                    country: 'россия',
-                    region: 'москва',
-                    city: 'москва',
-                    kladr_id: '77',
-                    qc_complete: 1,
-                    region_fias_id: '44',
-                    area_fias_id: '55'
-                }
-            }
-        });
-
-        this.input.value = 'A';
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44","area_fias_id":"55"}]');
-    });
-
     it('Should have `locations` parameter in request with only acceptable fields', function () {
         this.instance.setOptions({
             constraints: {

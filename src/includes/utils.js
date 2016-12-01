@@ -115,25 +115,6 @@
                     })
                 }) : array1;
             },
-            /**
-             * Пересечение массивов: ([1,2,3,4], [2,4,5,6]) => [2,4]
-             * Исходные массивы не меняются
-             * @param {Array} array1
-             * @param {Array} array2
-             * @returns {Array}
-             */
-            arraysIntersection: function(array1, array2) {
-                var result = [];
-                if (!$.isArray(array1) || !$.isArray(array2)) {
-                    return result;
-                }
-                $.each(array1, function(index, item) {
-                    if ($.inArray(item, array2) >= 0) {
-                        result.push(item);
-                    }
-                });
-                return result;
-            },
             getWords: function(str, stopwords) {
                 // Split numbers and letters written together
                 str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
@@ -195,24 +176,6 @@
                 });
 
                 return result;
-            },
-
-            /**
-             * Возвращает массив с ключами переданного объекта
-             * Используется нативный Object.keys если он есть
-             * @param {Object} obj
-             * @returns {Array}
-             */
-            objectKeys: function(obj) {
-                if (Object.keys) {
-                    return Object.keys(obj);
-                }
-                var keys = [];
-                $.each(obj, function(name) {
-                    keys.push(name);
-                });
-                return keys;
             }
-
         };
     }());
