@@ -67,7 +67,7 @@
             {
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
-                forBounds: false,
+                forBounds: true,
                 forLocations: false
             },
             {
