@@ -29,7 +29,7 @@
         wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
         defaultOptions = {
             autoSelectFirst: false,
-            serviceUrl: null,
+            serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,
