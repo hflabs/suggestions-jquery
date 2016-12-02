@@ -574,7 +574,7 @@
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
                 forBounds: true,
-                forLocations: false,
+                forLocations: true,
                 fiasType: 'city_district_fias_id'
             },
             {

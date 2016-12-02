@@ -52,6 +52,24 @@
             });
         };
 
+        switchers['sochi-adlersky'] = function (sgt, lbl) {
+            lbl.text('Внутригородской район (г Сочи, Адлерский р-н)');
+            sgt.setOptions({
+                constraints: {
+                    label: 'г Сочи, Адлерский р-н',
+                    // ограничиваем поиск Новосибирском
+                    locations: {
+                        city: 'Сочи',
+                        city_district: 'Адлерский'
+                    },
+                    // даем пользователю возможность снять ограничение
+                    deletable: true
+                },
+                // в списке подсказок не показываем область и город
+                restrict_value: true
+            });
+        };
+
         switchers['kladr'] = function (sgt, lbl) {
             lbl.text('Ограничение по коду КЛАДР (Тольятти)');
             sgt.setOptions({
