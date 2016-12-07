@@ -77,6 +77,31 @@ describe('Initialization', function () {
 
     });
 
+    describe('check defaults', function () {
+
+        beforeEach(function () {
+            this.input = document.createElement('input');
+            this.$input = $(this.input).appendTo($body);
+            this.instance = this.$input.suggestions({
+                type: 'NAME'
+            }).suggestions();
+
+            helpers.returnGoodStatus(this.server);
+        });
+
+        afterEach(function () {
+            this.instance.dispose();
+            this.$input.remove();
+        });
+
+        it('serviceUrl', function () {
+            expect(this.instance.options.serviceUrl).toEqual($.Suggestions.defaultOptions.serviceUrl);
+        });
+
+        checkInitialized();
+
+    });
+
     describe('hidden element', function () {
 
         // create input, but do not add it to DOM

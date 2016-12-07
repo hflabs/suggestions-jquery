@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 16.10.1
+ * DaData.ru Suggestions jQuery plugin, version 16.10.4
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -11,6 +11,9 @@
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['jquery'], factory);
+    } else if (typeof exports === 'object' && typeof exports.nodeName !== 'string') {
+        // CommonJS style for Browserify
+        factory(require('jquery'));
     } else {
         // Browser globals
         factory(jQuery);
@@ -36,7 +39,7 @@
         wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
         defaultOptions = {
             autoSelectFirst: false,
-            serviceUrl: null,
+            serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,
@@ -201,6 +204,25 @@
                     })
                 }) : array1;
             },
+            /**
+             * Пересечение массивов: ([1,2,3,4], [2,4,5,6]) => [2,4]
+             * Исходные массивы не меняются
+             * @param {Array} array1
+             * @param {Array} array2
+             * @returns {Array}
+             */
+            arraysIntersection: function(array1, array2) {
+                var result = [];
+                if (!$.isArray(array1) || !$.isArray(array2)) {
+                    return result;
+                }
+                $.each(array1, function(index, item) {
+                    if ($.inArray(item, array2) >= 0) {
+                        result.push(item);
+                    }
+                });
+                return result;
+            },
             getWords: function(str, stopwords) {
                 // Split numbers and letters written together
                 str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
@@ -262,7 +284,25 @@
                 });
 
                 return result;
+            },
+
+            /**
+             * Возвращает массив с ключами переданного объекта
+             * Используется нативный Object.keys если он есть
+             * @param {Object} obj
+             * @returns {Array}
+             */
+            objectKeys: function(obj) {
+                if (Object.keys) {
+                    return Object.keys(obj);
+                }
+                var keys = [];
+                $.each(obj, function(name) {
+                    keys.push(name);
+                });
+                return keys;
             }
+
         };
     }());
 
@@ -486,45 +526,87 @@
                 forLocations: true
             },
             {
+                id: 'region_fias_id',
+                fields: ['region_fias_id'],
+                forBounds: false,
+                forLocations: true
+            },
+            {
                 id: 'region',
                 fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 2, zeros: 11 }
+                kladrFormat: { digits: 2, zeros: 11 },
+                fiasType: 'region_fias_id'
+            },
+            {
+                id: 'area_fias_id',
+                fields: ['area_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'area',
                 fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 5, zeros: 8 }
+                kladrFormat: { digits: 5, zeros: 8 },
+                fiasType: 'area_fias_id'
+            },
+            {
+                id: 'city_fias_id',
+                fields: ['city_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'city',
                 fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 8, zeros: 5 }
+                kladrFormat: { digits: 8, zeros: 5 },
+                fiasType: 'city_fias_id'
+            },
+            {
+                id: 'city_district_fias_id',
+                fields: ['city_district_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
+                forBounds: true,
+                forLocations: true,
+                fiasType: 'city_district_fias_id'
+            },
+            {
+                id: 'settlement_fias_id',
+                fields: ['settlement_fias_id'],
                 forBounds: false,
-                forLocations: false
+                forLocations: true
             },
             {
                 id: 'settlement',
                 fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 11, zeros: 2 }
+                kladrFormat: { digits: 11, zeros: 2 },
+                fiasType: 'settlement_fias_id'
+            },
+            {
+                id: 'street_fias_id',
+                fields: ['street_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'street',
                 fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 15, zeros: 2 }
+                kladrFormat: { digits: 15, zeros: 2 },
+                fiasType: 'street_fias_id'
             },
             {
                 id: 'house',
@@ -534,6 +616,7 @@
                 forLocations: false,
                 kladrFormat: { digits: 19 }
             }
+
         ];
 
         var rHasMatch = /<strong>/;
@@ -911,7 +994,7 @@
 
     Suggestions.defaultOptions = defaultOptions;
 
-    Suggestions.version = '16.10.1';
+    Suggestions.version = '16.10.4';
 
     $.Suggestions = Suggestions;
 
@@ -2923,6 +3006,15 @@
             restrict_value: false
         };
 
+        var fiasParamNames = [
+          'region_fias_id',
+          'area_fias_id',
+          'city_fias_id',
+          'city_district_fias_id',
+          'settlement_fias_id',
+          'street_fias_id'
+        ];
+
         /**
          * Compares two suggestion objects
          * @param suggestion
@@ -2946,7 +3038,10 @@
          * @constructor
          */
         var ConstraintLocation = function(data, instance){
-            var that = this;
+            var that = this,
+                fieldNames,
+                fiasFieldNames,
+                fiasFields = {};
 
             that.instance = instance;
             that.fields = {};
@@ -2963,7 +3058,15 @@
                 });
             }
 
-            if (that.fields.kladr_id) {
+            fieldNames = utils.objectKeys(that.fields);
+            fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
+            if (fiasFieldNames.length) {
+                $.each(fiasFieldNames, function(index, fieldName) {
+                    fiasFields[fieldName] = that.fields[fieldName];
+                });
+                that.fields = fiasFields;
+                that.specificity = that.getFiasSpecificity(fiasFieldNames);
+            } else if (that.fields.kladr_id) {
                 that.fields = { kladr_id: that.fields.kladr_id };
                 that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
             }
@@ -2982,6 +3085,12 @@
                 return !$.isEmptyObject(this.fields);
             },
 
+            /**
+             * Возвращает specificity для КЛАДР
+             * Описание ниже, в getFiasSpecificity
+             * @param kladr_id
+             * @returns {number}
+             */
             getKladrSpecificity: function (kladr_id) {
                 var specificity = -1,
                     significantLength;
@@ -2991,6 +3100,31 @@
 
                 $.each(this.instance.type.dataComponents, function (i, component) {
                     if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+                        specificity = i;
+                    }
+                });
+
+                return specificity;
+            },
+
+            /**
+             * Возвращает особую величину specificity для ФИАС
+             * Specificity это индекс для массива this.instance.type.dataComponents
+             * до которого (включительно) обрежется этот массив при формировании строки адреса.
+             * Этот параметр нужен для случаев, когда в настройках плагина restrict_value = true
+             * Например, установлено ограничение (locations) по region_fias_id (Краснодарский край)
+             * В выпадашке нажимаем на "г. Сочи"
+             * Если restrict_value отключен, то выведется значение "Краснодарский край, г Сочи"
+             * Если включен, то просто "г Сочи"
+             *
+             * @param fiasFieldNames
+             * @returns {number}
+             */
+            getFiasSpecificity: function (fiasFieldNames) {
+                var specificity = -1;
+
+                $.each(this.instance.type.dataComponents, function (i, component) {
+                    if (component.fiasType && ($.inArray(component.fiasType, fiasFieldNames) > -1) && specificity < i) {
                         specificity = i;
                     }
                 });
@@ -3665,7 +3799,7 @@
             // If any bounds set up
             if (that.bounds.own.length && that.type.composeValue) {
                 valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
-                suggestion.value = that.type.composeValue(valueData);
+                suggestion.value = that.type.composeValue(valueData, ['city_district']);
             }
         },
 

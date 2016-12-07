@@ -4,6 +4,9 @@
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['jquery'], factory);
+    } else if (typeof exports === 'object' && typeof exports.nodeName !== 'string') {
+        // CommonJS style for Browserify
+        factory(require('jquery'));
     } else {
         // Browser globals
         factory(jQuery);
@@ -29,7 +32,7 @@
         wordPartsSplitter = new RegExp('[' + wordPartsDelimiters + ']+', 'g'),
         defaultOptions = {
             autoSelectFirst: false,
-            serviceUrl: null,
+            serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
             onSearchStart: $.noop,
             onSearchComplete: $.noop,
             onSearchError: $.noop,

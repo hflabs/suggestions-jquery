@@ -44,45 +44,87 @@
                 forLocations: true
             },
             {
+                id: 'region_fias_id',
+                fields: ['region_fias_id'],
+                forBounds: false,
+                forLocations: true
+            },
+            {
                 id: 'region',
                 fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 2, zeros: 11 }
+                kladrFormat: { digits: 2, zeros: 11 },
+                fiasType: 'region_fias_id'
+            },
+            {
+                id: 'area_fias_id',
+                fields: ['area_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'area',
                 fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 5, zeros: 8 }
+                kladrFormat: { digits: 5, zeros: 8 },
+                fiasType: 'area_fias_id'
+            },
+            {
+                id: 'city_fias_id',
+                fields: ['city_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'city',
                 fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 8, zeros: 5 }
+                kladrFormat: { digits: 8, zeros: 5 },
+                fiasType: 'city_fias_id'
+            },
+            {
+                id: 'city_district_fias_id',
+                fields: ['city_district_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'city_district',
                 fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
+                forBounds: true,
+                forLocations: true,
+                fiasType: 'city_district_fias_id'
+            },
+            {
+                id: 'settlement_fias_id',
+                fields: ['settlement_fias_id'],
                 forBounds: false,
-                forLocations: false
+                forLocations: true
             },
             {
                 id: 'settlement',
                 fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 11, zeros: 2 }
+                kladrFormat: { digits: 11, zeros: 2 },
+                fiasType: 'settlement_fias_id'
+            },
+            {
+                id: 'street_fias_id',
+                fields: ['street_fias_id'],
+                forBounds: false,
+                forLocations: true
             },
             {
                 id: 'street',
                 fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
                 forBounds: true,
                 forLocations: true,
-                kladrFormat: { digits: 15, zeros: 2 }
+                kladrFormat: { digits: 15, zeros: 2 },
+                fiasType: 'street_fias_id'
             },
             {
                 id: 'house',
@@ -92,6 +134,7 @@
                 forLocations: false,
                 kladrFormat: { digits: 19 }
             }
+
         ];
 
         var rHasMatch = /<strong>/;

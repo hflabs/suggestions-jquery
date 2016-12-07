@@ -110,6 +110,69 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"77"}]');
     });
 
+    // если в locations указан фиас параметр, то другие параметры не используются
+    it('Should have `locations` parameter in request with only `region_fias_id` if it is specified', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: 'россия',
+                    region: 'москва',
+                    city: 'москва',
+                    qc_complete: 1,
+                    region_fias_id: '44'
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44"}]');
+    });
+
+    // если в locations указан фиас параметр, то другие параметры не используются, даже кладр
+    it('Should have `locations` parameter in request with only `region_fias_id` if specified fias and kladr', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: 'россия',
+                    region: 'москва',
+                    city: 'москва',
+                    kladr_id: '77',
+                    qc_complete: 1,
+                    region_fias_id: '44'
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44"}]');
+    });
+
+    // можно указать несколько фиас параметров
+    it('Should have `locations` parameter in request with several fias params', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: 'россия',
+                    region: 'москва',
+                    city: 'москва',
+                    kladr_id: '77',
+                    qc_complete: 1,
+                    region_fias_id: '44',
+                    area_fias_id: '55'
+                }
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44","area_fias_id":"55"}]');
+    });
+
     it('Should have `locations` parameter in request with only acceptable fields', function () {
         this.instance.setOptions({
             constraints: {
@@ -632,6 +695,48 @@ describe('Address constraints', function () {
             });
 
             expect(this.instance.getSuggestionValue(fixtures.fullyAddress, { hasBeenEnriched: true })).toEqual('д 1-бара');
+        });
+
+        it('one constraint (region by region_fias_id)', function () {
+            this.instance.setOptions({
+                constraints: {
+                    label: "Краснодарский край",
+                    locations: { region_fias_id: "d00e1013-16bd-4c09-b3d5-3cb09fc54bd8" }
+                },
+                restrict_value: true
+            });
+            var suggestion = {
+                data: {
+                    capital_marker: '0',
+                    city: 'Сочи',
+                    city_fias_id: '79da737a-603b-4c19-9b54-9114c96fb912',
+                    city_kladr_id: '2300000700000',
+                    city_type: 'г',
+                    city_type_full: 'город',
+                    city_with_type: 'г Сочи',
+                    country: 'Россия',
+                    fias_id: '79da737a-603b-4c19-9b54-9114c96fb912',
+                    fias_level: '4',
+                    geo_lat: '43.5816249',
+                    geo_lon: '39.7229455',
+                    kladr_id: '2300000700000',
+                    okato: '03426000000',
+                    oktmo: '03726000',
+                    qc_geo: '4',
+                    region: 'Краснодарский',
+                    region_fias_id: 'd00e1013-16bd-4c09-b3d5-3cb09fc54bd8',
+                    region_kladr_id: '2300000000000',
+                    region_type: 'край',
+                    region_type_full: 'край',
+                    region_with_type: 'Краснодарский край',
+                    tax_office: '2300'
+                },
+                unrestricted_value: 'Краснодарский край, г Сочи',
+                value: 'г Сочи'
+            };
+
+            var value = this.instance.getSuggestionValue(suggestion, { hasBeenEnriched: true });
+            expect(value).toEqual('г Сочи');
         });
 
         describe('set of constraints', function () {
