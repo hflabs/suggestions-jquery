@@ -837,14 +837,12 @@
                         // see: SUG-674
                         if (that.options.restrict_value) {
                             formattedValue = that.type.composeValue(
-                                that.getUnrestrictedData(suggestion.data),
-                                hasSameValues && ['city_district']
+                                that.getUnrestrictedData(suggestion.data)
                             );
                         } else {
                             if (that.bounds.own.indexOf('street') >= 0) {
                                 formattedValue = that.type.composeValue(
-                                    that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                    hasSameValues && ['city_district']
+                                    that.copyDataComponents(suggestion.data, that.bounds.own)
                                 );
                             }
                         }
@@ -855,15 +853,13 @@
                             if (that.options.restrict_value) {
                                 // Can not use unrestricted address, because some components (from constraints) must be omitted
                                 formattedValue = that.type.composeValue(
-                                    that.getUnrestrictedData(suggestion.data),
-                                    ['city_district']
+                                    that.getUnrestrictedData(suggestion.data)
                                 );
                             } else {
                                 if (that.bounds.own.indexOf('street') >= 0) {
                                     // Can not use unrestricted address, because only components from bounds must be included
                                     formattedValue = that.type.composeValue(
-                                        that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district'])),
-                                        ['city_district']
+                                        that.copyDataComponents(suggestion.data, that.bounds.own.concat(['city_district']))
                                     );
                                 } else {
                                     // Can use full unrestricted address

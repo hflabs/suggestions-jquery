@@ -787,7 +787,7 @@ describe('Address constraints', function () {
                         street_type_full: "переулок",
                         street_with_type: "Турчанинов пер"
                     }
-                }, { hasBeenEnriched: true })).toEqual('Турчанинов пер');
+                }, { hasBeenEnriched: true })).toEqual('Хамовники р-н, Турчанинов пер');
             });
 
             it('crop region if matches', function () {
