@@ -25,7 +25,10 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-includes": "~ 0.5",
     "grunt-lineending": ">= 0.2",
-    "grunt-sed": "*"
+    "grunt-sed": "*",
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-rollup": "^2.9.0"
   },
   "main": "dist/js/jquery.suggestions.js",
   "scripts": {
