@@ -13,6 +13,9 @@ import {} from './includes/select';
 import {} from './includes/bounds';
 
 import { DATA_ATTR_KEY } from './includes/constants';
+import { DEFAULT_OPTIONS } from './includes/default-options';
+
+Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
 Suggestions.version = '%VERSION%';
 

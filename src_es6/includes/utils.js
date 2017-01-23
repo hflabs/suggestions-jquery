@@ -1,6 +1,6 @@
 import $ from 'jquery';
 
-import { WORD_DELIMITERS, WORD_PARTS_SPLITTER } from './constants';
+import { WORD_DELIMITERS, WORD_PARTS_SPLITTER, WORD_SPLITTER } from './constants';
 
 var utils = (function () {
     var uniqueId = 0;
@@ -143,7 +143,7 @@ var utils = (function () {
             str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
                 .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
 
-            var words = this.compact(str.split(wordSplitter)),
+            var words = this.compact(str.split(WORD_SPLITTER)),
                 lastWord = words.pop(),
                 goodWords = this.arrayMinus(words, stopwords);
 

@@ -102,6 +102,32 @@ describe('Initialization', function () {
 
     });
 
+    describe('check custom options', function () {
+
+        beforeEach(function () {
+            this.input = document.createElement('input');
+            this.$input = $(this.input).appendTo($body);
+            this.instance = this.$input.suggestions({
+                type: 'NAME',
+                serviceUrl: 'http://domain.com'
+            }).suggestions();
+
+            helpers.returnGoodStatus(this.server);
+        });
+
+        afterEach(function () {
+            this.instance.dispose();
+            this.$input.remove();
+        });
+
+        it('serviceUrl', function () {
+            expect(this.instance.options.serviceUrl).toEqual('http://domain.com');
+        });
+
+        checkInitialized();
+
+    });
+
     describe('hidden element', function () {
 
         // create input, but do not add it to DOM
