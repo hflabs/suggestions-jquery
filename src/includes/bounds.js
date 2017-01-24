@@ -1,136 +1,139 @@
-(function() {
-    /**
-     * features for connected instances
-     */
+import $ from 'jquery';
 
-    var optionsUsed = {
-        bounds: null
-    };
+import { Suggestions } from './suggestions';
+import { DEFAULT_OPTIONS } from './default-options';
+import { notificator } from './notificator';
 
-    var methods = {
+/**
+ * features for connected instances
+ */
 
-        setupBounds: function () {
-            this.bounds = {
-                from: null,
-                to: null
-            };
-        },
+var optionsUsed = {
+    bounds: null
+};
 
-        setBoundsOptions: function () {
-            var that = this,
-                boundsAvailable = [],
-                newBounds = $.trim(that.options.bounds).split('-'),
-                boundFrom = newBounds[0],
-                boundTo = newBounds[newBounds.length - 1],
-                boundsOwn = [],
-                boundIsOwn,
-                boundsAll = [],
-                indexTo;
+var methods = {
 
-            if (that.type.dataComponents) {
-                $.each(that.type.dataComponents, function () {
-                    if (this.forBounds) {
-                        boundsAvailable.push(this.id);
-                    }
-                });
-            }
+    setupBounds: function () {
+        this.bounds = {
+            from: null,
+            to: null
+        };
+    },
 
-            if ($.inArray(boundFrom, boundsAvailable) === -1) {
-                boundFrom = null;
-            }
+    setBoundsOptions: function () {
+        var that = this,
+            boundsAvailable = [],
+            newBounds = $.trim(that.options.bounds).split('-'),
+            boundFrom = newBounds[0],
+            boundTo = newBounds[newBounds.length - 1],
+            boundsOwn = [],
+            boundIsOwn,
+            boundsAll = [],
+            indexTo;
 
-            indexTo = $.inArray(boundTo, boundsAvailable);
-            if (indexTo === -1 || indexTo === boundsAvailable.length - 1) {
-                boundTo = null;
-            }
+        if (that.type.dataComponents) {
+            $.each(that.type.dataComponents, function () {
+                if (this.forBounds) {
+                    boundsAvailable.push(this.id);
+                }
+            });
+        }
 
-            if (boundFrom || boundTo) {
-                boundIsOwn = !boundFrom;
-                $.each(boundsAvailable, function (i, bound) {
-                    if (bound == boundFrom) {
-                        boundIsOwn = true;
-                    }
-                    boundsAll.push(bound);
-                    if (boundIsOwn) {
-                        boundsOwn.push(bound);
-                    }
-                    if (bound == boundTo) {
-                        return false;
-                    }
-                });
-            }
+        if ($.inArray(boundFrom, boundsAvailable) === -1) {
+            boundFrom = null;
+        }
 
-            that.bounds.from = boundFrom;
-            that.bounds.to = boundTo;
-            that.bounds.all = boundsAll;
-            that.bounds.own = boundsOwn;
-        },
+        indexTo = $.inArray(boundTo, boundsAvailable);
+        if (indexTo === -1 || indexTo === boundsAvailable.length - 1) {
+            boundTo = null;
+        }
 
-        constructBoundsParams: function () {
-            var that = this,
-                params = {};
-
-            if (that.bounds.from) {
-                params['from_bound'] = { value: that.bounds.from };
-            }
-            if (that.bounds.to) {
-                params['to_bound'] = { value: that.bounds.to };
-            }
-
-            return params;
-        },
-
-        checkValueBounds: function (suggestion) {
-            var that = this,
-                valueData;
-
-            // If any bounds set up
-            if (that.bounds.own.length && that.type.composeValue) {
-                valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
-                suggestion.value = that.type.composeValue(valueData, ['city_district']);
-            }
-        },
-
-        copyDataComponents: function (data, components) {
-            var result = {},
-                dataComponentsById = this.type.dataComponentsById;
-
-            if (dataComponentsById) {
-                $.each(components, function (i, component) {
-                    $.each(dataComponentsById[component].fields, function (i, field) {
-                        if (data[field] != null) {
-                            result[field] = data[field];
-                        }
-                    })
-                });
-            }
-
-            return result;
-        },
-
-        getBoundedKladrId: function (kladr_id, boundsRange) {
-            var boundTo = boundsRange[boundsRange.length - 1],
-                kladrFormat;
-
-            $.each(this.type.dataComponents, function(i, component){
-                if (component.id === boundTo) {
-                    kladrFormat = component.kladrFormat;
+        if (boundFrom || boundTo) {
+            boundIsOwn = !boundFrom;
+            $.each(boundsAvailable, function (i, bound) {
+                if (bound == boundFrom) {
+                    boundIsOwn = true;
+                }
+                boundsAll.push(bound);
+                if (boundIsOwn) {
+                    boundsOwn.push(bound);
+                }
+                if (bound == boundTo) {
                     return false;
                 }
             });
-
-            return kladr_id.substr(0, kladrFormat.digits) + (new Array((kladrFormat.zeros || 0) + 1).join('0'));
         }
 
-    };
+        that.bounds.from = boundFrom;
+        that.bounds.to = boundTo;
+        that.bounds.all = boundsAll;
+        that.bounds.own = boundsOwn;
+    },
 
-    $.extend(defaultOptions, optionsUsed);
+    constructBoundsParams: function () {
+        var that = this,
+            params = {};
 
-    $.extend($.Suggestions.prototype, methods);
+        if (that.bounds.from) {
+            params['from_bound'] = { value: that.bounds.from };
+        }
+        if (that.bounds.to) {
+            params['to_bound'] = { value: that.bounds.to };
+        }
 
-    notificator
-        .on('initialize', methods.setupBounds)
-        .on('setOptions', methods.setBoundsOptions)
-        .on('requestParams', methods.constructBoundsParams);
+        return params;
+    },
 
-})();
+    checkValueBounds: function (suggestion) {
+        var that = this,
+            valueData;
+
+        // If any bounds set up
+        if (that.bounds.own.length && that.type.composeValue) {
+            valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
+            suggestion.value = that.type.composeValue(valueData, ['city_district']);
+        }
+    },
+
+    copyDataComponents: function (data, components) {
+        var result = {},
+            dataComponentsById = this.type.dataComponentsById;
+
+        if (dataComponentsById) {
+            $.each(components, function (i, component) {
+                $.each(dataComponentsById[component].fields, function (i, field) {
+                    if (data[field] != null) {
+                        result[field] = data[field];
+                    }
+                })
+            });
+        }
+
+        return result;
+    },
+
+    getBoundedKladrId: function (kladr_id, boundsRange) {
+        var boundTo = boundsRange[boundsRange.length - 1],
+            kladrFormat;
+
+        $.each(this.type.dataComponents, function(i, component){
+            if (component.id === boundTo) {
+                kladrFormat = component.kladrFormat;
+                return false;
+            }
+        });
+
+        return kladr_id.substr(0, kladrFormat.digits) + (new Array((kladrFormat.zeros || 0) + 1).join('0'));
+    }
+
+};
+
+$.extend(DEFAULT_OPTIONS, optionsUsed);
+
+$.extend(Suggestions.prototype, methods);
+
+notificator
+    .on('initialize', methods.setupBounds)
+    .on('setOptions', methods.setBoundsOptions)
+    .on('requestParams', methods.constructBoundsParams);

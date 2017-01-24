@@ -11,9 +11,10 @@ var pkg         = require('./package.json'),
     gulpif      = require('gulp-if'),
     karma       = require('karma').Server,
 
-    SRC_DIR = './src_es6/',
+    SRC_DIR = './src/',
     LESS_SRC_DIR = './less/',
     DIST_DIR = './dist/',
+    TEST_DIR = '/test/',
 
     devMode = false,
 
@@ -75,26 +76,32 @@ gulp.task('dev', function (callback) {
     sequence('build', 'watch', callback);
 });
 
+gulp.task('test-prepare', function () {
+    gulp.src(TEST_DIR + 'specs/*.js')
+        .pipe(ending())
+        .pipe(gulp.dest('test/specs'))
+});
+
 gulp.task('test-phantomjs', function (callback) {
     new karma({
-        configFile: __dirname + '/test/karma.phantomjs.js',
+        configFile: __dirname + TEST_DIR + 'karma.phantomjs.js',
         singleRun: true
     }, callback).start();
 });
 
 gulp.task('test-phantomjs-min', function (callback) {
     new karma({
-        configFile: __dirname + '/test/karma.phantomjs.min.js',
+        configFile: __dirname + TEST_DIR + 'karma.phantomjs.min.js',
         singleRun: true
     }, callback).start();
 });
 
 gulp.task('test', function (callback) {
-    sequence('test-phantomjs', 'test-phantomjs-min', callback);
+    sequence('test-prepare', 'test-phantomjs', 'test-phantomjs-min', callback);
 });
 
 gulp.task('test-chrome', function (callback) {
     new karma({
-        configFile: __dirname + '/test/karma.chrome.js',
+        configFile: __dirname + TEST_DIR + 'karma.chrome.js',
     }, callback).start();
 });
