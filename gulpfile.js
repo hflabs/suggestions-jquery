@@ -9,8 +9,7 @@ var pkg         = require('./package.json'),
     less        = require('gulp-less'),
     sequence    = require('run-sequence'),
     gulpif      = require('gulp-if'),
-    jasmine     = require('gulp-jasmine-phantom'),
-    jasmine2    = require('gulp-jasmine-browser'),
+    karma       = require('karma').Server,
 
     SRC_DIR = './src_es6/',
     LESS_SRC_DIR = './less/',
@@ -68,7 +67,7 @@ gulp.task('watch', function () {
 });
 
 gulp.task('default', function (callback) {
-    sequence('build');
+    sequence('build', 'test', callback);
 });
 
 gulp.task('dev', function (callback) {
@@ -76,72 +75,26 @@ gulp.task('dev', function (callback) {
     sequence('build', 'watch', callback);
 });
 
-gulp.task('test', function () {
-    //return gulp.src(['./test/specs/**/*.js'])
-    return gulp.src(['test/specs/addon_spec.js'])
-    //return gulp.src(['./test/runner.html'])
-        .pipe(jasmine({
-            //specs: 'test/specs/*.js',
-            //helpers: 'test/helpers/*.js',
-            //vendor: 'test/vendor/*.js',
-            //styles: 'dist/css/*.css',
-            //outfile: 'test/runner.html',
-
-            integration: true,
-            //specHtml: './test/runner.html',
-            keepRunner: './',
-            //includeStackTrace: true,
-            vendor: [
-                './test/vendor/**/*.js',
-                //'./test/helpers/helpers.js',
-                './test/helpers/**/*.js',
-                './dest/js/jquery.suggestions.js'
-            ]
-        }));
+gulp.task('test-phantomjs', function (callback) {
+    new karma({
+        configFile: __dirname + '/test/karma.phantomjs.js',
+        singleRun: true
+    }, callback).start();
 });
 
-gulp.task('test2', function () {
-    //return gulp.src(['./test/**/*'])
-    return gulp.src([
-        //'.grunt/grunt-contrib-jasmine/es5-shim.js',
-        //'.grunt/grunt-contrib-jasmine/jasmine.js',
-        //'.grunt/grunt-contrib-jasmine/jasmine-html.js',
-        //'.grunt/grunt-contrib-jasmine/json2.js',
-        //'.grunt/grunt-contrib-jasmine/boot.js',
-        'test/vendor/jquery-1.9.1.js',
-        'test/helpers/helpers.js',
-        'test/helpers/jasmine-jquery-2.0.5.js',
-        'test/helpers/sinon-1.7.1.js',
-        'dist/js/jquery.suggestions.js',
-
-        //'./test/vendor/**/*.js',
-        //'./test/helpers/jasmine-jquery-2.0.5.js',
-        //'./test/helpers/sinon-1.7.1.js',
-        'test/specs/add_space_on_select_spec.js'
-
-        //'.grunt/grunt-contrib-jasmine/reporter.js'
-    ])
-        .pipe(jasmine2.specRunner({
-            console: true,
-            //specs: 'test/specs/*.js',
-            //helpers: 'test/helpers/*.js',
-            //vendor: 'test/vendor/*.js',
-            //styles: 'dist/css/*.css',
-            //outfile: 'test/runner.html',
-
-            //integration: true,
-            //specHtml: './test/runner.html',
-            //keepRunner: true,
-            //includeStackTrace: true,
-            /*vendor: [
-                './test/vendor/!**!/!*.js',
-                './test/helpers/helpers.js',
-                './test/helpers/sinon-1.7.1.js',
-                './dest/js/jquery.suggestions.js'
-            ]*/
-        }))
-        .pipe(jasmine2.headless());
+gulp.task('test-phantomjs-min', function (callback) {
+    new karma({
+        configFile: __dirname + '/test/karma.phantomjs.min.js',
+        singleRun: true
+    }, callback).start();
 });
 
-//@TODO ending в тестах
-//@TODO тесты
+gulp.task('test', function (callback) {
+    sequence('test-phantomjs', 'test-phantomjs-min', callback);
+});
+
+gulp.task('test-chrome', function (callback) {
+    new karma({
+        configFile: __dirname + '/test/karma.chrome.js',
+    }, callback).start();
+});
