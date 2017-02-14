@@ -38,6 +38,6 @@
   },
   "main": "dist/js/jquery.suggestions.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "gulp test"
   }
 }
