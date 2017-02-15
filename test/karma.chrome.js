@@ -7,6 +7,7 @@ module.exports = function(config) {
             '../dist/css/*.css',
             'helpers/helpers.js',
             'specs/*.js',
-        ]
+        ],
+        reporters: ['kjhtml']
     });
 };

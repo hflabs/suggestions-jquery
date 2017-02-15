@@ -147,7 +147,6 @@
         };
 
         $('#address').suggestions({
-            serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
             token: Token.get(),
             type: 'ADDRESS',
             constraints: {},
@@ -160,6 +159,46 @@
         $('#switcher a').click(function (e) {
             e.preventDefault();
             switchTo($(this).data('switch'));
+        });
+
+        $('#fio').suggestions({
+            token: Token.get(),
+            type: 'NAME',
+            constraints: {},
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function (suggestion) {
+                console.log(suggestion);
+            }
+        });
+
+        $('#party').suggestions({
+            token: Token.get(),
+            type: 'PARTY',
+            constraints: {},
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function (suggestion) {
+                console.log(suggestion);
+            }
+        });
+
+        $('#email').suggestions({
+            token: Token.get(),
+            type: 'EMAIL',
+            constraints: {},
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function (suggestion) {
+                console.log(suggestion);
+            }
+        });
+
+        $('#bank').suggestions({
+            token: Token.get(),
+            type: 'BANK',
+            constraints: {},
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function (suggestion) {
+                console.log(suggestion);
+            }
         });
 
     });

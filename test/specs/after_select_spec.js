@@ -166,4 +166,23 @@ describe('After selecting', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
+    it('Should show hint if no suggestions received', function () {
+        var suggestions = [];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false
+        });
+        helpers.returnPoorStatus(this.server);
+        spyOn(this.instance, 'hide');
+
+        this.input.value = 'Р';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(suggestions));
+
+        var $hint = this.instance.$container.find('.suggestions-hint');
+        expect($hint.length).toEqual(1);
+        expect(this.instance.hide).not.toHaveBeenCalled();
+    });
+
 });

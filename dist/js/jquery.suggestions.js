@@ -444,6 +444,13 @@ var DEFAULT_OPTIONS = {
     triggerSelectOnBlur: true,
     preventBadQueries: false,
     hint: 'Выберите вариант или продолжите ввод',
+    noSuggestionsHint: {
+        NAME:       'Неизвестное ФИО',
+        ADDRESS:    'Неизвестный адрес',
+        EMAIL:      'Неизвестная эл. почта',
+        PARTY:      'Неизвестная организация',
+        BANK:       'Неизвестный банк'
+    },
     type: null,
     requestMode: 'suggest',
     count: 5,
@@ -2375,42 +2382,51 @@ var methods$4 = {
     suggest: function () {
         var that = this,
             options = that.options,
-            formatResult, html;
+            formatResult,
+            html = [];
 
         if (!that.requestMode.userSelect) {
             return ;
         }
 
+        // если нечего показывать, то сообщаем об этом
         if (!that.hasSuggestionsToChoose()) {
-            that.hide();
-            return;
-        }
 
-        formatResult = options.formatResult || that.type.formatResult || that.formatResult;
-        html = [];
-
-        // Build hint html
-        if (!that.isMobile && options.hint && that.suggestions.length) {
-            html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
-        }
-        that.selectedIndex = -1;
-        // Build suggestions inner HTML:
-        $.each(that.suggestions, function (i, suggestion) {
-            var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
-
-            if (suggestion == that.selection) {
-                that.selectedIndex = i;
+            if (that.suggestions.length) {
+                that.hide();
+                return
+            } else {
+                html.push('<div class="' + that.classes.hint + '">' + options.noSuggestionsHint[options.type] + '</div>');
             }
 
-            html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
-            html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
-                unformattableTokens: that.type.unformattableTokens
-            }));
-            if (labels) {
-                html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+        } else {
+
+            formatResult = options.formatResult || that.type.formatResult || that.formatResult;
+
+            // Build hint html
+            if (!that.isMobile && options.hint && that.suggestions.length) {
+                html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
             }
-            html.push('</div>');
-        });
+            that.selectedIndex = -1;
+            // Build suggestions inner HTML:
+            $.each(that.suggestions, function (i, suggestion) {
+                var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
+
+                if (suggestion == that.selection) {
+                    that.selectedIndex = i;
+                }
+
+                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
+                html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
+                    unformattableTokens: that.type.unformattableTokens
+                }));
+                if (labels) {
+                    html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+                }
+                html.push('</div>');
+            });
+
+        }
 
         that.$container.html(html.join(''));
 
