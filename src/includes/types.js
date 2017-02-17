@@ -242,10 +242,21 @@ types['ADDRESS'] = {
         return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
     composeValue: function (data, optionalComponents) {
+        var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
+            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' ');
+
+        // если регион совпадает с городом
+        // например г Москва, г Москва
+        // то не показываем регион
+        if (region === city) {
+            region = '';
+        }
+
+
         return utils.compact([
-            data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
+            region,
             data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
-            data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
+            city,
             data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' '),
             data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
             data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),

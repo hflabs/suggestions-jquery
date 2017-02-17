@@ -177,4 +177,51 @@ describe('Text to insert after selection', function () {
         expect(this.input.value).toEqual('ул Туристская ');
     });
 
+    it('Should show only city if region equals to city', function(){
+        var suggestions = [
+                {
+                    unrestricted_value: 'г Москва',
+                    value: 'г Москва',
+                    data: {
+                        region_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                        region_kladr_id: '7700000000000',
+                        region_with_type: 'г Москва',
+                        region_type: 'г',
+                        region_type_full: 'город',
+                        region: 'Москва',
+                        city_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                        city_kladr_id: '7700000000000',
+                        city_with_type: 'г Москва',
+                        city_type: 'г',
+                        city_type_full: 'город',
+                        city: 'Москва',
+                    }
+                }
+            ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            restrict_value: true,
+            bounds: 'region-city'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'г Мос';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Value must be restricted by plugin
+        expect(this.input.value).toEqual('г Москва');
+    });
+
 });

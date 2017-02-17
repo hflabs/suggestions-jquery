@@ -201,6 +201,17 @@
             }
         });
 
+        $('#region-city').suggestions({
+            token: Token.get(),
+            type: 'ADDRESS',
+            constraints: {},
+            bounds: 'region-city',
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function (suggestion) {
+                console.log(suggestion);
+            }
+        });
+
     });
 
 })();

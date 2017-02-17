@@ -100,7 +100,7 @@ gulp.task('test', function (callback) {
     sequence('test-prepare', 'test-phantomjs', 'test-phantomjs-min', callback);
 });
 
-gulp.task('test-chrome', function (callback) {
+gulp.task('chrome', function (callback) {
     new karma({
         configFile: __dirname + TEST_DIR + 'karma.chrome.js',
     }, callback).start();
