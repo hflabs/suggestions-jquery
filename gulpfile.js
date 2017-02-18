@@ -10,6 +10,7 @@ var pkg         = require('./package.json'),
     sequence    = require('run-sequence'),
     gulpif      = require('gulp-if'),
     karma       = require('karma').Server,
+    cleanCss    = require('gulp-clean-css'),
 
     SRC_DIR = './src/',
     LESS_SRC_DIR = './less/',
@@ -52,9 +53,12 @@ gulp.task('build-script', function () {
 
 gulp.task('build-style', function () {
     return gulp.src(LESS_SRC_DIR + '**/*')
-        .pipe(gulpif(devMode, ending({ eolc: 'LF' })))
-        .pipe(gulpif(devMode, gulp.dest(LESS_SRC_DIR)))
+        .pipe(gulpif(!devMode, ending({ eolc: 'LF' })))
+        .pipe(gulpif(!devMode, gulp.dest(LESS_SRC_DIR)))
         .pipe(less())
+        .pipe(gulp.dest(DIST_DIR + 'css'))
+        .pipe(cleanCss({ compatibility: 'ie8' }))
+        .pipe(rename('suggestions.min.css'))
         .pipe(gulp.dest(DIST_DIR + 'css'))
 });
 
