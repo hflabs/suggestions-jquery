@@ -766,6 +766,7 @@ describe('Address constraints', function () {
                         city: "Москва",
                         city_area: "Центральный",
                         city_district: "Хамовники р-н",
+                        city_district_fias_id: "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
                         city_fias_id: "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
                         city_kladr_id: "7700000000000",
                         city_type: "г",

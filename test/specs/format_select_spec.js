@@ -194,7 +194,7 @@ describe('Text to insert after selection', function () {
                         city_with_type: 'г Москва',
                         city_type: 'г',
                         city_type_full: 'город',
-                        city: 'Москва',
+                        city: 'Москва'
                     }
                 }
             ];
@@ -222,6 +222,54 @@ describe('Text to insert after selection', function () {
 
         // Value must be restricted by plugin
         expect(this.input.value).toEqual('г Москва');
+    });
+
+    it('Should not show city district if no city_district_fias_id', function(){
+        var suggestions = [
+            {
+                unrestricted_value: 'г Москва, р-н Новокосино, ул Суздальская',
+                value: 'г Москва, ул Суздальская',
+                data: {
+                    city: 'Москва',
+                    city_area: 'Восточный',
+                    city_district: 'Новокосино',
+                    city_district_fias_id: null,
+                    city_district_kladr_id: null,
+                    city_district_type: 'р-н',
+                    city_district_type_full: 'район',
+                    city_district_with_type: 'р-н Новокосино',
+                    city_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                    city_kladr_id: '7700000000000',
+                    city_type: 'г',
+                    city_type_full: 'город',
+                    city_with_type: 'г Москва'
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            restrict_value: true,
+            bounds: 'city-settlement'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'г Мос';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Value must be restricted by plugin
+        expect(this.input.value).toEqual('г Москва ');
     });
 
 });
