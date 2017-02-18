@@ -37,6 +37,9 @@
     white-space: nowrap;
 }
 
+/**
+ * Основной INPUT
+ */
 .suggestions-input {
     // IE9 can't determine border-style until it is specified in stylesheets
   //  border: 1px solid grey;
@@ -58,7 +61,10 @@
     //Prevent font scaling in landscape while allowing user zoom
     -webkit-text-size-adjust: 100%;
 }
-
+/**
+ * Блок в правой части основного INPUT'а
+ * В нем показывается иконка ЗАГРУЗКА
+ */
 .suggestions-addon {
     display: none;
     opacity: 0;
@@ -74,6 +80,9 @@
     }
 }
 
+/**
+ * Выпадающий блок с найденными подсказками
+ */
 .suggestions-suggestions {
     background: @suggestions-bg-color;
     border: 1px solid #999;
@@ -99,6 +108,9 @@
     }
 }
 
+/**
+ * Контейнер для одной подсказки
+ */
 .suggestions-suggestion {
     padding: 4px 4px;
     overflow: hidden;
@@ -108,6 +120,9 @@
     }
 }
 
+/**
+ * Выбранная (активная) подсказка
+ */
 .suggestions-selected {
     background: darken(@suggestions-bg-color, 6%);
 
@@ -116,6 +131,9 @@
     }
 }
 
+/**
+ * Информационный блок в верхней части выпадашки с подсказками
+ */
 .suggestions-hint {
     padding: 4px 4px;
     white-space: nowrap;
@@ -124,6 +142,9 @@
     font-size: 85%;
 }
 
+/**
+ * Ограничения поиска, показываются в левой части основного INPUT'а
+ */
 .suggestions-constraints {
     list-style: none !important;
     margin: 0 !important;
@@ -161,6 +182,9 @@
     }
 }
 
+/**
+ * Дополнительный текст в подсказке, который идет второй строкой
+ */
 .suggestions-subtext {
     color: @subtext-color;
     white-space: nowrap;
@@ -168,6 +192,9 @@
     text-overflow: ellipsis;
 }
 
+/**
+ * Размещает дополнительный текст в одну строку с основным текстом подсказки
+ */
 .suggestions-subtext_inline {
     display: inline-block;
     min-width: 6em;
@@ -175,11 +202,17 @@
     margin: 0 0.5em 0 0;
 }
 
+/**
+ * Разделитель нескольких дополнительных текстов
+ */
 .suggestions-subtext-delimiter {
     display: inline-block;
     width: 2px;
 }
 
+/**
+ * Выделяет подсказку
+ */
 .suggestions-subtext_label {
     margin: 0 0 0 0.25em;
     .rounded(3px);
