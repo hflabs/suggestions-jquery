@@ -353,4 +353,86 @@ describe('Text to insert after selection', function () {
         $parent.remove();
     });
 
+    it('Should show only city if city-settlement (without city_district_gfias_id)', function(){
+        var suggestions = [
+            {
+                value: 'Краснодарский край, г Сочи, ул Авиационная',
+                unrestricted_value: 'Краснодарский край, г Сочи, Адлерский р-н, ул Авиационная',
+                data: {
+                    postal_code: '354340',
+                    country: 'Россия',
+                    region_fias_id: 'd00e1013-16bd-4c09-b3d5-3cb09fc54bd8',
+                    region_kladr_id: '2300000000000',
+                    region_with_type: 'Краснодарский край',
+                    region_type: 'край',
+                    region_type_full: 'край',
+                    region: 'Краснодарский',
+                    city_fias_id: '79da737a-603b-4c19-9b54-9114c96fb912',
+                    city_kladr_id: '2300000700000',
+                    city_with_type: 'г Сочи',
+                    city_type: 'г',
+                    city_type_full: 'город',
+                    city: 'Сочи',
+                    city_district_fias_id: 'f1acccf5-36e2-44d5-9143-437cc7459ed1',
+                    city_district_with_type: 'Адлерский р-н',
+                    city_district_type: 'р-н',
+                    city_district_type_full: 'район',
+                    city_district: 'Адлерский',
+                    street_fias_id: '3ad045d7-ac58-4c82-8183-727fd14d83ef',
+                    street_kladr_id: '23000007000162000',
+                    street_with_type: 'ул Авиационная',
+                    street_type: 'ул',
+                    street_type_full: 'улица',
+                    street: 'Авиационная',
+                    fias_id: '3ad045d7-ac58-4c82-8183-727fd14d83ef',
+                    fias_level: '7',
+                    kladr_id: '23000007000162000',
+                    capital_marker: '0',
+                    okato: '03426000000',
+                    oktmo: '03726000',
+                    tax_office: '2367',
+                    geo_lat: '43.4306102',
+                    geo_lon: '39.9347608',
+                    qc_geo: '2',
+                }
+            }
+        ];
+
+        var $parent = $('<input>').appendTo($(document.body));
+
+        $parent.suggestions({
+            serviceUrl: serviceUrl,
+            type: 'ADDRESS',
+            geoLocation: false,
+            bounds: 'city-settlement',
+            mobileWidth: NaN
+        });
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            bounds: 'street',
+            constraints: $parent
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        $parent.val('Сочи');
+        this.input.value = 'Авиа';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        expect($parent.val()).toEqual('г Сочи');
+
+        $parent.remove();
+    });
+
 });
