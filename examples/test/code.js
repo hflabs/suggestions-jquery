@@ -25,6 +25,13 @@
             constraints: $city
         });
 
+        $('#city-729').suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: "city"
+        });
+
     });
 
 })();

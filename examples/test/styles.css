@@ -12,3 +12,7 @@ input {
     font-size: 16px;
     padding: 4px;
 }
+
+.spacing {
+    height: 100vh;
+}
