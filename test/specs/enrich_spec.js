@@ -232,4 +232,25 @@ describe('Enrich', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
+    it('Should remove null values on GET request (cors disabled)', function () {
+        var cors = $.support.cors;
+
+        $.support.cors = false;
+
+        // select address
+        this.input.value = 'М';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(fixtures.poorAddress));
+
+        this.server.requests.length = 0;
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        var bodyParts = this.server.requests[0].requestBody.split('&');
+        // при GET запросе пустые параметры отсекаются
+        expect(bodyParts.length).toEqual(2);
+
+        $.support.cors = cors;
+    });
+
 });

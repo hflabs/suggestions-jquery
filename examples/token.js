@@ -22,7 +22,9 @@
         $token.on('input', function () {
             var token = $token.val();
             location.hash = token;
-            localStorage.setItem('dadata_token', token);
+            if (this.localStorageAvailable()) {
+                localStorage.setItem('dadata_token', token);
+            }
             location.reload();
         });
     };

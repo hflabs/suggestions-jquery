@@ -43,6 +43,7 @@ var utils = (function () {
                     return value === null ? undefined : value;
                 });
             } else {
+                data = this.compactObject(data);
                 return $.param(data, true);
             }
         },
@@ -216,6 +217,22 @@ var utils = (function () {
                 keys.push(name);
             });
             return keys;
+        },
+
+        /**
+         * Возвращает копию объекта без пустых элементов
+         * @param obj
+         */
+        compactObject: function(obj) {
+            var copy = $.extend(true, {}, obj);
+
+            $.each(copy, function (key, val) {
+                if (val === null || val === undefined || val === '') {
+                    delete copy[key]
+                }
+            });
+
+            return copy;
         }
 
     };
