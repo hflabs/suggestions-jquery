@@ -1666,7 +1666,7 @@ Suggestions.prototype = {
                     // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
                     // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
                     // see: SUG-674
-                    if (that.options.restrict_value) {
+                    if (that.options.restrict_value || hasSameValues) {
                         formattedValue = that.type.composeValue(
                             that.getUnrestrictedData(suggestion.data)
                         );

@@ -15,17 +15,20 @@
 }(this, function (exports, $) {
 
     exports.init = function () {
-        var $token = $('#token');
+        var that = this,
+            $token = $('#token');
 
         $token.val(this.get());
 
         $token.on('input', function () {
             var token = $token.val();
             location.hash = token;
-            if (this.localStorageAvailable()) {
+            if (that.localStorageAvailable()) {
                 localStorage.setItem('dadata_token', token);
             }
-            location.reload();
+            if (token) {
+                location.reload();
+            }
         });
     };
 
