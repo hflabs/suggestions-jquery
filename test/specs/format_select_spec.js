@@ -436,6 +436,7 @@ describe('Text to insert after selection', function () {
     });
 
     it('Should show unrestricted value if has identical values', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть restricted_value
         var suggestions = [{
             value: 'респ Башкортостан, г Белебей, ул Вторая',
             unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая',
@@ -454,14 +455,6 @@ describe('Text to insert after selection', function () {
         }, {
             value: 'респ Башкортостан, г Белебей, ул Вторая',
             unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая',
-            data: {}
-        }, {
-            value: 'респ Башкортостан, г Белебей, ул Вторая',
-            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Полянка, ул Вторая',
-            data: {}
-        }, {
-            value: 'респ Башкортостан, г Белебей, ул Вторая',
-            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Солнечный р-н, ул Вторая',
             data: {}
         }];
 
@@ -484,6 +477,51 @@ describe('Text to insert after selection', function () {
         this.server.respond(helpers.responseFor([suggestions[0]]));
 
         expect(this.input.value).toEqual(suggestions[0].unrestricted_value + ' ');
+    });
+
+    it('Should not show unrestricted value if identical values in list but selected unique one', function(){
+        // если в выпадашке есть подсказки с одинаковым value, но выбрана подсказка с уникальным value,
+        // то в input попадет просто value (не unrestricted_value)
+        var suggestions = [{
+            value: 'респ Башкортостан, г Белебей, пер Тукаевский 2-й',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, пер Тукаевский 2-й',
+            data: {
+                region_with_type: 'респ Башкортостан',
+                area_with_type: 'Белебеевский р-н',
+                city_with_type: 'г Белебей',
+                city_district_fias_id: '916cb442-6505-4341-8f86-0ba8d3d966c8',
+                city_district_with_type: 'р-н Девон',
+                street_with_type: 'пер Тукаевский 2-й'
+            }
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая',
+            data: {}
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая',
+            data: {}
+        }];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'белебей вторая';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual(suggestions[0].value + ' ');
     });
 
 });
