@@ -241,10 +241,16 @@ types['ADDRESS'] = {
 
         return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
-    composeValue: function (data, optionalComponents) {
+    composeValue: function (data, options) {
         var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
+            area = data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
+            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
+            settelement = data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
             cityDistrict = data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' '),
-            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' ');
+            street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
+            house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
+            flat = utils.compact([data.flat_type, data.flat]).join(' '),
+            postal_box = data.postal_box && ('а/я ' + data.postal_box);
 
         // если регион совпадает с городом
         // например г Москва, г Москва
@@ -253,21 +259,25 @@ types['ADDRESS'] = {
             region = '';
         }
 
-        // если район взят из ОКАТО (у него пустой city_district_fias_id), то не выводим район
-        if (cityDistrict && !data.city_district_fias_id) {
+        // иногда не показываем район
+        if (options && options.excludeCityDistrict) {
+            // если район явно запрещен
+            cityDistrict = '';
+        } else if (cityDistrict && !data.city_district_fias_id) {
+            // если район взят из ОКАТО (у него пустой city_district_fias_id)
             cityDistrict = '';
         }
 
         return utils.compact([
             region,
-            data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
+            area,
             city,
             cityDistrict,
-            data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
-            data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
-            utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
-            utils.compact([data.flat_type, data.flat]).join(' '),
-            data.postal_box && ('а/я ' + data.postal_box)
+            settelement,
+            street,
+            house,
+            flat,
+            postal_box
         ]).join(', ');
     },
     formatResult: function() {

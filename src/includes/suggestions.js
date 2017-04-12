@@ -743,40 +743,37 @@ Suggestions.prototype = {
             formattedValue = suggestion.value;
 
             if (that.type.composeValue) {
-                if (hasBeenEnriched) {
-                    // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
-                    // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasSameValues) {
+                    // Should use unrestricted value with city district
+                    // to distinguish between streets with same name
+                    // see: SUG-668
+                    if (that.options.restrict_value) {
+                        // Can not use unrestricted address,
+                        // because some components (from constraints) must be omitted
+                        formattedValue = that.getValueWithinConstraints(suggestion);
+                    } else if (that.bounds.own.indexOf('street') >= 0) {
+                        // Can not use unrestricted address,
+                        // because only components from bounds must be included
+                        formattedValue = that.getValueWithinBounds(suggestion);
+                    } else {
+                        // Can use full unrestricted address
+                        formattedValue = suggestion.unrestricted_value;
+                    }
+                } else if (hasBeenEnriched) {
+                    // Enrichment requests goes without `locations` parameter due to SUG-604.
+                    // Server returns same `suggestions.value` and `suggestion.unrestricted_value`.
+                    // So here value must be changed to respect restrictions.
                     // see: SUG-674
-                    if (that.options.restrict_value || hasSameValues) {
-                        formattedValue = that.type.composeValue(
-                            that.getUnrestrictedData(suggestion.data)
-                        );
+
+                    // do not include city district in suggestions value
+                    var options = {
+                        excludeCityDistrict: true
+                    };
+                    if (that.options.restrict_value) {
+                        formattedValue = that.getValueWithinConstraints(suggestion, options);
                     } else {
                         if (that.bounds.own.indexOf('street') >= 0) {
-                            formattedValue = that.type.composeValue(
-                                that.copyDataComponents(suggestion.data, that.bounds.own)
-                            );
-                        }
-                    }
-                } else {
-                    if (hasSameValues) {
-                        // Include city_district to enter house for appropriate street
-                        // see: SUG-668
-                        if (that.options.restrict_value) {
-                            // Can not use unrestricted address, because some components (from constraints) must be omitted
-                            formattedValue = that.type.composeValue(
-                                that.getUnrestrictedData(suggestion.data)
-                            );
-                        } else {
-                            if (that.bounds.own.indexOf('street') >= 0) {
-                                // Can not use unrestricted address, because only components from bounds must be included
-                                formattedValue = that.type.composeValue(
-                                    that.copyDataComponents(suggestion.data, that.bounds.own)
-                                );
-                            } else {
-                                // Can use full unrestricted address
-                                formattedValue = suggestion.unrestricted_value;
-                            }
+                            formattedValue = that.getValueWithinBounds(suggestion, options);
                         }
                     }
                 }
@@ -784,6 +781,29 @@ Suggestions.prototype = {
         }
 
         return formattedValue;
+    },
+
+
+    /*
+     * Compose suggestion value with respect to bounds
+     */
+    getValueWithinBounds: function (suggestion, options) {
+        var that = this;
+        return that.type.composeValue(
+            that.copyDataComponents(suggestion.data, that.bounds.own),
+            options
+        );
+    },
+
+    /*
+     * Compose suggestion value with respect to constraints
+     */
+    getValueWithinConstraints: function (suggestion, options) {
+        var that = this;
+        return that.type.composeValue(
+            that.getUnrestrictedData(suggestion.data),
+            options
+        );
     },
 
     hasSameValues: function(suggestion){

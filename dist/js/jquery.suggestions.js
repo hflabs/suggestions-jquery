@@ -713,10 +713,16 @@ types['ADDRESS'] = {
 
         return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
-    composeValue: function (data, optionalComponents) {
+    composeValue: function (data, options) {
         var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
+            area = data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
+            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
+            settelement = data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
             cityDistrict = data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' '),
-            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' ');
+            street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
+            house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
+            flat = utils.compact([data.flat_type, data.flat]).join(' '),
+            postal_box = data.postal_box && ('а/я ' + data.postal_box);
 
         // если регион совпадает с городом
         // например г Москва, г Москва
@@ -725,21 +731,25 @@ types['ADDRESS'] = {
             region = '';
         }
 
-        // если район взят из ОКАТО (у него пустой city_district_fias_id), то не выводим район
-        if (cityDistrict && !data.city_district_fias_id) {
+        // иногда не показываем район
+        if (options && options.excludeCityDistrict) {
+            // если район явно запрещен
+            cityDistrict = '';
+        } else if (cityDistrict && !data.city_district_fias_id) {
+            // если район взят из ОКАТО (у него пустой city_district_fias_id)
             cityDistrict = '';
         }
 
         return utils.compact([
             region,
-            data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
+            area,
             city,
             cityDistrict,
-            data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
-            data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
-            utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
-            utils.compact([data.flat_type, data.flat]).join(' '),
-            data.postal_box && ('а/я ' + data.postal_box)
+            settelement,
+            street,
+            house,
+            flat,
+            postal_box
         ]).join(', ');
     },
     formatResult: function() {
@@ -1662,40 +1672,37 @@ Suggestions.prototype = {
             formattedValue = suggestion.value;
 
             if (that.type.composeValue) {
-                if (hasBeenEnriched) {
-                    // While enrichment requests goes without `locations` parameter, server returns `suggestions.value` and
-                    // `suggestion.unrestricted_value` the same. So here value must be changed to respect restrictions.
+                if (hasSameValues) {
+                    // Should use unrestricted value with city district
+                    // to distinguish between streets with same name
+                    // see: SUG-668
+                    if (that.options.restrict_value) {
+                        // Can not use unrestricted address,
+                        // because some components (from constraints) must be omitted
+                        formattedValue = that.getValueWithinConstraints(suggestion);
+                    } else if (that.bounds.own.length) {
+                        // Can not use unrestricted address,
+                        // because only components from bounds must be included
+                        formattedValue = that.getValueWithinBounds(suggestion);
+                    } else {
+                        // Can use full unrestricted address
+                        formattedValue = suggestion.unrestricted_value;
+                    }
+                } else if (hasBeenEnriched) {
+                    // Enrichment requests goes without `locations` parameter due to SUG-604.
+                    // Server returns same `suggestions.value` and `suggestion.unrestricted_value`.
+                    // So here value must be changed to respect restrictions.
                     // see: SUG-674
-                    if (that.options.restrict_value || hasSameValues) {
-                        formattedValue = that.type.composeValue(
-                            that.getUnrestrictedData(suggestion.data)
-                        );
+
+                    // do not include city district in suggestions value
+                    var options = {
+                        excludeCityDistrict: true
+                    };
+                    if (that.options.restrict_value) {
+                        formattedValue = that.getValueWithinConstraints(suggestion, options);
                     } else {
                         if (that.bounds.own.indexOf('street') >= 0) {
-                            formattedValue = that.type.composeValue(
-                                that.copyDataComponents(suggestion.data, that.bounds.own)
-                            );
-                        }
-                    }
-                } else {
-                    if (hasSameValues) {
-                        // Include city_district to enter house for appropriate street
-                        // see: SUG-668
-                        if (that.options.restrict_value) {
-                            // Can not use unrestricted address, because some components (from constraints) must be omitted
-                            formattedValue = that.type.composeValue(
-                                that.getUnrestrictedData(suggestion.data)
-                            );
-                        } else {
-                            if (that.bounds.own.indexOf('street') >= 0) {
-                                // Can not use unrestricted address, because only components from bounds must be included
-                                formattedValue = that.type.composeValue(
-                                    that.copyDataComponents(suggestion.data, that.bounds.own)
-                                );
-                            } else {
-                                // Can use full unrestricted address
-                                formattedValue = suggestion.unrestricted_value;
-                            }
+                            formattedValue = that.getValueWithinBounds(suggestion, options);
                         }
                     }
                 }
@@ -1703,6 +1710,29 @@ Suggestions.prototype = {
         }
 
         return formattedValue;
+    },
+
+
+    /*
+     * Compose suggestion value with respect to bounds
+     */
+    getValueWithinBounds: function (suggestion, options) {
+        var that = this;
+        return that.type.composeValue(
+            that.copyDataComponents(suggestion.data, that.bounds.own),
+            options
+        );
+    },
+
+    /*
+     * Compose suggestion value with respect to constraints
+     */
+    getValueWithinConstraints: function (suggestion, options) {
+        var that = this;
+        return that.type.composeValue(
+            that.getUnrestrictedData(suggestion.data),
+            options
+        );
     },
 
     hasSameValues: function(suggestion){
@@ -3803,7 +3833,7 @@ var methods$8 = {
         // If any bounds set up
         if (that.bounds.own.length && that.type.composeValue) {
             valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
-            suggestion.value = that.type.composeValue(valueData, ['city_district']);
+            suggestion.value = that.type.composeValue(valueData);
         }
     },
 

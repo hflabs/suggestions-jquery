@@ -92,7 +92,7 @@ var methods = {
         // If any bounds set up
         if (that.bounds.own.length && that.type.composeValue) {
             valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
-            suggestion.value = that.type.composeValue(valueData, ['city_district']);
+            suggestion.value = that.type.composeValue(valueData);
         }
     },
 

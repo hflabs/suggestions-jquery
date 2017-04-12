@@ -179,25 +179,25 @@ describe('Text to insert after selection', function () {
 
     it('Should show only city if region equals to city', function(){
         var suggestions = [
-                {
-                    unrestricted_value: 'г Москва',
-                    value: 'г Москва',
-                    data: {
-                        region_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
-                        region_kladr_id: '7700000000000',
-                        region_with_type: 'г Москва',
-                        region_type: 'г',
-                        region_type_full: 'город',
-                        region: 'Москва',
-                        city_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
-                        city_kladr_id: '7700000000000',
-                        city_with_type: 'г Москва',
-                        city_type: 'г',
-                        city_type_full: 'город',
-                        city: 'Москва'
-                    }
+            {
+                unrestricted_value: 'г Москва',
+                value: 'г Москва',
+                data: {
+                    region_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                    region_kladr_id: '7700000000000',
+                    region_with_type: 'г Москва',
+                    region_type: 'г',
+                    region_type_full: 'город',
+                    region: 'Москва',
+                    city_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                    city_kladr_id: '7700000000000',
+                    city_with_type: 'г Москва',
+                    city_type: 'г',
+                    city_type_full: 'город',
+                    city: 'Москва'
                 }
-            ];
+            }
+        ];
 
         this.instance.setOptions({
             type: 'ADDRESS',
@@ -224,7 +224,7 @@ describe('Text to insert after selection', function () {
         expect(this.input.value).toEqual('г Москва');
     });
 
-    it('Should not show city district if no city_district_fias_id', function(){
+    it('Should not include city district in constrained value (district from OKATO)', function(){
         var suggestions = [
             {
                 unrestricted_value: 'г Москва, р-н Новокосино, ул Суздальская',
@@ -242,7 +242,13 @@ describe('Text to insert after selection', function () {
                     city_kladr_id: '7700000000000',
                     city_type: 'г',
                     city_type_full: 'город',
-                    city_with_type: 'г Москва'
+                    city_with_type: 'г Москва',
+                    street_fias_id: "343a5d1b-87b4-43cc-8a82-30297a90fb61",
+                    street_kladr_id: "77000000000045100",
+                    street_with_type: "ул Суздальская",
+                    street_type: "ул",
+                    street_type_full: "улица",
+                    street: "Суздальская"
                 }
             }
         ];
@@ -250,15 +256,17 @@ describe('Text to insert after selection', function () {
         this.instance.setOptions({
             type: 'ADDRESS',
             geoLocation: false,
-            restrict_value: true,
-            bounds: 'city-settlement'
+            constraints: {
+                locations: { city: "Москва" }
+            },
+            restrict_value: true
         });
 
         // Setting type will request for status
         helpers.returnGoodStatus(this.server);
         this.server.requests.length = 0;
 
-        this.input.value = 'г Мос';
+        this.input.value = 'Москва Суздальская';
         this.instance.onValueChange();
 
         // Respond with suggestions with restricted values
@@ -269,10 +277,187 @@ describe('Text to insert after selection', function () {
         this.server.respond(helpers.responseFor(suggestions));
 
         // Value must be restricted by plugin
-        expect(this.input.value).toEqual('г Москва ');
+        expect(this.input.value).toEqual('ул Суздальская ');
     });
 
-    it('Should show only city if city-settlement', function(){
+    it('Should not include city district in constrained value (district from FIAS)', function(){
+        var suggestions = [
+            {
+                value: "Краснодарский край, г Сочи, ул Лазурная",
+                unrestricted_value: "Краснодарский край, г Сочи, Адлерский р-н, ул Лазурная",
+                data: {
+                    region_fias_id: "d00e1013-16bd-4c09-b3d5-3cb09fc54bd8",
+                    region_kladr_id: "2300000000000",
+                    region_with_type: "Краснодарский край",
+                    region_type: "край",
+                    region_type_full: "край",
+                    region: "Краснодарский",
+                    city_fias_id: "79da737a-603b-4c19-9b54-9114c96fb912",
+                    city_kladr_id: "2300000700000",
+                    city_with_type: "г Сочи",
+                    city_type: "г",
+                    city_type_full: "город",
+                    city: "Сочи",
+                    city_area: null,
+                    city_district_fias_id: "f1acccf5-36e2-44d5-9143-437cc7459ed1",
+                    city_district_kladr_id: null,
+                    city_district_with_type: "Адлерский р-н",
+                    city_district_type: "р-н",
+                    city_district_type_full: "район",
+                    city_district: "Адлерский",
+                    street_fias_id: "24222d22-f165-42c6-8682-07aa04dd197c",
+                    street_kladr_id: "23000007000168600",
+                    street_with_type: "ул Лазурная",
+                    street_type: "ул",
+                    street_type_full: "улица",
+                    street: "Лазурная"
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            constraints: {
+                locations: {
+                    region: "Краснодарский",
+                    city: "Сочи"
+                }
+            },
+            restrict_value: true
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'Сочи Лазурная';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Value must be restricted by plugin
+        expect(this.input.value).toEqual('ул Лазурная ');
+    });
+
+    it('Should not include city district in bounded value (district from OKATO)', function(){
+        var suggestions = [
+            {
+                unrestricted_value: 'г Москва, р-н Новокосино, ул Суздальская',
+                value: 'г Москва, ул Суздальская',
+                data: {
+                    city: 'Москва',
+                    city_area: 'Восточный',
+                    city_district: 'Новокосино',
+                    city_district_fias_id: null,
+                    city_district_kladr_id: null,
+                    city_district_type: 'р-н',
+                    city_district_type_full: 'район',
+                    city_district_with_type: 'р-н Новокосино',
+                    city_fias_id: '0c5b2444-70a0-4932-980c-b4dc0d3f02b5',
+                    city_kladr_id: '7700000000000',
+                    city_type: 'г',
+                    city_type_full: 'город',
+                    city_with_type: 'г Москва',
+                    street_fias_id: "343a5d1b-87b4-43cc-8a82-30297a90fb61",
+                    street_kladr_id: "77000000000045100",
+                    street_with_type: "ул Суздальская",
+                    street_type: "ул",
+                    street_type_full: "улица",
+                    street: "Суздальская"
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            bounds: 'city-street'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'Москва Суздальская';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Value must be restricted by plugin
+        expect(this.input.value).toEqual('г Москва, ул Суздальская');
+    });
+
+    it('Should not include city district in bounded value (district from FIAS)', function(){
+        var suggestions = [
+            {
+                value: "Краснодарский край, г Сочи, ул Лазурная",
+                unrestricted_value: "Краснодарский край, г Сочи, Адлерский р-н, ул Лазурная",
+                data: {
+                    region_fias_id: "d00e1013-16bd-4c09-b3d5-3cb09fc54bd8",
+                    region_kladr_id: "2300000000000",
+                    region_with_type: "Краснодарский край",
+                    region_type: "край",
+                    region_type_full: "край",
+                    region: "Краснодарский",
+                    city_fias_id: "79da737a-603b-4c19-9b54-9114c96fb912",
+                    city_kladr_id: "2300000700000",
+                    city_with_type: "г Сочи",
+                    city_type: "г",
+                    city_type_full: "город",
+                    city: "Сочи",
+                    city_area: null,
+                    city_district_fias_id: "f1acccf5-36e2-44d5-9143-437cc7459ed1",
+                    city_district_kladr_id: null,
+                    city_district_with_type: "Адлерский р-н",
+                    city_district_type: "р-н",
+                    city_district_type_full: "район",
+                    city_district: "Адлерский",
+                    street_fias_id: "24222d22-f165-42c6-8682-07aa04dd197c",
+                    street_kladr_id: "23000007000168600",
+                    street_with_type: "ул Лазурная",
+                    street_type: "ул",
+                    street_type_full: "улица",
+                    street: "Лазурная"
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            geoLocation: false,
+            bounds: 'city-street'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'Сочи Лазурная';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Value must be restricted by plugin
+        expect(this.input.value).toEqual('г Сочи, ул Лазурная');
+    });
+
+    it('Should not include city district in bounded city-settlement parent (district from OKATO)', function(){
         var suggestions = [
             {
                 unrestricted_value: 'Новосибирская обл, г Новосибирск, Заельцовский р-н, ул Вавилова',
@@ -353,7 +538,7 @@ describe('Text to insert after selection', function () {
         $parent.remove();
     });
 
-    it('Should show only city if city-settlement (without city_district_gfias_id)', function(){
+    it('Should not include city district in bounded city-settlement parent (district from FIAS)', function(){
         var suggestions = [
             {
                 value: 'Краснодарский край, г Сочи, ул Авиационная',
@@ -435,8 +620,156 @@ describe('Text to insert after selection', function () {
         $parent.remove();
     });
 
-    it('Should show unrestricted value if has identical values', function(){
-        // если в выпадашке есть данные с одинаковым value, то в input должен попасть restricted_value
+    it('Should include city district in constrained value for streets with same names', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть район
+        var suggestions = [{
+            value: "респ Башкортостан, г Белебей, ул Вторая",
+            unrestricted_value: "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая",
+            data: {
+                region_fias_id: "6f2cbfd8-692a-4ee4-9b16-067210bde3fc",
+                region_kladr_id: "0200000000000",
+                region_with_type: "респ Башкортостан",
+                region_type: "респ",
+                region_type_full: "республика",
+                region: "Башкортостан",
+                area_fias_id: "4295ec00-1d3f-475b-8f7f-bb8615aeff51",
+                area_kladr_id: "0200900000000",
+                area_with_type: "Белебеевский р-н",
+                area_type: "р-н",
+                area_type_full: "район",
+                area: "Белебеевский",
+                city_fias_id: "11e85c3e-c276-43b3-94e8-6b7f6cde5ac1",
+                city_kladr_id: "0200900100000",
+                city_with_type: "г Белебей",
+                city_type: "г",
+                city_type_full: "город",
+                city: "Белебей",
+                city_area: null,
+                city_district_fias_id: "916cb442-6505-4341-8f86-0ba8d3d966c8",
+                city_district_kladr_id: null,
+                city_district_with_type: "р-н Девон",
+                city_district_type: "р-н",
+                city_district_type_full: "район",
+                city_district: "Девон",
+                street_fias_id: "3a8bf88f-279c-412b-8bda-1c2976e2f8cb",
+                street_kladr_id: "02009001000028700",
+                street_with_type: "ул Вторая",
+                street_type: "ул",
+                street_type_full: "улица",
+                street: "Вторая"
+            }
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая',
+            data: {}
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая',
+            data: {}
+        }];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            constraints: {
+                locations: {
+                    region: "Башкортостан",
+                    city: "Белебей"
+                }
+            },
+            restrict_value: true
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'белебей вторая';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual('р-н Девон, ул Вторая ');
+    });
+
+    /*
+    it('Should include city district in bounded value for streets with same names', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть район
+        var suggestions = [{
+            value: "респ Башкортостан, г Белебей, ул Вторая",
+            unrestricted_value: "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая",
+            data: {
+                region_fias_id: "6f2cbfd8-692a-4ee4-9b16-067210bde3fc",
+                region_kladr_id: "0200000000000",
+                region_with_type: "респ Башкортостан",
+                region_type: "респ",
+                region_type_full: "республика",
+                region: "Башкортостан",
+                area_fias_id: "4295ec00-1d3f-475b-8f7f-bb8615aeff51",
+                area_kladr_id: "0200900000000",
+                area_with_type: "Белебеевский р-н",
+                area_type: "р-н",
+                area_type_full: "район",
+                area: "Белебеевский",
+                city_fias_id: "11e85c3e-c276-43b3-94e8-6b7f6cde5ac1",
+                city_kladr_id: "0200900100000",
+                city_with_type: "г Белебей",
+                city_type: "г",
+                city_type_full: "город",
+                city: "Белебей",
+                city_area: null,
+                city_district_fias_id: "916cb442-6505-4341-8f86-0ba8d3d966c8",
+                city_district_kladr_id: null,
+                city_district_with_type: "р-н Девон",
+                city_district_type: "р-н",
+                city_district_type_full: "район",
+                city_district: "Девон",
+                street_fias_id: "3a8bf88f-279c-412b-8bda-1c2976e2f8cb",
+                street_kladr_id: "02009001000028700",
+                street_with_type: "ул Вторая",
+                street_type: "ул",
+                street_type_full: "улица",
+                street: "Вторая"
+            }
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая',
+            data: {}
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая',
+            data: {}
+        }];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            bounds: 'city-street'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'белебей вторая';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual('г Белебей, р-н Девон, ул Вторая');
+    });
+    */
+
+    it('Should include city district in unrestricted value for streets with same names', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть unrestricted_value
         var suggestions = [{
             value: 'респ Башкортостан, г Белебей, ул Вторая',
             unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая',
@@ -459,7 +792,7 @@ describe('Text to insert after selection', function () {
         }];
 
         this.instance.setOptions({
-            type: 'ADDRESS',
+            type: 'ADDRESS'
         });
 
         // Setting type will request for status
@@ -476,10 +809,156 @@ describe('Text to insert after selection', function () {
         this.instance.select(0);
         this.server.respond(helpers.responseFor([suggestions[0]]));
 
-        expect(this.input.value).toEqual(suggestions[0].unrestricted_value + ' ');
+        expect(this.input.value).toEqual('респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая ');
     });
 
-    it('Should not show unrestricted value if identical values in list but selected unique one', function(){
+    it('Should NOT include city district in constrained value for streets with same names IF unique street is selected', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть район
+        var suggestions = [{
+            value: "респ Башкортостан, г Белебей, ул Вторая",
+            unrestricted_value: "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая",
+            data: {
+                region_fias_id: "6f2cbfd8-692a-4ee4-9b16-067210bde3fc",
+                region_kladr_id: "0200000000000",
+                region_with_type: "респ Башкортостан",
+                region_type: "респ",
+                region_type_full: "республика",
+                region: "Башкортостан",
+                area_fias_id: "4295ec00-1d3f-475b-8f7f-bb8615aeff51",
+                area_kladr_id: "0200900000000",
+                area_with_type: "Белебеевский р-н",
+                area_type: "р-н",
+                area_type_full: "район",
+                area: "Белебеевский",
+                city_fias_id: "11e85c3e-c276-43b3-94e8-6b7f6cde5ac1",
+                city_kladr_id: "0200900100000",
+                city_with_type: "г Белебей",
+                city_type: "г",
+                city_type_full: "город",
+                city: "Белебей",
+                city_area: null,
+                city_district_fias_id: "916cb442-6505-4341-8f86-0ba8d3d966c8",
+                city_district_kladr_id: null,
+                city_district_with_type: "р-н Девон",
+                city_district_type: "р-н",
+                city_district_type_full: "район",
+                city_district: "Девон",
+                street_fias_id: "3a8bf88f-279c-412b-8bda-1c2976e2f8cb",
+                street_kladr_id: "02009001000028700",
+                street_with_type: "ул Вторая",
+                street_type: "ул",
+                street_type_full: "улица",
+                street: "Вторая"
+            }
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Двадцать вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Двадцать вторая',
+            data: {}
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Двадцать вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Двадцать вторая',
+            data: {}
+        }];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            constraints: {
+                locations: {
+                    region: "Башкортостан",
+                    city: "Белебей"
+                }
+            },
+            restrict_value: true
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'белебей вторая';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual('ул Вторая ');
+    });
+
+    it('Should NOT include city district in bounded value for streets with same names IF unique street is selected', function(){
+        // если в выпадашке есть данные с одинаковым value, то в input должен попасть район
+        var suggestions = [{
+            value: "респ Башкортостан, г Белебей, ул Вторая",
+            unrestricted_value: "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Девон, ул Вторая",
+            data: {
+                region_fias_id: "6f2cbfd8-692a-4ee4-9b16-067210bde3fc",
+                region_kladr_id: "0200000000000",
+                region_with_type: "респ Башкортостан",
+                region_type: "респ",
+                region_type_full: "республика",
+                region: "Башкортостан",
+                area_fias_id: "4295ec00-1d3f-475b-8f7f-bb8615aeff51",
+                area_kladr_id: "0200900000000",
+                area_with_type: "Белебеевский р-н",
+                area_type: "р-н",
+                area_type_full: "район",
+                area: "Белебеевский",
+                city_fias_id: "11e85c3e-c276-43b3-94e8-6b7f6cde5ac1",
+                city_kladr_id: "0200900100000",
+                city_with_type: "г Белебей",
+                city_type: "г",
+                city_type_full: "город",
+                city: "Белебей",
+                city_area: null,
+                city_district_fias_id: "916cb442-6505-4341-8f86-0ba8d3d966c8",
+                city_district_kladr_id: null,
+                city_district_with_type: "р-н Девон",
+                city_district_type: "р-н",
+                city_district_type_full: "район",
+                city_district: "Девон",
+                street_fias_id: "3a8bf88f-279c-412b-8bda-1c2976e2f8cb",
+                street_kladr_id: "02009001000028700",
+                street_with_type: "ул Вторая",
+                street_type: "ул",
+                street_type_full: "улица",
+                street: "Вторая"
+            }
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Двадцать вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Двадцать вторая',
+            data: {}
+        }, {
+            value: 'респ Башкортостан, г Белебей, ул Двадцать вторая',
+            unrestricted_value: 'респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Двадцать вторая',
+            data: {}
+        }];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            bounds: 'city-street'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'белебей вторая';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual('г Белебей, ул Вторая');
+    });
+
+    it('Should NOT include city district in unrestricted value for streets with same names IF unique street is selected', function(){
         // если в выпадашке есть подсказки с одинаковым value, но выбрана подсказка с уникальным value,
         // то в input попадет просто value (не unrestricted_value)
         var suggestions = [{
@@ -521,7 +1000,7 @@ describe('Text to insert after selection', function () {
         this.instance.select(0);
         this.server.respond(helpers.responseFor([suggestions[0]]));
 
-        expect(this.input.value).toEqual(suggestions[0].value + ' ');
+        expect(this.input.value).toEqual('респ Башкортостан, г Белебей, пер Тукаевский 2-й ');
     });
 
 });
