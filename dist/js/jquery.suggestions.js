@@ -722,7 +722,8 @@ types['ADDRESS'] = {
             street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
             house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
             flat = utils.compact([data.flat_type, data.flat]).join(' '),
-            postal_box = data.postal_box && ('а/я ' + data.postal_box);
+            postal_box = data.postal_box && ('а/я ' + data.postal_box),
+            result;
 
         // если регион совпадает с городом
         // например г Москва, г Москва
@@ -740,7 +741,7 @@ types['ADDRESS'] = {
             cityDistrict = '';
         }
 
-        return utils.compact([
+        result = utils.compact([
             region,
             area,
             city,
@@ -751,6 +752,8 @@ types['ADDRESS'] = {
             flat,
             postal_box
         ]).join(', ');
+
+        return result;
     },
     formatResult: function() {
         var componentsUnderCityDistrict = [],
@@ -1680,7 +1683,7 @@ Suggestions.prototype = {
                         // Can not use unrestricted address,
                         // because some components (from constraints) must be omitted
                         formattedValue = that.getValueWithinConstraints(suggestion);
-                    } else if (that.bounds.own.length) {
+                    } else if (that.bounds.own.indexOf('street') >= 0) {
                         // Can not use unrestricted address,
                         // because only components from bounds must be included
                         formattedValue = that.getValueWithinBounds(suggestion);
@@ -1717,11 +1720,11 @@ Suggestions.prototype = {
      * Compose suggestion value with respect to bounds
      */
     getValueWithinBounds: function (suggestion, options) {
-        var that = this;
-        return that.type.composeValue(
-            that.copyDataComponents(suggestion.data, that.bounds.own),
-            options
-        );
+        var data = this.copyDataComponents(suggestion.data, this.bounds.own);
+
+        // для корректного составления адреса нужен city_district_fias_id
+        data.city_district_fias_id = suggestion.data.city_district_fias_id;
+        return this.type.composeValue(data, options);
     },
 
     /*

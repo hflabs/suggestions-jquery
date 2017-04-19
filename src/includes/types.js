@@ -250,7 +250,8 @@ types['ADDRESS'] = {
             street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
             house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
             flat = utils.compact([data.flat_type, data.flat]).join(' '),
-            postal_box = data.postal_box && ('а/я ' + data.postal_box);
+            postal_box = data.postal_box && ('а/я ' + data.postal_box),
+            result;
 
         // если регион совпадает с городом
         // например г Москва, г Москва
@@ -268,7 +269,7 @@ types['ADDRESS'] = {
             cityDistrict = '';
         }
 
-        return utils.compact([
+        result = utils.compact([
             region,
             area,
             city,
@@ -279,6 +280,8 @@ types['ADDRESS'] = {
             flat,
             postal_box
         ]).join(', ');
+
+        return result;
     },
     formatResult: function() {
         var componentsUnderCityDistrict = [],

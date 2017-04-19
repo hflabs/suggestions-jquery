@@ -696,7 +696,6 @@ describe('Text to insert after selection', function () {
         expect(this.input.value).toEqual('р-н Девон, ул Вторая ');
     });
 
-    /*
     it('Should include city district in bounded value for streets with same names', function(){
         // если в выпадашке есть данные с одинаковым value, то в input должен попасть район
         var suggestions = [{
@@ -766,7 +765,6 @@ describe('Text to insert after selection', function () {
 
         expect(this.input.value).toEqual('г Белебей, р-н Девон, ул Вторая');
     });
-    */
 
     it('Should include city district in unrestricted value for streets with same names', function(){
         // если в выпадашке есть данные с одинаковым value, то в input должен попасть unrestricted_value
