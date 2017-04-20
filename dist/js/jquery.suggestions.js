@@ -1720,10 +1720,9 @@ Suggestions.prototype = {
      * Compose suggestion value with respect to bounds
      */
     getValueWithinBounds: function (suggestion, options) {
-        var data = this.copyDataComponents(suggestion.data, this.bounds.own);
-
         // для корректного составления адреса нужен city_district_fias_id
-        data.city_district_fias_id = suggestion.data.city_district_fias_id;
+        var data = this.copyDataComponents(suggestion.data, this.bounds.own.concat(['city_district_fias_id']));
+
         return this.type.composeValue(data, options);
     },
 
@@ -3829,13 +3828,25 @@ var methods$8 = {
         return params;
     },
 
+    /**
+     * Подстраивает suggestion.value под that.bounds.own
+     * Ничего не возвращает, меняет в самом suggestion
+     * @param suggestion
+     */
     checkValueBounds: function (suggestion) {
         var that = this,
             valueData;
 
         // If any bounds set up
         if (that.bounds.own.length && that.type.composeValue) {
-            valueData = that.copyDataComponents(suggestion.data, that.bounds.own);
+            // делаем копию
+            var bounds = that.bounds.own.slice(0);
+            // если роль текущего инстанса плагина показывать только район города
+            // то для корректного формировния нужен city_district_fias_id
+            if (bounds.length === 1 && bounds[0] === 'city_district') {
+                bounds.push('city_district_fias_id');
+            }
+            valueData = that.copyDataComponents(suggestion.data, bounds);
             suggestion.value = that.type.composeValue(valueData);
         }
     },

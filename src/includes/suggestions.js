@@ -788,10 +788,9 @@ Suggestions.prototype = {
      * Compose suggestion value with respect to bounds
      */
     getValueWithinBounds: function (suggestion, options) {
-        var data = this.copyDataComponents(suggestion.data, this.bounds.own);
-
         // для корректного составления адреса нужен city_district_fias_id
-        data.city_district_fias_id = suggestion.data.city_district_fias_id;
+        var data = this.copyDataComponents(suggestion.data, this.bounds.own.concat(['city_district_fias_id']));
+
         return this.type.composeValue(data, options);
     },
 

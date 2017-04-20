@@ -1001,4 +1001,44 @@ describe('Text to insert after selection', function () {
         expect(this.input.value).toEqual('респ Башкортостан, г Белебей, пер Тукаевский 2-й ');
     });
 
+    it('Should include city district in single input', function(){
+        // отдельное поле для внутригородского района
+        // ожидаем появления в нем района
+        var suggestions = [
+            {
+                value: 'Адлерский р-н',
+                unrestricted_value: 'Краснодарский край, г Сочи, Адлерский р-н',
+                data: {
+                    region_with_type: 'Краснодарсский край',
+                    city_with_type: 'г Сочи',
+                    city_district: 'Адлерский',
+                    city_district_fias_id: 'f1acccf5-36e2-44d5-9143-437cc7459ed1',
+                    city_district_type: 'р-н',
+                    city_district_with_type: 'Адлерский р-н'
+                }
+            }
+        ];
+
+        this.instance.setOptions({
+            type: 'ADDRESS',
+            bounds: 'city_district'
+        });
+
+        // Setting type will request for status
+        helpers.returnGoodStatus(this.server);
+        this.server.requests.length = 0;
+
+        this.input.value = 'адлер';
+        this.instance.onValueChange();
+
+        // Respond with suggestions with restricted values
+        this.server.respond(helpers.responseFor(suggestions));
+
+        // Selecting causes enrichment
+        this.instance.select(0);
+        this.server.respond(helpers.responseFor([suggestions[0]]));
+
+        expect(this.input.value).toEqual('Адлерский р-н');
+    });
+
 });
