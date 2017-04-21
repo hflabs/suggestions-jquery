@@ -781,7 +781,54 @@ types['ADDRESS'] = {
 
             return value;
         };
-    }()
+    }(),
+    /**
+     * @param instance
+     * @param options
+     * @param options.suggestion
+     * @param options.hasSameValues
+     * @param options.hasBeenEnreached
+     */
+    getSuggestionValue: function(instance, options) {
+        var formattedValue = null;
+
+        if (options.hasSameValues) {
+            if (instance.options.restrict_value) {
+                // Can not use unrestricted address,
+                // because some components (from constraints) must be omitted
+                formattedValue = this.getValueWithinConstraints(instance, options.suggestion);
+            } else if (instance.bounds.own.length) {
+                // Can not use unrestricted address,
+                // because only components from bounds must be included
+                formattedValue = this.getValueWithinBounds(instance, options.suggestion);
+            } else {
+                // Can use full unrestricted address
+                formattedValue = options.suggestion.unrestricted_value;
+            }
+        } else if (options.hasBeenEnriched) {
+            if (instance.options.restrict_value) {
+                formattedValue = this.getValueWithinConstraints(instance, options.suggestion, { excludeCityDistrict: true });
+            }
+        }
+
+        return formattedValue;
+    },
+    /*
+     * Compose suggestion value with respect to constraints
+     */
+    getValueWithinConstraints: function (instance, suggestion, options) {
+        return this.composeValue(instance.getUnrestrictedData(suggestion.data), options);
+    },
+    /*
+     * Compose suggestion value with respect to bounds
+     */
+    getValueWithinBounds: function (instance, suggestion, options) {
+        // для корректного составления адреса нужен city_district_fias_id
+        var data = instance.copyDataComponents(suggestion.data, instance.bounds.own.concat(['city_district_fias_id']));
+
+        return this.composeValue(data, options);
+    }
+
 };
 
 types['PARTY'] = {
@@ -1665,7 +1712,9 @@ Suggestions.prototype = {
             formatSelected = that.options.formatSelected || that.type.formatSelected,
             hasSameValues = selectionOptions && selectionOptions.hasSameValues,
             hasBeenEnriched = selectionOptions && selectionOptions.hasBeenEnriched,
-            formattedValue;
+            formattedValue,
+            typeFormattedValue = null;
+
 
         if ($.isFunction(formatSelected)) {
             formattedValue = formatSelected.call(that, suggestion);
@@ -1674,67 +1723,20 @@ Suggestions.prototype = {
         if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
             formattedValue = suggestion.value;
 
-            if (that.type.composeValue) {
-                if (hasSameValues) {
-                    // Should use unrestricted value with city district
-                    // to distinguish between streets with same name
-                    // see: SUG-668
-                    if (that.options.restrict_value) {
-                        // Can not use unrestricted address,
-                        // because some components (from constraints) must be omitted
-                        formattedValue = that.getValueWithinConstraints(suggestion);
-                    } else if (that.bounds.own.indexOf('street') >= 0) {
-                        // Can not use unrestricted address,
-                        // because only components from bounds must be included
-                        formattedValue = that.getValueWithinBounds(suggestion);
-                    } else {
-                        // Can use full unrestricted address
-                        formattedValue = suggestion.unrestricted_value;
-                    }
-                } else if (hasBeenEnriched) {
-                    // Enrichment requests goes without `locations` parameter due to SUG-604.
-                    // Server returns same `suggestions.value` and `suggestion.unrestricted_value`.
-                    // So here value must be changed to respect restrictions.
-                    // see: SUG-674
+            if (that.type.getSuggestionValue) {
+                typeFormattedValue = that.type.getSuggestionValue(that, {
+                    suggestion: suggestion,
+                    hasSameValues: hasSameValues,
+                    hasBeenEnriched: hasBeenEnriched,
+                });
 
-                    // do not include city district in suggestions value
-                    var options = {
-                        excludeCityDistrict: true
-                    };
-                    if (that.options.restrict_value) {
-                        formattedValue = that.getValueWithinConstraints(suggestion, options);
-                    } else {
-                        if (that.bounds.own.indexOf('street') >= 0) {
-                            formattedValue = that.getValueWithinBounds(suggestion, options);
-                        }
-                    }
+                if (typeFormattedValue !== null) {
+                    formattedValue = typeFormattedValue;
                 }
             }
         }
 
         return formattedValue;
-    },
-
-
-    /*
-     * Compose suggestion value with respect to bounds
-     */
-    getValueWithinBounds: function (suggestion, options) {
-        // для корректного составления адреса нужен city_district_fias_id
-        var data = this.copyDataComponents(suggestion.data, this.bounds.own.concat(['city_district_fias_id']));
-
-        return this.type.composeValue(data, options);
-    },
-
-    /*
-     * Compose suggestion value with respect to constraints
-     */
-    getValueWithinConstraints: function (suggestion, options) {
-        var that = this;
-        return that.type.composeValue(
-            that.getUnrestrictedData(suggestion.data),
-            options
-        );
     },
 
     hasSameValues: function(suggestion){
