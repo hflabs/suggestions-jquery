@@ -328,7 +328,7 @@ describe('Common features', function () {
         this.input.value = 'jam';
         this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestHeaders['X-Version']).toMatch(/\d+\.\d+\.\d+/);
+        expect(this.server.requests[0].requestHeaders['X-Version']).toMatch(/\d+\.\d+\.\d+|9999/);
     });
 
     it('Should send custom HTTP headers', function () {
