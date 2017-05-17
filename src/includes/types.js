@@ -510,6 +510,8 @@ types['BANK'] = {
             'data.swift': null
         }
     })],
+    dataComponents: ADDRESS_COMPONENTS,
+    geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
         var that = this,
             formattedBIC = that.highlightMatches(utils.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
