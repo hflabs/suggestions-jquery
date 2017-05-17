@@ -305,6 +305,28 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"kladr_id":"77"}]');
     });
 
+    it('Should have `locations` parameter in request for x_type_full constraints', function () {
+        var locations = {
+            region_type_full: 'region',
+            area_type_full: 'area',
+            city_type_full: 'city',
+            city_district_type_full: 'city_district',
+            settlement_type_full: 'settlement',
+            street_type_full: 'street'
+        };
+
+        this.instance.setOptions({
+            constraints: {
+                locations: locations
+            }
+        });
+
+        this.input.value = 'A';
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain(JSON.stringify(locations));
+    });
+
     it('Should show label for added constraint, which is build from locations', function () {
         this.instance.setOptions({
             constraints: {
@@ -334,6 +356,25 @@ describe('Address constraints', function () {
         var $items = this.instance.$constraints.children('li');
         expect($items.length).toEqual(1);
         expect($items.first().text()).toEqual('Москва, Санкт-петербург');
+    });
+
+    it('Should show label for x_type_full constraint, which is build from locations', function () {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    region_type_full: 'region',
+                    area_type_full: 'area',
+                    city_type_full: 'city',
+                    city_district_type_full: 'city_district',
+                    settlement_type_full: 'settlement',
+                    street_type_full: 'street'
+                }
+            }
+        });
+
+        var $items = this.instance.$constraints.children('li');
+        expect($items.length).toEqual(1);
+        expect($items.first().text()).toEqual('region, area, city, city_district, settlement, street');
     });
 
     it('Should show label for added constraint, taken from `label`', function () {

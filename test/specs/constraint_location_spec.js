@@ -58,7 +58,7 @@ describe('Constraint Location', function () {
         var location = new $.Suggestions.ConstraintLocation({
                 'city': 'Тольятти'
             }, this.instance),
-            expectedSpecificity = 8;
+            expectedSpecificity = 11;
 
         expect(this.instance.type.dataComponents[expectedSpecificity].id).toEqual('city');
         expect(location.specificity).toEqual(expectedSpecificity);
@@ -68,7 +68,7 @@ describe('Constraint Location', function () {
         var location = new $.Suggestions.ConstraintLocation({
                 'kladr_id': '6300000700000'
             }, this.instance),
-            expectedSpecificity = 8;
+            expectedSpecificity = 11;
 
         expect(this.instance.type.dataComponents[expectedSpecificity].id).toEqual('city');
         expect(location.specificity).toEqual(expectedSpecificity);

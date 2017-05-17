@@ -81,7 +81,7 @@ var ConstraintLocation = function(data, instance){
 
 $.extend(ConstraintLocation.prototype, {
     getLabel: function(){
-        return this.instance.type.composeValue(this.fields);
+        return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
     },
 
     getFields: function () {

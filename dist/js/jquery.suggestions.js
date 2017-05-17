@@ -538,6 +538,14 @@ var ADDRESS_COMPONENTS = [
         forLocations: true
     },
     {
+        id: 'region_type_full',
+        fields: ['region_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 2, zeros: 11 },
+        fiasType: 'region_fias_id'
+    },
+    {
         id: 'region',
         fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
         forBounds: true,
@@ -550,6 +558,14 @@ var ADDRESS_COMPONENTS = [
         fields: ['area_fias_id'],
         forBounds: false,
         forLocations: true
+    },
+    {
+        id: 'area_type_full',
+        fields: ['area_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 5, zeros: 8 },
+        fiasType: 'area_fias_id'
     },
     {
         id: 'area',
@@ -566,6 +582,14 @@ var ADDRESS_COMPONENTS = [
         forLocations: true
     },
     {
+        id: 'city_type_full',
+        fields: ['city_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 8, zeros: 5 },
+        fiasType: 'city_fias_id'
+    },
+    {
         id: 'city',
         fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
         forBounds: true,
@@ -578,6 +602,14 @@ var ADDRESS_COMPONENTS = [
         fields: ['city_district_fias_id'],
         forBounds: false,
         forLocations: true
+    },
+    {
+        id: 'city_district_type_full',
+        fields: ['city_district_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 11, zeros: 2 },
+        fiasType: 'city_district_fias_id'
     },
     {
         id: 'city_district',
@@ -594,6 +626,14 @@ var ADDRESS_COMPONENTS = [
         forLocations: true
     },
     {
+        id: 'settlement_type_full',
+        fields: ['settlement_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 11, zeros: 2 },
+        fiasType: 'settlement_fias_id'
+    },
+    {
         id: 'settlement',
         fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
         forBounds: true,
@@ -606,6 +646,14 @@ var ADDRESS_COMPONENTS = [
         fields: ['street_fias_id'],
         forBounds: false,
         forLocations: true
+    },
+    {
+        id: 'street_type_full',
+        fields: ['street_type_full'],
+        forBounds: false,
+        forLocations: true,
+        kladrFormat: { digits: 15, zeros: 2 },
+        fiasType: 'street_fias_id'
     },
     {
         id: 'street',
@@ -714,12 +762,12 @@ types['ADDRESS'] = {
         return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
     composeValue: function (data, options) {
-        var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' '),
-            area = data.area_with_type || utils.compact([data.area_type, data.area]).join(' '),
-            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' '),
-            settelement = data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' '),
-            cityDistrict = data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' '),
-            street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' '),
+        var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
+            area = data.area_with_type || utils.compact([data.area_type, data.area]).join(' ') || data.area_type_full,
+            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' ') || data.city_type_full,
+            settelement = data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' ') || data.settlement_type_full,
+            cityDistrict = data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' ') || data.city_district_type_full,
+            street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' ') || data.street_type_full,
             house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
             flat = utils.compact([data.flat_type, data.flat]).join(' '),
             postal_box = data.postal_box && ('а/я ' + data.postal_box),
@@ -733,12 +781,14 @@ types['ADDRESS'] = {
         }
 
         // иногда не показываем район
-        if (options && options.excludeCityDistrict) {
-            // если район явно запрещен
-            cityDistrict = '';
-        } else if (cityDistrict && !data.city_district_fias_id) {
-            // если район взят из ОКАТО (у него пустой city_district_fias_id)
-            cityDistrict = '';
+        if (!(options && options.saveCityDistrict)) {
+            if (options && options.excludeCityDistrict) {
+                // если район явно запрещен
+                cityDistrict = '';
+            } else if (cityDistrict && !data.city_district_fias_id) {
+                // если район взят из ОКАТО (у него пустой city_district_fias_id)
+                cityDistrict = '';
+            }
         }
 
         result = utils.compact([
@@ -3121,7 +3171,7 @@ var ConstraintLocation = function(data, instance){
 
 $.extend(ConstraintLocation.prototype, {
     getLabel: function(){
-        return this.instance.type.composeValue(this.fields);
+        return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
     },
 
     getFields: function () {
