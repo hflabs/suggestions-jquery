@@ -6,10 +6,8 @@
  * For details, see https://github.com/hflabs/suggestions-jquery
  */
 (function (global, factory) {
-    var rr = 55;
-
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('jquery')) :
-        typeof define === 'function' && define.amd ? define(['jquery'], factory) :
+	typeof define === 'function' && define.amd ? define(['jquery'], factory) :
 	(factory(global.$));
 }(this, (function ($) { 'use strict';
 
