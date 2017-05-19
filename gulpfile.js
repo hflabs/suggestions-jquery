@@ -35,7 +35,7 @@ gulp.task('build-script', function () {
         .pipe(rollup({
             entry: SRC_DIR + 'main.js',
             format: 'umd',
-            moduleId: 'jquery.suggestions.js',
+            moduleId: 'jquery.suggestions',
             globals: {
                 jquery: '$'
             },
