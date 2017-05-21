@@ -25,6 +25,14 @@
             constraints: $city
         });
 
+        $('#url').suggestions({
+            token: token,
+            url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address1',
+            type: type,
+            hint: false,
+            bounds: "city"
+        });
+
         $('#city-729').suggestions({
             token: token,
             type: type,

@@ -488,18 +488,23 @@ Suggestions.prototype = {
             token = $.trim(that.options.token),
             partner = $.trim(that.options.partner),
             serviceUrl = that.options.serviceUrl,
+            url = that.options.url,
             serviceMethod = serviceMethods[method],
             params = $.extend({
                 timeout: that.options.timeout
             }, serviceMethod.defaultParams),
             headers = {};
 
-        if (!/\/$/.test(serviceUrl)) {
-            serviceUrl += '/';
-        }
-        serviceUrl += method;
-        if (serviceMethod.addTypeInUrl) {
-            serviceUrl += '/' + that.type.urlSuffix;
+        if (url) {
+            serviceUrl = url;
+        } else {
+            if (!/\/$/.test(serviceUrl)) {
+                serviceUrl += '/';
+            }
+            serviceUrl += method;
+            if (serviceMethod.addTypeInUrl) {
+                serviceUrl += '/' + that.type.urlSuffix;
+            }
         }
 
         serviceUrl = utils.fixURLProtocol(serviceUrl);

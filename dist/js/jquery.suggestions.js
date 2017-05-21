@@ -438,7 +438,13 @@ var matchers = function() {
 
 var DEFAULT_OPTIONS = {
     autoSelectFirst: false,
+    // основной url, может быть переопределен
     serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
+    // url, который заменяет serviceUrl + method + type
+    // то есть, если он задан, то для всех запросов будет использоваться именно он
+    // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
+    // и заменен протокол на протокол текущей страницы
+    url: null,
     onSearchStart: $.noop,
     onSearchComplete: $.noop,
     onSearchError: $.noop,
@@ -1519,18 +1525,23 @@ Suggestions.prototype = {
             token = $.trim(that.options.token),
             partner = $.trim(that.options.partner),
             serviceUrl = that.options.serviceUrl,
+            url = that.options.url,
             serviceMethod = serviceMethods[method],
             params = $.extend({
                 timeout: that.options.timeout
             }, serviceMethod.defaultParams),
             headers = {};
 
-        if (!/\/$/.test(serviceUrl)) {
-            serviceUrl += '/';
-        }
-        serviceUrl += method;
-        if (serviceMethod.addTypeInUrl) {
-            serviceUrl += '/' + that.type.urlSuffix;
+        if (url) {
+            serviceUrl = url;
+        } else {
+            if (!/\/$/.test(serviceUrl)) {
+                serviceUrl += '/';
+            }
+            serviceUrl += method;
+            if (serviceMethod.addTypeInUrl) {
+                serviceUrl += '/' + that.type.urlSuffix;
+            }
         }
 
         serviceUrl = utils.fixURLProtocol(serviceUrl);
