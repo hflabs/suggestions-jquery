@@ -54,6 +54,17 @@ describe('Status features', function () {
         expect(options.onSearchError).toHaveBeenCalled();
     });
 
+    it('Should use url param (if it passed) instead of serviceUrl', function () {
+        this.server.requests.length = 0;
+        this.instance.setOptions({
+            token: null,
+            url: 'http://unchangeable/url'
+        });
+
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].url).toEqual('http://unchangeable/url');
+    });
+
     describe('Several instances with the same token', function () {
 
         beforeEach(function () {
