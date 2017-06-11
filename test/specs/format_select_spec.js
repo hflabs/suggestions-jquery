@@ -46,7 +46,31 @@ describe('Text to insert after selection', function () {
         expect(this.input.value).toEqual('custom value ');
     });
 
-    it('Should use default value if formatSelected returns nothing', function () {
+    it('Should use default value if formatSelected returns null', function () {
+        this.instance.setOptions({
+            formatSelected: function (suggestion) {
+                return null;
+            },
+            params: {
+                parts: ['NAME']
+            }
+        });
+        this.input.value = 'Al';
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor([
+            {
+                value: 'Alex',
+                data: {
+                    name: 'Alex'
+                }
+            }
+        ]));
+        this.instance.select(0);
+
+        expect(this.input.value).toEqual('Alex');
+    });
+
+    it('Should not use default value if formatSelected returns empty string', function () {
         this.instance.setOptions({
             formatSelected: function (suggestion) {
                 return '';
@@ -67,7 +91,7 @@ describe('Text to insert after selection', function () {
         ]));
         this.instance.select(0);
 
-        expect(this.input.value).toEqual('Alex');
+        expect(this.input.value).toEqual('');
     });
 
     it('Should invoke type-specified formatSelected method', function () {

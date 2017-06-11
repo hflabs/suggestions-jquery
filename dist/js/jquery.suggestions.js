@@ -1020,7 +1020,7 @@ types['BANK'] = {
         return value;
     },
     formatSelected: function (suggestion) {
-        return utils.getDeepValue(suggestion, 'data.name.payment');
+        return utils.getDeepValue(suggestion, 'data.name.payment') || null;
     }
 };
 
@@ -1783,7 +1783,7 @@ Suggestions.prototype = {
             formattedValue = formatSelected.call(that, suggestion);
         }
 
-        if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
+        if (typeof formattedValue !== 'string') {
             formattedValue = suggestion.value;
 
             if (that.type.getSuggestionValue) {

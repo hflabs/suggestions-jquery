@@ -746,7 +746,7 @@ Suggestions.prototype = {
             formattedValue = formatSelected.call(that, suggestion);
         }
 
-        if (typeof formattedValue !== 'string' || formattedValue.length == 0) {
+        if (typeof formattedValue !== 'string') {
             formattedValue = suggestion.value;
 
             if (that.type.getSuggestionValue) {

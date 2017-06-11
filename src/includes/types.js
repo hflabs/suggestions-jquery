@@ -542,7 +542,7 @@ types['BANK'] = {
         return value;
     },
     formatSelected: function (suggestion) {
-        return utils.getDeepValue(suggestion, 'data.name.payment');
+        return utils.getDeepValue(suggestion, 'data.name.payment') || null;
     }
 };
 

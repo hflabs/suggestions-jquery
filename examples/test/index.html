@@ -5,7 +5,7 @@
         <title>Ограничиваем сектор поиска в подсказках по адресу</title>
         <link rel="stylesheet" type="text/css" href="styles.css">
         <link rel="stylesheet" type="text/css" href="../../dist/css/suggestions.css">
-        <script src="https://code.jquery.com/jquery-3.0.0.js" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
         <script src="../../dist/js/jquery.suggestions.js"></script>
         <script src="../token.js"></script>
         <script src="code.js"></script>
@@ -17,7 +17,14 @@
         </section>
 
         <section class="container">
+            <h1>Просто подсказки</h1>
+            <input id="suggestions" name="suggestions" type="text" />
+        </section>
+
+        <section class="container">
             <h1>SUG-706 (Гранулярные подсказки по адресу (город и улица))</h1>
+            <label for="region">Регион:</label><input id="region" name="region" type="text" />
+            <br/><br/>
             <label for="city">Город:</label><input id="city" name="city" type="text" />
             <br/><br/>
             <label for="street">Улица:</label><input id="street" name="street" type="text" />

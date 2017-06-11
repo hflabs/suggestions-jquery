@@ -4,16 +4,42 @@
         Token.init();
 
         var token = Token.get(),
-            type  = "ADDRESS",
-            $city   = $("#city"),
-            $street = $("#street");
+            type = 'ADDRESS',
+            $suggestions = $('#suggestions'),
+            $region = $('#region'),
+            $city = $('#city'),
+            $street = $('#street');
+
+        // просто подсказки
+        $suggestions.suggestions({
+            token: token,
+            type: type,
+            hint: false,
+        });
+
+        // регион
+        $region.suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'region-area'
+        });
 
         // город и населенный пункт
         $city.suggestions({
             token: token,
             type: type,
             hint: false,
-            bounds: "city-settlement"
+            bounds: 'city-settlement',
+            constraints: $region,
+            formatSelected: function(suggestion) {
+                var address = suggestion.data;
+                if (address.city_with_type === address.region_with_type) {
+                    return address.settlement_with_type || '';
+                } else {
+                    return join([ address.city_with_type, address.settlement_with_type ]);
+                }
+            }
         });
 
         // улица
@@ -21,7 +47,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: "street",
+            bounds: 'street',
             constraints: $city
         });
 
@@ -30,14 +56,14 @@
             url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address1',
             type: type,
             hint: false,
-            bounds: "city"
+            bounds: 'city'
         });
 
         $('#city-729').suggestions({
             token: token,
             type: type,
             hint: false,
-            bounds: "city"
+            bounds: 'city'
         });
 
     });
