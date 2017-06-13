@@ -183,6 +183,21 @@ var utils = (function () {
         reWordExtractor: function () {
             return new RegExp('([^' + WORD_DELIMITERS + ']*)([' + WORD_DELIMITERS + ']*)', 'g');
         },
+        /**
+         * Возвращает список слов используемых в запросе
+         */
+        getTokens: function(value, unformattableTokens) {
+            var tokens,
+                preferredTokens;
+
+            tokens = this.compact(this.formatToken(value).split(WORD_SPLITTER));
+            // Move unformattableTokens to the end.
+            // This will help to apply them only if no other tokens match
+            preferredTokens = this.arrayMinus(tokens, unformattableTokens);
+            tokens = this.withSubTokens(preferredTokens.concat(this.arrayMinus(tokens, preferredTokens)));
+
+            return tokens;
+        },
         formatToken: function (token) {
             return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
         },

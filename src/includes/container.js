@@ -298,12 +298,7 @@ var methods = {
 
         if (!value) return '';
 
-        tokens = utils.compact(utils.formatToken(currentValue).split(WORD_SPLITTER));
-
-        // Move unformattableTokens to the end.
-        // This will help to apply them only if no other tokens match
-        preferredTokens = utils.arrayMinus(tokens, unformattableTokens);
-        tokens = utils.withSubTokens(preferredTokens.concat(utils.arrayMinus(tokens, preferredTokens)));
+        tokens = utils.getTokens(currentValue, unformattableTokens);
 
         tokenMatchers = $.map(tokens, function (token) {
             return new RegExp('^((.*)([' + WORD_PARTS_DELIMITERS + ']+))?' +

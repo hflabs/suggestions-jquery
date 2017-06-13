@@ -424,4 +424,30 @@ describe('Highlight suggestions', function () {
         expect(html).toContain(' data-suggestion-status="LIQUIDATED"');
     });
 
+    it('should show history values', function () {
+        this.instance.setOptions({
+            type: 'ADDRESS'
+        });
+        this.input.value = 'казань эсперан';
+        this.instance.onValueChange();
+
+        var suggestions = [{
+            value: 'г Казань, ул Нурсултана Назарбаева',
+            unrestricted_value: 'респ Татарстан, г Казань, ул Нурсултана Назарбаева',
+            data: {
+                history_values: ['ул Эсперанто']
+            }
+        }, {
+            value: 'г Казань, тер ГСК Эсперантовский (Эсперанто)',
+            unrestricted_value: 'респ Татарстан, г Казань, тер ГСК Эсперантовский (Эсперанто)',
+            data: {}
+        }];
+
+        this.server.respond(helpers.responseFor(suggestions));
+
+        var $items = this.instance.$container.children('.suggestions-suggestion');
+
+        expect($items.eq(0).html()).toContain('(бывш. ул <strong>Эсперан</strong>то)');
+    });
+
 });

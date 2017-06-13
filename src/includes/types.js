@@ -344,7 +344,22 @@ types['ADDRESS'] = {
 
         return function (value, currentValue, suggestion, options) {
             var that = this,
-                district = suggestion.data && suggestion.data.city_district_with_type;
+                district = suggestion.data && suggestion.data.city_district_with_type,
+                unformattableTokens = options && options.unformattableTokens,
+                historyValues = suggestion.data && suggestion.data.history_values,
+                tokens,
+                unusedTokens,
+                formattedHistoryValues;
+
+            // добавляем исторические значения
+            if (historyValues && historyValues.length > 0) {
+                tokens = utils.getTokens(currentValue, unformattableTokens);
+                unusedTokens = this.type.findUnusedTokens(tokens, value);
+                formattedHistoryValues = this.type.getFormattedHistoryValues(unusedTokens, historyValues);
+                if (formattedHistoryValues) {
+                    value += formattedHistoryValues;
+                }
+            }
 
             value = that.highlightMatches(value, currentValue, suggestion, options);
             value = that.wrapFormattedValue(value, suggestion);
@@ -360,6 +375,54 @@ types['ADDRESS'] = {
             return value;
         };
     }(),
+
+    /**
+     * Возвращает список слов в запросе для которых не найдено соответствующего слова в ответе
+     */
+    findUnusedTokens: function(tokens, value) {
+        var tokenIndex,
+            token,
+            unused = [];
+
+        for(tokenIndex in tokens) {
+            token = tokens[tokenIndex];
+            if (value.indexOf(token) === -1) {
+                unused.push(token);
+            }
+        }
+
+        return unused;
+    },
+
+    /**
+     * Возвращает исторические названия для слов запроса, для которых не найдено совпадения в основном значении
+     */
+    getFormattedHistoryValues: function(unusedTokens, historyValues) {
+        var tokenIndex,
+            token,
+            historyValueIndex,
+            historyValue,
+            values = [],
+            formatted = '';
+
+        for(historyValueIndex in historyValues) {
+            historyValue = historyValues[historyValueIndex];
+            for(tokenIndex in unusedTokens) {
+                token = unusedTokens[tokenIndex];
+                if (historyValue.toLowerCase().indexOf(token) >= 0) {
+                    values.push(historyValue);
+                    break;
+                }
+            }
+        }
+
+        if (values.length > 0) {
+            formatted = ' (бывш. ' + values.join(', ') + ')';
+        }
+
+        return formatted;
+    },
+
     /**
      * @param instance
      * @param options
