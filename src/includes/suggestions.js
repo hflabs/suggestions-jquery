@@ -99,7 +99,7 @@ function Suggestions(el, options) {
 
     that.initializer = $.Deferred();
 
-    if (that.el.is(':visible')) {
+    if (that.el.is(':visible') || that.options.forceInitialize) {
         that.initializer.resolve();
     } else {
         that.deferInitialization();
