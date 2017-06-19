@@ -197,4 +197,26 @@ describe('Initialization', function () {
 
     });
 
+    describe('check forceInitialize option', function () {
+
+        beforeEach(function () {
+            this.input = document.createElement('input');
+            this.$input = $(this.input);
+            this.instance = this.$input.suggestions({
+                type: 'NAME',
+                forceInitialize: true
+            }).suggestions();
+
+            helpers.returnGoodStatus(this.server);
+        });
+
+        afterEach(function () {
+            this.instance.dispose();
+            this.$input.remove();
+        });
+
+        checkInitialized();
+
+    });
+
 });
