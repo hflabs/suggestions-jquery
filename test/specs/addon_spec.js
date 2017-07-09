@@ -115,7 +115,8 @@ describe('Right-sided control', function () {
 
         beforeEach(function () {
             this.instance.setOptions({
-                addon: 'clear'
+                addon: 'clear',
+                onInvalidateSelection: function () {}
             })
         });
 
@@ -143,6 +144,17 @@ describe('Right-sided control', function () {
 
             expect(this.$button).toBeVisible();
             expect(this.$button.attr(attr)).toEqual('clear');
+        });
+
+        it('should trigger onInvalidateSelection method on clear', function () {
+            this.input.value = 'но';
+            this.instance.onValueChange();
+
+            jasmine.clock().tick(51);
+
+            spyOn(this.instance.options, 'onInvalidateSelection');
+            this.$button.click();
+            expect(this.instance.options.onInvalidateSelection).toHaveBeenCalled();
         });
 
     });

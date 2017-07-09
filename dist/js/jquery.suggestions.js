@@ -11,7 +11,7 @@
 	(factory(global.$));
 }(this, (function ($) { 'use strict';
 
-$ = 'default' in $ ? $['default'] : $;
+$ = $ && 'default' in $ ? $['default'] : $;
 
 var KEYS = {
         ENTER: 13,
@@ -1465,7 +1465,8 @@ Suggestions.prototype = {
     },
 
     clear: function () {
-        var that = this;
+        var that = this,
+            currentSelection = that.selection;
 
         if (that.isInitialized()) {
             that.clearCache();
@@ -1476,6 +1477,7 @@ Suggestions.prototype = {
             that.el.val('');
             that.el.trigger('suggestions-clear');
             that.notify('clear');
+            that.trigger('InvalidateSelection', currentSelection);
         }
     },
 

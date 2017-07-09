@@ -15,6 +15,10 @@
             token: token,
             type: type,
             hint: false,
+            addon: 'clear',
+            onInvalidateSelection: function () {
+                console.log('ON INVALIDATE SELECTION');
+            }
         });
 
         // регион
