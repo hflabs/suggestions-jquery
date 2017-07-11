@@ -45,7 +45,8 @@ var DEFAULT_OPTIONS = {
     headers: null,
     scrollOnFocus: true,
     mobileWidth: 980,
-    initializeInterval: 100
+    initializeInterval: 100,
+    forceInitialize: false
 };
 
 export { DEFAULT_OPTIONS };
