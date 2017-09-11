@@ -6,12 +6,13 @@
         var token = Token.get(),
             type = 'ADDRESS',
             $suggestions = $('#suggestions'),
+            $fixDataButton = $('#fixData'),
             $region = $('#region'),
             $city = $('#city'),
             $street = $('#street');
 
         // просто подсказки
-        $suggestions.suggestions({
+        var suggestionsInstance = $suggestions.suggestions({
             token: token,
             type: type,
             hint: false,
@@ -19,6 +20,10 @@
             onInvalidateSelection: function () {
                 console.log('ON INVALIDATE SELECTION');
             }
+        });
+
+        $fixDataButton.on('click', function () {
+            $suggestions.suggestions().fixData();
         });
 
         // регион

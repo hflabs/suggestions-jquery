@@ -1559,8 +1559,6 @@ Suggestions.prototype = {
             })
             .fail(function () {
                 that.selection = null;
-                that.currentValue = '';
-                that.el.val(that.currentValue);
                 that.el.trigger('suggestions-fixdata');
             });
 
