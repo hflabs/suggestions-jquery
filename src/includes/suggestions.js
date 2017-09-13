@@ -510,6 +510,9 @@ Suggestions.prototype = {
         serviceUrl = utils.fixURLProtocol(serviceUrl);
 
         if ($.support.cors) {
+			// CORS request with Access-Control-Allow-Origin: * mustn't contains withCredentials
+			!params.xhrFields && (params.xhrFields = {});
+			params.xhrFields.withCredentials = false;			
             // for XMLHttpRequest put token in header
             if (token) {
                 headers['Authorization'] = 'Token ' + token;
