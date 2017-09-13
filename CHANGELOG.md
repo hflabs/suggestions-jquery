@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### 13.09.2017
+
+- Принудительный withCredentials = false для CORS-запросов
+
 ### 09.07.2017
 
 - onInvalidateSelection запускается при очистке

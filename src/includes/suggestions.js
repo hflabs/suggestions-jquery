@@ -521,7 +521,14 @@ Suggestions.prototype = {
             if (!params.headers) {
                 params.headers = {};
             }
+            if (!params.xhrFields) {
+                params.xhrFields = {};
+            }
             $.extend(params.headers, that.options.headers, headers);
+            // server sets Access-Control-Allow-Origin: *
+            // which requires no credentials
+            params.xhrFields.withCredentials = false;
+
         } else {
             // for XDomainRequest put token into URL
             if (token) {

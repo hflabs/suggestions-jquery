@@ -11,7 +11,7 @@
 	(factory(global.$));
 }(this, (function ($) { 'use strict';
 
-$ = $ && 'default' in $ ? $['default'] : $;
+$ = 'default' in $ ? $['default'] : $;
 
 var KEYS = {
         ENTER: 13,
@@ -1636,7 +1636,14 @@ Suggestions.prototype = {
             if (!params.headers) {
                 params.headers = {};
             }
+            if (!params.xhrFields) {
+                params.xhrFields = {};
+            }
             $.extend(params.headers, that.options.headers, headers);
+            // server sets Access-Control-Allow-Origin: *
+            // which requires no credentials
+            params.xhrFields.withCredentials = false;
+
         } else {
             // for XDomainRequest put token into URL
             if (token) {
