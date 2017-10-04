@@ -406,6 +406,11 @@ Suggestions.prototype = {
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
             suggestion = $.extend(true, {}, suggestion);
 
+            if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
+                that.initializer.resolve();
+                that.enable();
+            }
+
             if (that.bounds.own.length) {
                 that.checkValueBounds(suggestion);
                 data = that.copyDataComponents(suggestion.data, that.bounds.all);

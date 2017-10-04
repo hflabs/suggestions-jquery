@@ -365,6 +365,31 @@ describe('Common features', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
+    it('should initialize forced on call setSuggestion', function () {
+        var hiddenInput = document.createElement('input'),
+            $hiddenInput = $(hiddenInput).appendTo($body),
+            instance;
+
+        $hiddenInput.css({ display: 'none' });
+
+        $hiddenInput.suggestions({ type: 'ADDRESS' });
+        instance = $hiddenInput.suggestions();
+
+        // initialization is deferred until element is hidden
+        expect(instance.isUnavailable()).toEqual(true);
+        expect(instance.initializer.state()).toEqual('pending');
+
+        instance.setSuggestion({
+            data: {}
+        });
+
+        expect(instance.isUnavailable()).toEqual(false);
+        expect(instance.initializer.state()).toEqual('resolved');
+
+        instance.dispose();
+        $hiddenInput.remove();
+    });
+
     describe('onSuggestionsFetch callback', function () {
 
         beforeEach(function () {

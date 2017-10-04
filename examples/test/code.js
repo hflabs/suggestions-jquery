@@ -75,6 +75,18 @@
             bounds: 'city'
         });
 
+        // sug-798
+        var $sug798 = $('#sug-798');
+        $sug798.suggestions({
+            type: 'ADDRESS'
+        });
+        $sug798
+            .suggestions()
+            .setSuggestion({
+                value: $sug798.val(),
+                data: {}
+            });
+
     });
 
 })();

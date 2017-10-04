@@ -11,7 +11,7 @@
 	(factory(global.$));
 }(this, (function ($) { 'use strict';
 
-$ = 'default' in $ ? $['default'] : $;
+$ = $ && 'default' in $ ? $['default'] : $;
 
 var KEYS = {
         ENTER: 13,
@@ -1520,6 +1520,11 @@ Suggestions.prototype = {
 
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
             suggestion = $.extend(true, {}, suggestion);
+
+            if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
+                that.initializer.resolve();
+                that.enable();
+            }
 
             if (that.bounds.own.length) {
                 that.checkValueBounds(suggestion);
