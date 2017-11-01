@@ -1,6 +1,10 @@
 Changelog
 =========
 
+### 01.11.2017
+
+- Поддержка jQuery.noConflict()
+
 ### 13.09.2017
 
 - Принудительный withCredentials = false для CORS-запросов
