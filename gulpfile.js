@@ -36,7 +36,7 @@ gulp.task('build-script', function () {
             entry: SRC_DIR + 'main.js',
             format: 'umd',
             globals: {
-                jquery: '$'
+                jquery: 'jQuery'
             },
             external: ['jquery']
         }))
