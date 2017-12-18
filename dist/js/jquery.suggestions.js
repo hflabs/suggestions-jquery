@@ -735,8 +735,6 @@ types['NAME'] = {
         name: 'имя',
         patronymic: 'отчество'
     },
-    // try to suggest even if a suggestion has been selected manually
-    alwaysContinueSelecting: true,
     isDataComplete: function (suggestion) {
         var that = this,
             params = that.options.params,

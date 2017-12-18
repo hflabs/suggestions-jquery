@@ -3,7 +3,8 @@ Changelog
 
 ### 18.12.2017
 
-- Отключены autocorrect, autocapitalize, spellcheck
+- Отключены autocorrect, autocapitalize, spellcheck (sug-810)
+- Отключены опережающие подсказки по ФИО (sug-811)
 
 
 ### 01.11.2017
