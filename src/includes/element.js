@@ -16,6 +16,9 @@ var methods = {
         // Remove autocomplete attribute to prevent native suggestions:
         this.el
             .attr('autocomplete', 'off')
+            .attr('autocorrect', 'off')
+            .attr('autocapitalize', 'off')
+            .attr('spellcheck', 'off')
             .addClass('suggestions-input')
             .css('box-sizing', 'border-box');
     },

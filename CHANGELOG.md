@@ -1,6 +1,11 @@
 Changelog
 =========
 
+### 18.12.2017
+
+- Отключены autocorrect, autocapitalize, spellcheck
+
+
 ### 01.11.2017
 
 - Поддержка jQuery.noConflict()
