@@ -482,13 +482,7 @@ var DEFAULT_OPTIONS = {
     triggerSelectOnBlur: true,
     preventBadQueries: false,
     hint: 'Выберите вариант или продолжите ввод',
-    noSuggestionsHint: {
-        NAME:       'Неизвестное ФИО',
-        ADDRESS:    'Неизвестный адрес',
-        EMAIL:      'Неизвестная эл. почта',
-        PARTY:      'Неизвестная организация',
-        BANK:       'Неизвестный банк'
-    },
+    noSuggestionsHint: null,
     type: null,
     requestMode: 'suggest',
     count: 5,
@@ -728,6 +722,7 @@ var types = {};
 
 types['NAME'] = {
     urlSuffix: 'fio',
+    noSuggestionsHint: 'Неизвестное ФИО',
     matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
     // names for labels, describing which fields are displayed
     fieldNames: {
@@ -765,6 +760,7 @@ types['NAME'] = {
 
 types['ADDRESS'] = {
     urlSuffix: 'address',
+    noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
         $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
         $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
@@ -965,6 +961,7 @@ types['ADDRESS'] = {
 
 types['PARTY'] = {
     urlSuffix: 'party',
+    noSuggestionsHint: 'Неизвестная организация',
     matchers: [
         $.proxy(matchers.matchByFields, {
             // These fields of suggestion's `data` used by by-words matcher
@@ -1048,6 +1045,7 @@ types['PARTY'] = {
 
 types['EMAIL'] = {
     urlSuffix: 'email',
+    noSuggestionsHint: false,
     matchers: [matchers.matchByNormalizedQuery],
     isQueryRequestable: function (query) {
         return this.options.suggest_local || query.indexOf('@') >= 0;
@@ -1056,6 +1054,7 @@ types['EMAIL'] = {
 
 types['BANK'] = {
     urlSuffix: 'bank',
+    noSuggestionsHint: 'Неизвестный банк',
     matchers: [$.proxy(matchers.matchByFields, {
         // These fields of suggestion's `data` used by by-words matcher
         fieldsStopwords: {
@@ -1937,6 +1936,14 @@ Suggestions.prototype = {
         return a && b &&
             a.value === b.value &&
             utils.areSame(a.data, b.data);
+    },
+
+    getNoSuggestionsHint: function () {
+        var that = this;
+        if (that.options.noSuggestionsHint === false) {
+            return false;
+        }
+        return that.type.noSuggestionsHint || that.options.noSuggestionsHint;
     }
 
 };
@@ -2615,9 +2622,16 @@ var methods$4 = {
 
             if (that.suggestions.length) {
                 that.hide();
-                return
+                return;
             } else {
-                html.push('<div class="' + that.classes.hint + '">' + options.noSuggestionsHint[options.type] + '</div>');
+                var noSuggestionsHint = that.getNoSuggestionsHint();
+                if (noSuggestionsHint) {
+                    html.push('<div class="' + that.classes.hint + '">'
+                        + noSuggestionsHint + '</div>');
+                } else {
+                    that.hide();
+                    return;
+                }
             }
 
         } else {

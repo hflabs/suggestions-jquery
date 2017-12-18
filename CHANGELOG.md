@@ -5,6 +5,7 @@ Changelog
 
 - Отключены autocorrect, autocapitalize, spellcheck (sug-810)
 - Отключены опережающие подсказки по ФИО (sug-811)
+- Опция noSuggestionsHint = false отключает подсказку о неизвестном значении (sug-814)
 
 
 ### 01.11.2017

@@ -235,6 +235,7 @@ var types = {};
 
 types['NAME'] = {
     urlSuffix: 'fio',
+    noSuggestionsHint: 'Неизвестное ФИО',
     matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
     // names for labels, describing which fields are displayed
     fieldNames: {
@@ -272,6 +273,7 @@ types['NAME'] = {
 
 types['ADDRESS'] = {
     urlSuffix: 'address',
+    noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
         $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
         $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
@@ -472,6 +474,7 @@ types['ADDRESS'] = {
 
 types['PARTY'] = {
     urlSuffix: 'party',
+    noSuggestionsHint: 'Неизвестная организация',
     matchers: [
         $.proxy(matchers.matchByFields, {
             // These fields of suggestion's `data` used by by-words matcher
@@ -555,6 +558,7 @@ types['PARTY'] = {
 
 types['EMAIL'] = {
     urlSuffix: 'email',
+    noSuggestionsHint: false,
     matchers: [matchers.matchByNormalizedQuery],
     isQueryRequestable: function (query) {
         return this.options.suggest_local || query.indexOf('@') >= 0;
@@ -563,6 +567,7 @@ types['EMAIL'] = {
 
 types['BANK'] = {
     urlSuffix: 'bank',
+    noSuggestionsHint: 'Неизвестный банк',
     matchers: [$.proxy(matchers.matchByFields, {
         // These fields of suggestion's `data` used by by-words matcher
         fieldsStopwords: {

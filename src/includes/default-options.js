@@ -31,13 +31,7 @@ var DEFAULT_OPTIONS = {
     triggerSelectOnBlur: true,
     preventBadQueries: false,
     hint: 'Выберите вариант или продолжите ввод',
-    noSuggestionsHint: {
-        NAME:       'Неизвестное ФИО',
-        ADDRESS:    'Неизвестный адрес',
-        EMAIL:      'Неизвестная эл. почта',
-        PARTY:      'Неизвестная организация',
-        BANK:       'Неизвестный банк'
-    },
+    noSuggestionsHint: null,
     type: null,
     requestMode: 'suggest',
     count: 5,

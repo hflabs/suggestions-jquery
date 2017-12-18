@@ -824,6 +824,14 @@ Suggestions.prototype = {
         return a && b &&
             a.value === b.value &&
             utils.areSame(a.data, b.data);
+    },
+
+    getNoSuggestionsHint: function () {
+        var that = this;
+        if (that.options.noSuggestionsHint === false) {
+            return false;
+        }
+        return that.type.noSuggestionsHint || that.options.noSuggestionsHint;
     }
 
 };

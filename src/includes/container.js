@@ -205,9 +205,16 @@ var methods = {
 
             if (that.suggestions.length) {
                 that.hide();
-                return
+                return;
             } else {
-                html.push('<div class="' + that.classes.hint + '">' + options.noSuggestionsHint[options.type] + '</div>');
+                var noSuggestionsHint = that.getNoSuggestionsHint();
+                if (noSuggestionsHint) {
+                    html.push('<div class="' + that.classes.hint + '">'
+                        + noSuggestionsHint + '</div>');
+                } else {
+                    that.hide();
+                    return;
+                }
             }
 
         } else {

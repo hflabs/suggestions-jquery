@@ -6,10 +6,12 @@
         var token = Token.get(),
             type = 'ADDRESS',
             $suggestions = $('#suggestions'),
+            $email = $('#email'),
             $fixDataButton = $('#fixData'),
             $region = $('#region'),
             $city = $('#city'),
-            $street = $('#street');
+            $street = $('#street'),
+            $house = $('#house');
 
         // просто подсказки
         var suggestionsInstance = $suggestions.suggestions({
@@ -17,6 +19,7 @@
             type: type,
             hint: false,
             addon: 'clear',
+            noSuggestionsHint: false,
             onInvalidateSelection: function () {
                 console.log('ON INVALIDATE SELECTION');
             }
@@ -24,6 +27,11 @@
 
         $fixDataButton.on('click', function () {
             $suggestions.suggestions().fixData();
+        });
+
+        $email.suggestions({
+            token: token,
+            type: "EMAIL"
         });
 
         // регион
@@ -40,15 +48,7 @@
             type: type,
             hint: false,
             bounds: 'city-settlement',
-            constraints: $region,
-            formatSelected: function(suggestion) {
-                var address = suggestion.data;
-                if (address.city_with_type === address.region_with_type) {
-                    return address.settlement_with_type || '';
-                } else {
-                    return join([ address.city_with_type, address.settlement_with_type ]);
-                }
-            }
+            constraints: $region
         });
 
         // улица
@@ -58,6 +58,16 @@
             hint: false,
             bounds: 'street',
             constraints: $city
+        });
+
+        // дом
+        $house.suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'house',
+            noSuggestionsHint: false,
+            constraints: $street
         });
 
         $('#url').suggestions({
