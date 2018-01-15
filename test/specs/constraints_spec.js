@@ -667,6 +667,39 @@ describe('Address constraints', function () {
             }));
         });
 
+        it('Should remove city_fias_id from request', function () {
+            var suggestions = [
+                {
+                    value: 'г Санкт-Петербург',
+                    data: {
+                        city_fias_id: 'c2deb16a-0330-4f05-821f-1d09c93331e6',
+                        city: 'Санкт-Петербург',
+                        city_type: 'г',
+                        region_fias_id: 'c2deb16a-0330-4f05-821f-1d09c93331e6',
+                        region: 'Санкт-Петербург',
+                        region_type: 'г',
+                    }
+                }
+            ];
+
+            this.$parent.val('Санкт');
+            this.parentInstance.onValueChange();
+            this.server.respond(helpers.responseFor(suggestions));
+            this.parentInstance.selectedIndex = 0;
+            helpers.hitEnter(this.$parent);
+            this.server.respond(helpers.responseFor(suggestions));
+
+            this.instance.setOptions({
+                bounds: 'city',
+                constraints: this.$parent
+            });
+
+            this.input.value = 'кол';
+            this.instance.onValueChange();
+            var body = JSON.parse(this.server.lastRequest.requestBody);
+            expect(body.locations[0].city_fias_id).toBe(undefined);
+        });
+
     });
 
     describe('can restrict values', function () {

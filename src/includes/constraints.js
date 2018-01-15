@@ -344,6 +344,11 @@ var methods = {
                 .getFields();
 
             if (parentData) {
+                // if send city_fias_id for city request
+                // then no cities will responded
+                if (that.bounds.own.indexOf('city') > -1) {
+                    delete parentData.city_fias_id;
+                }
                 params.locations = [ parentData ];
                 params.restrict_value = true;
             }
