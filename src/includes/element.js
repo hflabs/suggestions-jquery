@@ -18,7 +18,7 @@ var methods = {
             .attr('autocomplete', 'off')
             .attr('autocorrect', 'off')
             .attr('autocapitalize', 'off')
-            .attr('spellcheck', 'off')
+            .attr('spellcheck', 'false')
             .addClass('suggestions-input')
             .css('box-sizing', 'border-box');
     },
