@@ -362,6 +362,8 @@ var methods = {
                     params.locations = locations;
                     params.restrict_value = that.options.restrict_value;
                 }
+            } else {
+                params.query = that.extendedCurrentValue();
             }
         }
 

@@ -97,6 +97,36 @@
                 data: {}
             });
 
+        // sug-500
+        $('#sug500_region').suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'region-area',
+        });
+        $('#sug500_city').suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'city-settlement',
+            constraints: $('#sug500_region'),
+        });
+        $('#sug500_street').suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'street',
+            constraints: $('#sug500_city'),
+        });
+        $('#sug500_house').suggestions({
+            token: token,
+            type: type,
+            hint: false,
+            bounds: 'house',
+            constraints: $('#sug500_street'),
+        });
+        $('#sug500_house').suggestions().fixData();
+
     });
 
 })();

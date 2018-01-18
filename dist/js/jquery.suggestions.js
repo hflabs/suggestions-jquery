@@ -1689,7 +1689,9 @@ Suggestions.prototype = {
         $.each(that.notify('requestParams'), function (i, hookParams) {
             $.extend(params, hookParams);
         });
-        params[options.paramName] = query;
+        if (!params[options.paramName]) {
+            params[options.paramName] = query;
+        }
         if ($.isNumeric(options.count) && options.count > 0) {
             params.count = options.count;
         }
@@ -3565,6 +3567,8 @@ var methods$6 = {
                     params.locations = locations;
                     params.restrict_value = that.options.restrict_value;
                 }
+            } else {
+                params.query = that.extendedCurrentValue();
             }
         }
 
