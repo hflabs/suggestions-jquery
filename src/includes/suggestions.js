@@ -404,6 +404,8 @@ Suggestions.prototype = {
             value;
 
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
+            that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
+
             suggestion = $.extend(true, {}, suggestion);
 
             if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
@@ -444,11 +446,13 @@ Suggestions.prototype = {
 
         resolver
             .done(function (suggestion) {
+                that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
                 that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
                 that.el.trigger('suggestions-fixdata', suggestion);
             })
             .fail(function () {
                 that.selection = null;
+                that.badSuggestion = true;
                 that.el.trigger('suggestions-fixdata');
             });
 
@@ -577,9 +581,7 @@ Suggestions.prototype = {
         $.each(that.notify('requestParams'), function (i, hookParams) {
             $.extend(params, hookParams);
         });
-        if (!params[options.paramName]) {
-            params[options.paramName] = query;
-        }
+        params[options.paramName] = query;
         if ($.isNumeric(options.count) && options.count > 0) {
             params.count = options.count;
         }
@@ -622,7 +624,8 @@ Suggestions.prototype = {
             if (that.isBadQuery(query)) {
                 resolver.reject();
             } else {
-                if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
+                var badSuggestion = that.badSuggestion;
+                if ((!noCallbacks && options.onSearchStart.call(that.element, params) === false) || badSuggestion) {
                     resolver.reject();
                 } else {
                     that.doGetSuggestions(params)
