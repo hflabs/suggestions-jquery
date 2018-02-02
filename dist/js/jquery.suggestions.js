@@ -1957,7 +1957,7 @@ Suggestions.prototype = {
         if (that.options.noSuggestionsHint === false) {
             return false;
         }
-        return that.type.noSuggestionsHint || that.options.noSuggestionsHint;
+        return that.options.noSuggestionsHint || that.type.noSuggestionsHint;
     }
 
 };
