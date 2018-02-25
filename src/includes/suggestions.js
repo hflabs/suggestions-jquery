@@ -404,8 +404,6 @@ Suggestions.prototype = {
             value;
 
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
-            that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
-
             suggestion = $.extend(true, {}, suggestion);
 
             if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
@@ -438,7 +436,7 @@ Suggestions.prototype = {
      * Fetch full object for current INPUT's value
      * if no suitable object found, clean input element
      */
-    fixData: function () {
+    fixData: function (doNotTriggerSelectEvent) {
         var that = this,
             fullQuery = that.extendedCurrentValue(),
             currentValue = that.el.val(),
@@ -446,14 +444,41 @@ Suggestions.prototype = {
 
         resolver
             .done(function (suggestion) {
-                that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
-                that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
-                that.el.trigger('suggestions-fixdata', suggestion);
+                var parentInstance,
+                    hasFias = true,
+                    fiasParamName,
+                    index;
+
+                if (suggestion && suggestion.data && that.bounds && that.bounds.own.indexOf('house') > -1) {
+                    hasFias = false;
+                    for (index in that.bounds.own) {
+                        fiasParamName = that.bounds.own[index];
+                        if (suggestion.data[fiasParamName + '_fias_id']) {
+                            hasFias = false;
+                            break;
+                        }
+                    }
+                }
+                if (hasFias) {
+                    that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true, doNotTriggerSelectEvent: doNotTriggerSelectEvent });
+                    that.el.trigger('suggestions-fixdata', suggestion);
+                } else {
+                    parentInstance = that.getParentInstance();
+                    if (parentInstance) {
+                        parentInstance.fixData(true);
+                    }
+                }
             })
             .fail(function () {
+                var parentInstance;
+
                 that.selection = null;
-                that.badSuggestion = true;
                 that.el.trigger('suggestions-fixdata');
+
+                parentInstance = that.getParentInstance();
+                if (parentInstance) {
+                    parentInstance.fixData(true);
+                }
             });
 
         if (that.isQueryRequestable(fullQuery)) {
@@ -624,8 +649,8 @@ Suggestions.prototype = {
             if (that.isBadQuery(query)) {
                 resolver.reject();
             } else {
-                var badSuggestion = that.badSuggestion;
-                if ((!noCallbacks && options.onSearchStart.call(that.element, params) === false) || badSuggestion) {
+                //var badSuggestion = that.isBadParentSuggestion();
+                if ((!noCallbacks && options.onSearchStart.call(that.element, params) === false)) {
                     resolver.reject();
                 } else {
                     that.doGetSuggestions(params)
@@ -836,7 +861,24 @@ Suggestions.prototype = {
         if (that.options.noSuggestionsHint === false) {
             return false;
         }
-        return that.options.noSuggestionsHint || that.type.noSuggestionsHint;
+        return that.type.noSuggestionsHint || that.options.noSuggestionsHint;
+    },
+
+    isBadParentSuggestion: function () {
+        var constraints = this.constraints,
+            parentInstance,
+            badParentSuggestion;
+
+        if (this.constraints instanceof $) {
+            parentInstance = this.constraints.suggestions();
+            badParentSuggestion = parentInstance.badSuggestion;
+        } else {
+            $.each(constraints, function (constraints) {
+
+            })
+        }
+
+        return badParentSuggestion;
     }
 
 };
