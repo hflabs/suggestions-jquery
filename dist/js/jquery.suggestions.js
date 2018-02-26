@@ -957,6 +957,15 @@ types['ADDRESS'] = {
         return this.composeValue(data, options);
     },
 
+    checkSuggestion: function (instance, suggestion) {
+        var badSuggestion = false;
+
+        if (instance.bounds && instance.bounds.own.length === 1 && instance.bounds.own[0] === 'house') {
+            badSuggestion = !!suggestion['house_fias_id'];
+        }
+        instance.badSuggestion = badSuggestion;
+    }
+
 };
 
 types['PARTY'] = {
@@ -1516,6 +1525,8 @@ Suggestions.prototype = {
             value;
 
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
+            that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
+
             suggestion = $.extend(true, {}, suggestion);
 
             if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
@@ -1548,7 +1559,7 @@ Suggestions.prototype = {
      * Fetch full object for current INPUT's value
      * if no suitable object found, clean input element
      */
-    fixData: function (doNotTriggerSelectEvent) {
+    fixData: function () {
         var that = this,
             fullQuery = that.extendedCurrentValue(),
             currentValue = that.el.val(),
@@ -1556,41 +1567,14 @@ Suggestions.prototype = {
 
         resolver
             .done(function (suggestion) {
-                var parentInstance,
-                    hasFias = true,
-                    fiasParamName,
-                    index;
-
-                if (suggestion && suggestion.data && that.bounds && that.bounds.own.indexOf('house') > -1) {
-                    hasFias = false;
-                    for (index in that.bounds.own) {
-                        fiasParamName = that.bounds.own[index];
-                        if (suggestion.data[fiasParamName + '_fias_id']) {
-                            hasFias = false;
-                            break;
-                        }
-                    }
-                }
-                if (hasFias) {
-                    that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true, doNotTriggerSelectEvent: doNotTriggerSelectEvent });
-                    that.el.trigger('suggestions-fixdata', suggestion);
-                } else {
-                    parentInstance = that.getParentInstance();
-                    if (parentInstance) {
-                        parentInstance.fixData(true);
-                    }
-                }
+                that.type && that.type.checkSuggestion && that.type.checkSuggestion(that, suggestion);
+                that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
+                that.el.trigger('suggestions-fixdata', suggestion);
             })
             .fail(function () {
-                var parentInstance;
-
                 that.selection = null;
+                that.badSuggestion = true;
                 that.el.trigger('suggestions-fixdata');
-
-                parentInstance = that.getParentInstance();
-                if (parentInstance) {
-                    parentInstance.fixData(true);
-                }
             });
 
         if (that.isQueryRequestable(fullQuery)) {
@@ -1761,8 +1745,8 @@ Suggestions.prototype = {
             if (that.isBadQuery(query)) {
                 resolver.reject();
             } else {
-                //var badSuggestion = that.isBadParentSuggestion();
-                if ((!noCallbacks && options.onSearchStart.call(that.element, params) === false)) {
+                var badSuggestion = that.badSuggestion;
+                if ((!noCallbacks && options.onSearchStart.call(that.element, params) === false) || badSuggestion) {
                     resolver.reject();
                 } else {
                     that.doGetSuggestions(params)
@@ -1973,24 +1957,7 @@ Suggestions.prototype = {
         if (that.options.noSuggestionsHint === false) {
             return false;
         }
-        return that.type.noSuggestionsHint || that.options.noSuggestionsHint;
-    },
-
-    isBadParentSuggestion: function () {
-        var constraints = this.constraints,
-            parentInstance,
-            badParentSuggestion;
-
-        if (this.constraints instanceof $) {
-            parentInstance = this.constraints.suggestions();
-            badParentSuggestion = parentInstance.badSuggestion;
-        } else {
-            $.each(constraints, function (constraints) {
-
-            });
-        }
-
-        return badParentSuggestion;
+        return that.options.noSuggestionsHint || that.type.noSuggestionsHint;
     }
 
 };
@@ -2646,31 +2613,7 @@ var methods$4 = {
      * @returns {boolean}
      */
     hasSuggestionsToChoose: function () {
-        var that = this,
-            parentInstance = that.getParentInstance(),
-            parentValue,
-            parentSelection;
-
-
-        // если в поля изначально введен несуществующий адрес
-        // то после fixData() не должны показываться подсказки домов
-        if (that.bounds.own.indexOf('house') > -1) {
-            if (parentInstance) {
-                parentValue = parentInstance.el.val().trim();
-                parentSelection = parentInstance.selection;
-
-                // обязательно проверяем чтобы в контроле было что-то введено
-                if (parentValue) {
-
-                    // если подсказка не выбрана, то не показываем выпадашку
-                    if (!parentSelection) {
-
-                        return false;
-
-                    }
-                }
-            }
-        }
+        var that = this;
 
         return that.suggestions.length > 1 ||
             (that.suggestions.length === 1 &&
@@ -3935,7 +3878,7 @@ var methods$7 = {
 
         if (that.currentValue) {
             that.selection = suggestion;
-            if (!that.areSuggestionsSame(suggestion, currentSelection) && !selectionOptions.doNotTriggerSelectEvent) {
+            if (!that.areSuggestionsSame(suggestion, currentSelection)) {
                 that.trigger('Select', suggestion, that.currentValue != lastValue);
             }
             if (that.requestMode.userSelect) {
@@ -4103,7 +4046,6 @@ var methods$8 = {
                         result[field] = data[field];
                     }
                 });
-                //result[component + '_fias_id'] = data[component + '_fias_id'];
             });
         }
 
