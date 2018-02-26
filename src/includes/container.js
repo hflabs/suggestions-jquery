@@ -182,31 +182,7 @@ var methods = {
      * @returns {boolean}
      */
     hasSuggestionsToChoose: function () {
-        var that = this,
-            parentInstance = that.getParentInstance(),
-            parentValue,
-            parentSelection;
-
-
-        // если в поля изначально введен несуществующий адрес
-        // то после fixData() не должны показываться подсказки домов
-        if (that.bounds.own.indexOf('house') > -1) {
-            if (parentInstance) {
-                parentValue = parentInstance.el.val().trim();
-                parentSelection = parentInstance.selection;
-
-                // обязательно проверяем чтобы в контроле было что-то введено
-                if (parentValue) {
-
-                    // если подсказка не выбрана, то не показываем выпадашку
-                    if (!parentSelection) {
-
-                        return false;
-
-                    }
-                }
-            }
-        }
+        var that = this;
 
         return that.suggestions.length > 1 ||
             (that.suggestions.length === 1 &&

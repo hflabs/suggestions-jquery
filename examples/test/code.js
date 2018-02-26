@@ -98,63 +98,34 @@
             });
 
         // sug-500
-        $('#sug500_region1').suggestions({
+        $('#sug500_region').suggestions({
             token: token,
             type: type,
             hint: false,
             bounds: 'region-area',
         });
-        $('#sug500_city1').suggestions({
+        $('#sug500_city').suggestions({
             token: token,
             type: type,
             hint: false,
             bounds: 'city-settlement',
-            constraints: $('#sug500_region1'),
+            constraints: $('#sug500_region'),
         });
-        $('#sug500_street1').suggestions({
+        $('#sug500_street').suggestions({
             token: token,
             type: type,
             hint: false,
             bounds: 'street',
-            constraints: $('#sug500_city1'),
+            constraints: $('#sug500_city'),
         });
-        $('#sug500_house1').suggestions({
+        $('#sug500_house').suggestions({
             token: token,
             type: type,
             hint: false,
             bounds: 'house',
-            constraints: $('#sug500_street1'),
+            constraints: $('#sug500_street'),
         });
-        $('#sug500_house1').suggestions().fixData();
-
-        $('#sug500_region2').suggestions({
-            token: token,
-            type: type,
-            hint: false,
-            bounds: 'region-area',
-        });
-        $('#sug500_city2').suggestions({
-            token: token,
-            type: type,
-            hint: false,
-            bounds: 'city-settlement',
-            constraints: $('#sug500_region2'),
-        });
-        $('#sug500_street2').suggestions({
-            token: token,
-            type: type,
-            hint: false,
-            bounds: 'street',
-            constraints: $('#sug500_city2'),
-        });
-        $('#sug500_house2').suggestions({
-            token: token,
-            type: type,
-            hint: false,
-            bounds: 'house',
-            constraints: $('#sug500_street2'),
-        });
-        $('#sug500_house2').suggestions().fixData();
+        $('#sug500_house').suggestions().fixData();
 
     });
 

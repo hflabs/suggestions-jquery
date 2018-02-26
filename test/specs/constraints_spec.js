@@ -652,7 +652,7 @@ describe('Address constraints', function () {
             this.input.value = 'г Узловая, поселок Брусянский, ул Строителей, д 1-бара';
 
             this.instance.setOptions({
-                bounds: 'city-street',
+                bounds: 'city-',
                 constraints: this.$parent
             });
 

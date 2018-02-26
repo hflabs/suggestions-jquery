@@ -118,7 +118,7 @@ var methods = {
                     if (data[field] != null) {
                         result[field] = data[field];
                     }
-                });
+                })
             });
         }
 

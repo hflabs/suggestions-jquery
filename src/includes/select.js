@@ -177,7 +177,7 @@ var methods = {
 
         if (that.currentValue) {
             that.selection = suggestion;
-            if (!that.areSuggestionsSame(suggestion, currentSelection) && !selectionOptions.doNotTriggerSelectEvent) {
+            if (!that.areSuggestionsSame(suggestion, currentSelection)) {
                 that.trigger('Select', suggestion, that.currentValue != lastValue);
             }
             if (that.requestMode.userSelect) {
