@@ -4103,7 +4103,6 @@ var methods$8 = {
                         result[field] = data[field];
                     }
                 });
-                //result[component + '_fias_id'] = data[component + '_fias_id'];
             });
         }
 
