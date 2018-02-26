@@ -11,6 +11,7 @@ import {} from './includes/addon';
 import {} from './includes/constraints';
 import {} from './includes/select';
 import {} from './includes/bounds';
+import {} from './includes/promo';
 
 import { DATA_ATTR_KEY } from './includes/constants';
 import { DEFAULT_OPTIONS } from './includes/default-options';

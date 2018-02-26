@@ -188,3 +188,22 @@
   border-top: 1px solid rgba(0, 0, 0, 0.4);
   content: '';
 }
+.suggestions-promo {
+  font-size: 85%;
+  color: #777;
+  padding: 4px 4px 6px 4px;
+}
+.suggestions-promo a {
+  color: #777;
+  display: block;
+  filter: grayscale(100%);
+  line-height: 20px;
+  text-decoration: none;
+}
+.suggestions-promo a:hover {
+  filter: grayscale(0);
+}
+.suggestions-promo svg {
+  height: 20px;
+  vertical-align: bottom;
+}

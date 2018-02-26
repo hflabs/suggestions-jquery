@@ -1,7 +1,8 @@
 import $ from 'jquery';
 
-import { utils } from './utils';
+import { CLASSES } from './constants';
 import { DEFAULT_OPTIONS } from './default-options';
+import { utils } from './utils';
 import { Suggestions } from './suggestions';
 import { notificator } from './notificator';
 
@@ -68,6 +69,10 @@ var methods = {
         that.$container = $container;
 
         $container.on('click' + EVENT_NS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
+    },
+
+    getContainer: function() {
+        return this.$container.get(0);
     },
 
     removeContainer: function () {
@@ -219,32 +224,22 @@ var methods = {
 
         } else {
 
-            formatResult = options.formatResult || that.type.formatResult || that.formatResult;
-
             // Build hint html
             if (!that.isMobile && options.hint && that.suggestions.length) {
                 html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
             }
             that.selectedIndex = -1;
             // Build suggestions inner HTML:
-            $.each(that.suggestions, function (i, suggestion) {
-                var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
-
+            that.suggestions.forEach(function(suggestion, i) {
                 if (suggestion == that.selection) {
                     that.selectedIndex = i;
                 }
-
-                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
-                html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
-                    unformattableTokens: that.type.unformattableTokens
-                }));
-                if (labels) {
-                    html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
-                }
-                html.push('</div>');
+                that.buildSuggestionHtml(suggestion, i, html);
             });
-
         }
+
+        html.push('<div class="' + CLASSES.promo + '"></div>');
+        html.push('</div>');
 
         that.$container.html(html.join(''));
 
@@ -264,6 +259,23 @@ var methods = {
         that.visible = true;
         that.fixPosition();
         that.setItemsPositions();
+    },
+
+    buildSuggestionHtml: function(suggestion, ordinal, html) {
+        html.push('<div class="' + this.classes.suggestion + '" data-index="' + ordinal + '">');
+        
+        var formatResult = this.options.formatResult 
+            || this.type.formatResult 
+            || this.formatResult;
+        html.push(formatResult.call(this, suggestion.value, this.currentValue, suggestion, {
+            unformattableTokens: this.type.unformattableTokens
+        }));
+
+        var labels = this.makeSuggestionLabel(this.suggestions, suggestion);
+        if (labels) {
+            html.push('<span class="' + this.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+        }
+        html.push('</div>');
     },
 
     wrapFormattedValue: function (value, suggestion) {

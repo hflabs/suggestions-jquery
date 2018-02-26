@@ -14,13 +14,29 @@
 $ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
 var KEYS = {
-        ENTER: 13,
-        ESC:   27,
-        TAB:   9,
-        SPACE: 32,
-        UP:    38,
-        DOWN:  40
-    };
+    ENTER: 13,
+    ESC:   27,
+    TAB:   9,
+    SPACE: 32,
+    UP:    38,
+    DOWN:  40
+};
+
+var CLASSES = {
+    hint: 'suggestions-hint',
+    mobile: 'suggestions-mobile',
+    nowrap: 'suggestions-nowrap',
+    promo: 'suggestions-promo',
+    selected: 'suggestions-selected',
+    suggestion: 'suggestions-suggestion',
+    subtext: 'suggestions-subtext',
+    subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
+    subtext_delimiter: 'suggestions-subtext-delimiter',
+    subtext_label: 'suggestions-subtext suggestions-subtext_label',
+    removeConstraint: 'suggestions-remove',
+    value: 'suggestions-value'
+};
+
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
@@ -1187,19 +1203,7 @@ function Suggestions(el, options) {
     that.triggering = {};
     that.$wrapper = null;
     that.options = $.extend({}, DEFAULT_OPTIONS, options);
-    that.classes = {
-        hint: 'suggestions-hint',
-        mobile: 'suggestions-mobile',
-        nowrap: 'suggestions-nowrap',
-        selected: 'suggestions-selected',
-        suggestion: 'suggestions-suggestion',
-        subtext: 'suggestions-subtext',
-        subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
-        subtext_delimiter: 'suggestions-subtext-delimiter',
-        subtext_label: 'suggestions-subtext suggestions-subtext_label',
-        removeConstraint: 'suggestions-remove',
-        value: 'suggestions-value'
-    };
+    that.classes = CLASSES;
     that.disabled = false;
     that.selection = null;
     that.$viewport = $(window);
@@ -2487,6 +2491,10 @@ var methods$4 = {
         $container.on('click' + EVENT_NS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
     },
 
+    getContainer: function() {
+        return this.$container.get(0);
+    },
+
     removeContainer: function () {
         var that = this;
 
@@ -2636,32 +2644,22 @@ var methods$4 = {
 
         } else {
 
-            formatResult = options.formatResult || that.type.formatResult || that.formatResult;
-
             // Build hint html
             if (!that.isMobile && options.hint && that.suggestions.length) {
                 html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
             }
             that.selectedIndex = -1;
             // Build suggestions inner HTML:
-            $.each(that.suggestions, function (i, suggestion) {
-                var labels = that.makeSuggestionLabel(that.suggestions, suggestion);
-
+            that.suggestions.forEach(function(suggestion, i) {
                 if (suggestion == that.selection) {
                     that.selectedIndex = i;
                 }
-
-                html.push('<div class="' + that.classes.suggestion + '" data-index="' + i + '">');
-                html.push(formatResult.call(that, suggestion.value, that.currentValue, suggestion, {
-                    unformattableTokens: that.type.unformattableTokens
-                }));
-                if (labels) {
-                    html.push('<span class="' + that.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
-                }
-                html.push('</div>');
+                that.buildSuggestionHtml(suggestion, i, html);
             });
-
         }
+
+        html.push('<div class="' + CLASSES.promo + '"></div>');
+        html.push('</div>');
 
         that.$container.html(html.join(''));
 
@@ -2681,6 +2679,23 @@ var methods$4 = {
         that.visible = true;
         that.fixPosition();
         that.setItemsPositions();
+    },
+
+    buildSuggestionHtml: function(suggestion, ordinal, html) {
+        html.push('<div class="' + this.classes.suggestion + '" data-index="' + ordinal + '">');
+        
+        var formatResult = this.options.formatResult 
+            || this.type.formatResult 
+            || this.formatResult;
+        html.push(formatResult.call(this, suggestion.value, this.currentValue, suggestion, {
+            unformattableTokens: this.type.unformattableTokens
+        }));
+
+        var labels = this.makeSuggestionLabel(this.suggestions, suggestion);
+        if (labels) {
+            html.push('<span class="' + this.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+        }
+        html.push('</div>');
     },
 
     wrapFormattedValue: function (value, suggestion) {
@@ -4062,6 +4077,14 @@ notificator
     .on('initialize', methods$8.setupBounds)
     .on('setOptions', methods$8.setBoundsOptions)
     .on('requestParams', methods$8.constructBoundsParams);
+
+/**
+ * DOM querying abstractions.
+ */
+
+// currently promo is disabled
+// notificator
+// .on('assignSuggestions', show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 

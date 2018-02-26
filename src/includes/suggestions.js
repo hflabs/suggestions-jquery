@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import { utils } from './utils';
 import { types } from './types';
-import { EVENT_NS, DATA_ATTR_KEY } from './constants';
+import { CLASSES, DATA_ATTR_KEY, EVENT_NS } from './constants';
 import { DEFAULT_OPTIONS } from './default-options';
 import { notificator } from './notificator';
 
@@ -75,19 +75,7 @@ function Suggestions(el, options) {
     that.triggering = {};
     that.$wrapper = null;
     that.options = $.extend({}, DEFAULT_OPTIONS, options);
-    that.classes = {
-        hint: 'suggestions-hint',
-        mobile: 'suggestions-mobile',
-        nowrap: 'suggestions-nowrap',
-        selected: 'suggestions-selected',
-        suggestion: 'suggestions-suggestion',
-        subtext: 'suggestions-subtext',
-        subtext_inline: 'suggestions-subtext suggestions-subtext_inline',
-        subtext_delimiter: 'suggestions-subtext-delimiter',
-        subtext_label: 'suggestions-subtext suggestions-subtext_label',
-        removeConstraint: 'suggestions-remove',
-        value: 'suggestions-value'
-    };
+    that.classes = CLASSES;
     that.disabled = false;
     that.selection = null;
     that.$viewport = $(window);

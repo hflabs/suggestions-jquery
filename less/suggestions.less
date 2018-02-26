@@ -141,7 +141,7 @@
     padding: 4px 4px;
     white-space: nowrap;
     overflow: hidden;
-    color: #777;
+    color: @subtext-color;
     font-size: 85%;
 }
 
@@ -239,5 +239,25 @@
 
             content: '';
         }
+    }
+}
+
+.suggestions-promo {
+    font-size: 85%;
+    color: @subtext-color;
+    padding: 4px 4px 6px 4px;
+    a {
+        color: @subtext-color;
+        display: block;
+        filter: grayscale(100%);
+        line-height: 20px;
+        text-decoration: none;
+    }
+    a:hover {
+        filter: grayscale(0);
+    }
+    svg {
+        height: 20px;
+        vertical-align: bottom;
     }
 }
