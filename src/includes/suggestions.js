@@ -577,9 +577,7 @@ Suggestions.prototype = {
         $.each(that.notify('requestParams'), function (i, hookParams) {
             $.extend(params, hookParams);
         });
-        if (!params[options.paramName]) {
-            params[options.paramName] = query;
-        }
+        params[options.paramName] = query;
         if ($.isNumeric(options.count) && options.count > 0) {
             params.count = options.count;
         }
