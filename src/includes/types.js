@@ -468,15 +468,6 @@ types['ADDRESS'] = {
         var data = instance.copyDataComponents(suggestion.data, instance.bounds.own.concat(['city_district_fias_id']));
 
         return this.composeValue(data, options);
-    },
-
-    checkSuggestion: function (instance, suggestion) {
-        var badSuggestion = false;
-
-        if (instance.bounds && instance.bounds.own.length === 1 && instance.bounds.own[0] === 'house') {
-            badSuggestion = !!suggestion['house_fias_id'];
-        }
-        instance.badSuggestion = badSuggestion;
     }
 
 };
