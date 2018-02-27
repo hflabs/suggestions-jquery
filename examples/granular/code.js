@@ -101,6 +101,15 @@
             constraints: $street
         });
 
+        $('#name').suggestions({
+            serviceUrl: serviceUrl,
+            token: token,
+            type: "NAME",
+            params: {
+              parts: ["NAME"]
+            }
+        });
+
     });
 
 })(jQuery);

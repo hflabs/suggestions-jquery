@@ -1,6 +1,6 @@
-import $ from 'jquery';
-
+import { jqapi } from './jqapi';
 import { notificator } from './notificator';
+import { utils } from './utils';
 import { Suggestions } from './suggestions';
 
 /**
@@ -11,8 +11,8 @@ import { Suggestions } from './suggestions';
 var statusRequests = {};
 
 function resetTokens () {
-    $.each(statusRequests, function(){
-        this.abort();
+    utils.each(statusRequests, function(req) {
+        req.abort();
     });
     statusRequests = {};
 }
@@ -23,18 +23,18 @@ var methods = {
 
     checkStatus: function () {
         var that = this,
-            token = $.trim(that.options.token),
+            token = that.options.token && that.options.token.trim() || '',
             requestKey = that.options.type + token,
             request = statusRequests[requestKey];
 
         if (!request) {
-            request = statusRequests[requestKey] = $.ajax(that.getAjaxParams('status'));
+            request = statusRequests[requestKey] = jqapi.ajax(that.getAjaxParams('status'));
         }
 
         request
             .done(function(status){
                 if (status.search) {
-                    $.extend(that.status, status);
+                    jqapi.extend(that.status, status);
                 } else {
                     triggerError('Service Unavailable');
                 }
@@ -45,7 +45,7 @@ var methods = {
 
         function triggerError(errorThrown){
             // If unauthorized
-            if ($.isFunction(that.options.onSearchError)) {
+            if (utils.isFunction(that.options.onSearchError)) {
                 that.options.onSearchError.call(that.element, null, request, 'error', errorThrown);
             }
         }
@@ -55,7 +55,7 @@ var methods = {
 
 Suggestions.resetTokens = resetTokens;
 
-$.extend(Suggestions.prototype, methods);
+jqapi.extend(Suggestions.prototype, methods);
 
 notificator
     .on('setOptions', methods.checkStatus);

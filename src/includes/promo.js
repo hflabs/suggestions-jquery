@@ -1,9 +1,9 @@
 import { CLASSES } from './constants';
 import { notificator } from './notificator';
-import { domq } from './domq';
+import { dom } from './dom';
 
 /**
- * Promo link for displaying in suggestions list.
+ * Промо-ссылка в списке подсказок.
  */
 var LINK = 'https://dadata.ru/suggestions';
 var PREFIX = 'Подсказывает ';
@@ -15,12 +15,12 @@ function getHtml() {
 }
 
 function show() {
-    var promo = domq.byClass(CLASSES.promo, this.getContainer());
+    var promo = dom.selectByClass(CLASSES.promo, this.getContainer());
     if (promo) {
         promo.innerHTML = getHtml();
     }
 }
 
-// currently promo is disabled
+// Отключено, пока не будет механизма определения платный/бесплатный тариф
 // notificator
 // .on('assignSuggestions', show);

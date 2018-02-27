@@ -6,7 +6,7 @@ import { utils } from './utils';
 import { Suggestions } from './suggestions';
 import { notificator } from './notificator';
 
-import { EVENT_NS, WORD_SPLITTER, WORD_PARTS_DELIMITERS } from './constants';
+import { EVENT_NS, WORD_PARTS_DELIMITERS } from './constants';
 
 /**
  * Methods related to suggestions dropdown list

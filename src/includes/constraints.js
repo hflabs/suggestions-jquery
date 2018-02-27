@@ -65,7 +65,7 @@ var ConstraintLocation = function(data, instance){
         });
     }
 
-    fieldNames = utils.objectKeys(that.fields);
+    fieldNames = Object.keys(that.fields);
     fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
     if (fiasFieldNames.length) {
         $.each(fiasFieldNames, function(index, fieldName) {

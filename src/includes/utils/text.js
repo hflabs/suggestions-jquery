@@ -1,0 +1,125 @@
+import { WORD_DELIMITERS, WORD_PARTS_DELIMITERS } from '../constants';
+import { collection_util } from './collection';
+
+/**
+ * Утилиты для работы с текстом.
+ */
+
+var WORD_SPLITTER = new RegExp('[' + WORD_DELIMITERS + ']+', 'g');
+var WORD_PARTS_SPLITTER = new RegExp('[' + WORD_PARTS_DELIMITERS + ']+', 'g');
+
+var text_util = {
+    /**
+     * Заменяет амперсанд, угловые скобки и другие подобные символы
+     * на HTML-коды
+     */
+    escapeHtml: function (str) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
+
+        if (str) {
+            collection_util.each(map, function(html, ch){
+                str = str.replace(new RegExp(ch, 'g'), html);
+            });
+        }
+        return str;
+    },
+
+    /**
+     * Эскейпирует символы RegExp-шаблона обратным слешем
+     * (для передачи в конструктор регулярных выражений)
+     */
+    escapeRegExChars: function (value) {
+        return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    },    
+
+    /**
+     * Приводит слово к нижнему регистру и заменяет ё → е
+     */
+    formatToken: function (token) {
+        return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
+    },
+
+    /**
+     * Возвращает регулярное выражение для разбивки строки на слова
+     */
+    getWordExtractorRegExp: function () {
+        return new RegExp('([^' + WORD_DELIMITERS + ']*)([' + WORD_DELIMITERS + ']*)', 'g');
+    },
+
+    /**
+     * Вырезает из строки стоп-слова
+     */
+    normalize: function(str, stopwords) {
+        return text_util.split(str, stopwords).join(' ');
+    },
+
+    /**
+     * Разбивает строку на слова.
+     * Отсеивает стоп-слова из списка.
+     */
+    split: function(str, stopwords) {
+        // Split numbers and letters written together
+        str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
+            .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
+
+        var words = collection_util.compact(str.split(WORD_SPLITTER)),
+            lastWord = words.pop(),
+            goodWords = collection_util.minus(words, stopwords);
+
+        goodWords.push(lastWord);
+        return goodWords;
+    },
+
+    /**
+     * Проверяет, включает ли строка 1 строку 2.
+     * Если строки равны, возвращает false.
+     */
+    stringEncloses: function(str1, str2) {
+        return str1.length > str2.length && str1.indexOf(str2) !== -1;
+    },
+
+    /**
+     * Возвращает список слов из строки.
+     * При этом первыми по порядку идут «предпочтительные» слова
+     * (те, что не входят в список «нежелательных»).
+     * Составные слова тоже разбивает на части.
+     * @param {string} value - строка
+     * @param {Array} unformattableTokens - «нежелательные» слова
+     * @return {Array} Массив атомарных слов
+     */
+    tokenize: function(value, unformattableTokens) {
+        var tokens = collection_util.compact(text_util.formatToken(value).split(WORD_SPLITTER));
+        // Move unformattableTokens to the end.
+        // This will help to apply them only if no other tokens match
+        var preferredTokens = collection_util.minus(tokens, unformattableTokens);
+        var otherTokens = collection_util.minus(tokens, preferredTokens);
+        tokens = text_util.withSubTokens(preferredTokens.concat(otherTokens));
+        return tokens;
+    },
+    
+    /**
+     * Разбивает составные слова на части.
+     * @param {Array} tokens - слова
+     * @return {Array} Массив атомарных слов
+     */
+    withSubTokens: function (tokens) {
+        var result = [];
+        collection_util.each(tokens, function (token, i) {
+            var subtokens = token.split(WORD_PARTS_SPLITTER);
+            result.push(token);
+            if (subtokens.length > 1) {
+                result = result.concat(collection_util.compact(subtokens));
+            }
+        });
+        return result;
+    }
+};
+
+export { text_util };

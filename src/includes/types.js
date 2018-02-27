@@ -1,10 +1,9 @@
-import $ from 'jquery';
-
-import { utils } from './utils';
-import { matchers } from './matchers';
 import { DEFAULT_OPTIONS } from './default-options';
-
 import { WORD_DELIMITERS } from './constants';
+import { jqapi } from './jqapi';
+import { matchers } from './matchers';
+import { utils } from './utils';
+
 
 /**
  * Type is a bundle of properties:
@@ -249,11 +248,11 @@ types['NAME'] = {
             data = suggestion.data,
             fields;
 
-        if ($.isFunction(params)) {
+        if (utils.isFunction(params)) {
             params = params.call(that.element, suggestion.value);
         }
         if (params && params.parts) {
-            fields = $.map(params.parts, function (part) {
+            fields = params.parts.map(function (part) {
                 return part.toLowerCase();
             });
         } else {
@@ -275,8 +274,8 @@ types['ADDRESS'] = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
-        $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-        $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
+        jqapi.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
+        jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
     ],
     dataComponents: ADDRESS_COMPONENTS,
     dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
@@ -287,7 +286,7 @@ types['ADDRESS'] = {
         var fields = [this.bounds.to || 'flat'],
             data = suggestion.data;
 
-        return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
+        return !utils.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
     composeValue: function (data, options) {
         var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
@@ -337,9 +336,9 @@ types['ADDRESS'] = {
         var componentsUnderCityDistrict = [],
             _underCityDistrict = false;
 
-        $.each(ADDRESS_COMPONENTS, function () {
-            if (_underCityDistrict) componentsUnderCityDistrict.push(this.id);
-            if (this.id === 'city_district') _underCityDistrict = true;
+        ADDRESS_COMPONENTS.forEach(function (component) {
+            if (_underCityDistrict) componentsUnderCityDistrict.push(component.id);
+            if (component.id === 'city_district') _underCityDistrict = true;
         });
 
         return function (value, currentValue, suggestion, options) {
@@ -365,7 +364,7 @@ types['ADDRESS'] = {
             value = that.wrapFormattedValue(value, suggestion);
 
             if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                && !$.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
+                && !utils.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
                 value +=
                     '<div class="' + that.classes.subtext + '">' +
                     that.highlightMatches(district, currentValue, suggestion) +
@@ -476,7 +475,7 @@ types['PARTY'] = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
-        $.proxy(matchers.matchByFields, {
+        jqapi.proxy(matchers.matchByFields, {
             // These fields of suggestion's `data` used by by-words matcher
             fieldsStopwords: {
                 'value': null,
@@ -536,7 +535,7 @@ types['PARTY'] = {
             formattedInn = that.highlightMatches(inn, currentValue, suggestion);
             if (innPartsLength) {
                 formattedInn = formattedInn.split('');
-                innParts = $.map(innPartsLength, function (partLength) {
+                innParts = innPartsLength.map(function (partLength) {
                     var formattedPart = '',
                         ch;
 
@@ -568,7 +567,7 @@ types['EMAIL'] = {
 types['BANK'] = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
-    matchers: [$.proxy(matchers.matchByFields, {
+    matchers: [jqapi.proxy(matchers.matchByFields, {
         // These fields of suggestion's `data` used by by-words matcher
         fieldsStopwords: {
             'value': null,
@@ -612,7 +611,7 @@ types['BANK'] = {
     }
 };
 
-$.extend(DEFAULT_OPTIONS, {
+jqapi.extend(DEFAULT_OPTIONS, {
     suggest_local: true
 });
 

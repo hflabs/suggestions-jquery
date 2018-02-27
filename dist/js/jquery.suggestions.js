@@ -11,7 +11,232 @@
 	(factory(global.jQuery));
 }(this, (function ($) { 'use strict';
 
-$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
+$ = $ && 'default' in $ ? $['default'] : $;
+
+/**
+ * Утилиты для работы с типами.
+ */
+var lang_util = {
+    /**
+     * Проверяет, является ли аргумент массивом.
+     */
+    isArray: function(array) {
+        return Array.isArray(array);
+    },
+
+    /**
+     * Проверяет, является ли аргумент функцией.
+     */
+    isFunction: function(it) {
+        return Object.prototype.toString.call(it) === '[object Function]';
+    },
+    
+    /**
+     * Проверяет, является ли аргумент пустым объектом ({}).
+     */
+    isEmptyObject: function(obj) {
+        return Object.keys(obj).length === 0 && obj.constructor === Object;
+    },
+
+    /**
+     * Проверяет, является ли аргумент «обычным» объектом
+     * (не undefiend, не null, не DOM-элемент)
+     */
+    isPlainObject: function(obj) {
+      if (obj === undefined
+          || typeof (obj) !== 'object' 
+          || obj === null
+          || obj.nodeType 
+          || obj === obj.window) {
+        return false;
+      }
+      if (obj.constructor && !Object.prototype.hasOwnProperty.call(obj.constructor.prototype, 'isPrototypeOf')) {
+        return false;
+      }
+      return true;
+    }
+};
+
+/**
+ * Утилиты для работы с коллекциями.
+ */
+var collection_util = {
+    /**
+     * Функция-обработчик для итератора. Принимает ключ и значение элемента.
+     * 
+     * @callback eachCallback
+     * @param key - ключ
+     * @param value - значение
+     */ 
+
+    /**
+     * Возвращает массив без пустых элементов
+     */
+    compact: function (array) {
+        return array.filter(function (el) {
+            return !!el;
+        });
+    },
+
+    /**
+     * Итерирует по элементам массива или полям объекта.
+     * Ведёт себя как $.each() - прерывает выполнение, если функция-обработчик возвращает false.
+     * @param {Object|Array} obj - массив или объект
+     * @param {eachCallback} callback - функция-обработчик
+     */
+    each: function(obj, callback) {
+        if (Array.isArray(obj)) {
+            obj.some(function(el, idx) {
+                return callback(el, idx) === false;
+            });
+            return;
+        }
+        Object.keys(obj).some(function(key) {
+            var value = obj[key];
+            return callback(value, key) === false;
+        });
+    },
+
+    /**
+     * Пересечение массивов: ([1,2,3,4], [2,4,5,6]) => [2,4]
+     * Исходные массивы не меняются.
+     */
+    intersect: function(array1, array2) {
+        var result = [];
+        if (!Array.isArray(array1) || !Array.isArray(array2)) {
+            return result;
+        }
+        return array1.filter(function(el) {
+            return array2.indexOf(el) !== -1;
+        });
+    },
+    
+    /**
+     * Разность массивов: ([1,2,3,4], [2,4,5,6]) => [1,3]
+     * Исходные массивы не меняются.
+     */
+    minus: function(array1, array2) {
+        if (!array2 || array2.length === 0) {
+            return array1;
+        }
+        return array1.filter(function(el) {
+            return array2.indexOf(el) === -1;
+        });
+    },
+
+    /**
+     * Обрачивает переданный объект в массив.
+     * Если передан массив, возвращает его копию.
+     */
+    makeArray: function(arrayLike) {
+        if (lang_util.isArray(arrayLike)) {
+            return Array.prototype.slice.call(arrayLike);
+        } else {
+            return [arrayLike];
+        }
+    },
+
+    /**
+     * Разность массивов с частичным совпадением элементов.
+     * Если элемент второго массива включает в себя элемент первого,
+     * элементы считаются равными.
+     */
+    minusWithPartialMatching: function(array1, array2) {
+        if (!array2 || array2.length === 0) {
+            return array1;
+        }
+        return array1.filter(function(el) {
+            return !array2.some(function(el2) {
+                return el2.indexOf(el) === 0;
+            })
+        });
+    },
+
+    /**
+     * Копирует массив, начиная с указанного элемента.
+     * @param obj - массив
+     * @param start - индекс, начиная с которого надо скопировать
+     */
+    slice: function(obj, start) {
+        return Array.prototype.slice.call(obj, start);
+    }
+    
+};
+
+/**
+ * Утилиты для работы с функциями.
+ */
+var func_util = {
+    /**
+     * Выполняет функцию с указанной задержкой.
+     * @param {Function} handler - функция
+     * @param {number} delay - задержка в миллисекундах
+     */
+    delay: function (handler, delay) {
+        return setTimeout(handler, delay || 0);
+    }
+};
+
+/**
+ * Утилиты для работы с объектами.
+ */
+var object_util = {
+    /**
+     * Сравнивает два объекта по полям, которые присутствуют в обоих
+     * @returns {boolean} true, если поля совпадают, false в противном случае
+     */
+    areSame: function self(a, b) {
+        var same = true;
+
+        if (typeof a != typeof b) {
+            return false;
+        }
+
+        if (typeof a == 'object' && a != null && b != null) {
+            collection_util.each(a, function (value, i) {
+                return same = self(value, b[i]);
+            });
+            return same;
+        }
+
+        return a === b;
+    },
+
+    /**
+     * Клонирует объект глубоким копированием
+     */
+    clone: function(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    },
+
+    /**
+     * Возвращает копию объекта без пустых полей
+     * (без undefined, null и '')
+     * @param obj
+     */
+    compact: function(obj) {
+        var copy = object_util.clone(obj);
+
+        collection_util.each(copy, function (val, key) {
+            if (val === null || val === undefined || val === '') {
+                delete copy[key];
+            }
+        });
+
+        return copy;
+    },
+
+    /**
+     * Возвращает вложенное значение по указанному пути
+     * например, 'data.address.value'
+     */
+    getDeepValue: function self(obj, name) {
+        var path = name.split('.'),
+            step = path.shift();
+
+        return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
+    }
+};
 
 var KEYS = {
     ENTER: 13,
@@ -40,260 +265,348 @@ var CLASSES = {
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
-var WORD_SPLITTER = new RegExp('[' + WORD_DELIMITERS + ']+', 'g');
 var WORD_PARTS_DELIMITERS = '\\-\\+\\/\\\\\\?!@#$%^&';
+
+/**
+ * Утилиты для работы с текстом.
+ */
+
+var WORD_SPLITTER = new RegExp('[' + WORD_DELIMITERS + ']+', 'g');
 var WORD_PARTS_SPLITTER = new RegExp('[' + WORD_PARTS_DELIMITERS + ']+', 'g');
 
-var utils = (function () {
-    var uniqueId = 0;
-    return {
-        escapeRegExChars: function (value) {
-            return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-        },
-        escapeHtml: function (str) {
-            var map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#x27;',
-                '/': '&#x2F;'
-            };
+var text_util = {
+    /**
+     * Заменяет амперсанд, угловые скобки и другие подобные символы
+     * на HTML-коды
+     */
+    escapeHtml: function (str) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
 
-            if (str) {
-                $.each(map, function(ch, html){
-                    str = str.replace(new RegExp(ch, 'g'), html);
-                });
-            }
-            return str;
-        },
-        getDefaultType: function () {
-            return ($.support.cors ? 'POST' : 'GET');
-        },
-        getDefaultContentType: function () {
-            return ($.support.cors ? 'application/json' : 'application/x-www-form-urlencoded');
-        },
-        fixURLProtocol: function(url){
-            return $.support.cors ? url : url.replace(/^https?:/, location.protocol);
-        },
-        addUrlParams: function (url, params) {
-            return url + (/\?/.test(url) ? '&' : '?') + $.param(params);
-        },
-        serialize: function (data) {
-            if ($.support.cors) {
-                return JSON.stringify(data, function (key, value) {
-                    return value === null ? undefined : value;
-                });
-            } else {
-                data = this.compactObject(data);
-                return $.param(data, true);
-            }
-        },
-        compact: function (array) {
-            return $.grep(array, function (el) {
-                return !!el;
+        if (str) {
+            collection_util.each(map, function(html, ch){
+                str = str.replace(new RegExp(ch, 'g'), html);
             });
-        },
-        delay: function (handler, delay) {
-            return setTimeout(handler, delay || 0);
-        },
-        uniqueId: function (prefix) {
-            return (prefix || '') + ++uniqueId;
-        },
-        slice: function(obj, start) {
-            return Array.prototype.slice.call(obj, start);
-        },
-        indexBy: function (data, field, indexField) {
-            var result = {};
-
-            $.each(data, function (i, obj) {
-                var key = obj[field],
-                    val = {};
-
-                if (indexField) {
-                    val[indexField] = i;
-                }
-
-                result[key] = $.extend(true, val, obj);
-            });
-
-            return result;
-        },
-
-        /**
-         * Compares two objects, but only fields that are set in both
-         * @param a
-         * @param b
-         * @returns {boolean}
-         */
-        areSame: function self(a, b) {
-            var same = true;
-
-            if (typeof a != typeof b) {
-                return false;
-            }
-
-            if (typeof a == 'object' && a != null && b != null) {
-                $.each(a, function (i, value) {
-                    return same = self(value, b[i]);
-                });
-                return same;
-            }
-
-            return a === b;
-        },
-
-        /**
-         * Returns array1 minus array2
-         */
-        arrayMinus: function(array1, array2) {
-            return array2 ? $.grep(array1, function(el, i){
-                return $.inArray(el, array2) === -1;
-            }) : array1;
-        },
-        /**
-         * Returns array1 minus array2
-         * if value in array1 in enclosed by value in array2, it is considered a match
-         */
-        arrayMinusWithPartialMatching: function(array1, array2) {
-            return array2 ? $.grep(array1, function(el, i){
-                return !array2.some(function(el2) {
-                    return el2.indexOf(el) === 0;
-                })
-            }) : array1;
-        },
-        /**
-         * Пересечение массивов: ([1,2,3,4], [2,4,5,6]) => [2,4]
-         * Исходные массивы не меняются
-         * @param {Array} array1
-         * @param {Array} array2
-         * @returns {Array}
-         */
-        arraysIntersection: function(array1, array2) {
-            var result = [];
-            if (!$.isArray(array1) || !$.isArray(array2)) {
-                return result;
-            }
-            $.each(array1, function(index, item) {
-                if ($.inArray(item, array2) >= 0) {
-                    result.push(item);
-                }
-            });
-            return result;
-        },
-        getWords: function(str, stopwords) {
-            // Split numbers and letters written together
-            str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
-                .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
-
-            var words = this.compact(str.split(WORD_SPLITTER)),
-                lastWord = words.pop(),
-                goodWords = this.arrayMinus(words, stopwords);
-
-            goodWords.push(lastWord);
-            return goodWords;
-        },
-        /**
-         * Returns normalized string without stopwords
-         */
-        normalize: function(str, stopwords) {
-            var that = this;
-            return that.getWords(str, stopwords).join(' ');
-        },
-        /**
-         * Returns true if str1 includes str2 plus something else, false otherwise.
-         */
-        stringEncloses: function(str1, str2) {
-            return str1.length > str2.length && str1.indexOf(str2) !== -1;
-        },
-        fieldsNotEmpty: function(obj, fields){
-            if (!$.isPlainObject(obj)) {
-                return false;
-            }
-            var result = true;
-            $.each(fields, function (i, field) {
-                return result = !!(obj[field]);
-            });
-            return result;
-        },
-        getDeepValue: function self(obj, name) {
-            var path = name.split('.'),
-                step = path.shift();
-
-            return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
-        },
-        reWordExtractor: function () {
-            return new RegExp('([^' + WORD_DELIMITERS + ']*)([' + WORD_DELIMITERS + ']*)', 'g');
-        },
-        /**
-         * Возвращает список слов используемых в запросе
-         */
-        getTokens: function(value, unformattableTokens) {
-            var tokens,
-                preferredTokens;
-
-            tokens = this.compact(this.formatToken(value).split(WORD_SPLITTER));
-            // Move unformattableTokens to the end.
-            // This will help to apply them only if no other tokens match
-            preferredTokens = this.arrayMinus(tokens, unformattableTokens);
-            tokens = this.withSubTokens(preferredTokens.concat(this.arrayMinus(tokens, preferredTokens)));
-
-            return tokens;
-        },
-        formatToken: function (token) {
-            return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
-        },
-        withSubTokens: function (tokens) {
-            var result = [];
-
-            $.each(tokens, function (i, token) {
-                var subtokens = token.split(WORD_PARTS_SPLITTER);
-
-                result.push(token);
-
-                if (subtokens.length > 1) {
-                    result = result.concat(utils.compact(subtokens));
-                }
-            });
-
-            return result;
-        },
-
-        /**
-         * Возвращает массив с ключами переданного объекта
-         * Используется нативный Object.keys если он есть
-         * @param {Object} obj
-         * @returns {Array}
-         */
-        objectKeys: function(obj) {
-            if (Object.keys) {
-                return Object.keys(obj);
-            }
-            var keys = [];
-            $.each(obj, function(name) {
-                keys.push(name);
-            });
-            return keys;
-        },
-
-        /**
-         * Возвращает копию объекта без пустых элементов
-         * @param obj
-         */
-        compactObject: function(obj) {
-            var copy = $.extend(true, {}, obj);
-
-            $.each(copy, function (key, val) {
-                if (val === null || val === undefined || val === '') {
-                    delete copy[key];
-                }
-            });
-
-            return copy;
         }
+        return str;
+    },
 
-    };
+    /**
+     * Эскейпирует символы RegExp-шаблона обратным слешем
+     * (для передачи в конструктор регулярных выражений)
+     */
+    escapeRegExChars: function (value) {
+        return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    },    
+
+    /**
+     * Приводит слово к нижнему регистру и заменяет ё → е
+     */
+    formatToken: function (token) {
+        return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
+    },
+
+    /**
+     * Возвращает регулярное выражение для разбивки строки на слова
+     */
+    getWordExtractorRegExp: function () {
+        return new RegExp('([^' + WORD_DELIMITERS + ']*)([' + WORD_DELIMITERS + ']*)', 'g');
+    },
+
+    /**
+     * Вырезает из строки стоп-слова
+     */
+    normalize: function(str, stopwords) {
+        return text_util.split(str, stopwords).join(' ');
+    },
+
+    /**
+     * Разбивает строку на слова.
+     * Отсеивает стоп-слова из списка.
+     */
+    split: function(str, stopwords) {
+        // Split numbers and letters written together
+        str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
+            .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
+
+        var words = collection_util.compact(str.split(WORD_SPLITTER)),
+            lastWord = words.pop(),
+            goodWords = collection_util.minus(words, stopwords);
+
+        goodWords.push(lastWord);
+        return goodWords;
+    },
+
+    /**
+     * Проверяет, включает ли строка 1 строку 2.
+     * Если строки равны, возвращает false.
+     */
+    stringEncloses: function(str1, str2) {
+        return str1.length > str2.length && str1.indexOf(str2) !== -1;
+    },
+
+    /**
+     * Возвращает список слов из строки.
+     * При этом первыми по порядку идут «предпочтительные» слова
+     * (те, что не входят в список «нежелательных»).
+     * Составные слова тоже разбивает на части.
+     * @param {string} value - строка
+     * @param {Array} unformattableTokens - «нежелательные» слова
+     * @return {Array} Массив атомарных слов
+     */
+    tokenize: function(value, unformattableTokens) {
+        var tokens = collection_util.compact(text_util.formatToken(value).split(WORD_SPLITTER));
+        // Move unformattableTokens to the end.
+        // This will help to apply them only if no other tokens match
+        var preferredTokens = collection_util.minus(tokens, unformattableTokens);
+        var otherTokens = collection_util.minus(tokens, preferredTokens);
+        tokens = text_util.withSubTokens(preferredTokens.concat(otherTokens));
+        return tokens;
+    },
+    
+    /**
+     * Разбивает составные слова на части.
+     * @param {Array} tokens - слова
+     * @return {Array} Массив атомарных слов
+     */
+    withSubTokens: function (tokens) {
+        var result = [];
+        collection_util.each(tokens, function (token, i) {
+            var subtokens = token.split(WORD_PARTS_SPLITTER);
+            result.push(token);
+            if (subtokens.length > 1) {
+                result = result.concat(collection_util.compact(subtokens));
+            }
+        });
+        return result;
+    }
+};
+
+/**
+ * jQuery API.
+ */
+var jqapi = {
+
+    Deferred: function() {
+        return $.Deferred();
+    },
+
+    ajax: function(settings) {
+        return $.ajax(settings);
+    },
+
+    extend: function() {
+        return $.extend.apply(null, arguments);
+    },
+
+    param: function(obj) {
+        return $.param(obj);
+    },
+
+    proxy: function(func, context) {
+        return $.proxy(func, context);
+    },
+
+    supportsCors: function() {
+        return $.support.cors;
+    }
+};
+
+/**
+ * Утилиты для работы через AJAX
+ */
+var ajax = {
+    /**
+     * HTTP-метод, который поддерживает браузер
+     */
+    getDefaultType: function () {
+        return (jqapi.supportsCors() ? 'POST' : 'GET');
+    },
+
+    /**
+     * Content-type, который поддерживает браузер
+     */
+    getDefaultContentType: function () {
+        return (jqapi.supportsCors() ? 'application/json' : 'application/x-www-form-urlencoded');
+    },
+
+    /**
+     * Меняет HTTPS на протокол страницы, если браузер не поддерживает CORS
+     */
+    fixURLProtocol: function(url){
+        return jqapi.supportsCors() ? url : url.replace(/^https?:/, location.protocol);
+    },
+
+    /**
+     * Записывает параметры в GET-строку
+     */
+    addUrlParams: function (url, params) {
+        return url + (/\?/.test(url) ? '&' : '?') + jqapi.param(params);
+    },
+
+    /**
+     * Сериализует объект для передачи по сети.
+     * Либо в JSON-строку (если браузер поддерживает CORS),
+     *   либо в GET-строку.
+     */
+    serialize: function (data) {
+        if (jqapi.supportsCors()) {
+            return JSON.stringify(data, function (key, value) {
+                return value === null ? undefined : value;
+            });
+        } else {
+            data = object_util.compact(data);
+            return jqapi.param(data, true);
+        }
+    }
+};
+
+/**
+ * Возвращает автоинкрементный идентификатор.
+ * @param {string} prefix - префикс для идентификатора
+ */
+var generateId = (function () {
+    var counter = 0;
+    return function (prefix) {
+        return (prefix || '') + ++counter;
+    }
 }());
+
+/**
+ * Утилиты на все случаи жизни.
+ */
+var utils = {
+    escapeRegExChars: text_util.escapeRegExChars,
+    escapeHtml: text_util.escapeHtml,
+    formatToken: text_util.formatToken,
+    getTokens: text_util.tokenize,
+    getWords: text_util.split,
+    normalize: text_util.normalize,
+    reWordExtractor: text_util.getWordExtractorRegExp,
+    stringEncloses: text_util.stringEncloses,
+    withSubTokens: text_util.withSubTokens,
+
+    addUrlParams: ajax.addUrlParams,
+    getDefaultContentType: ajax.getDefaultContentType,
+    getDefaultType: ajax.getDefaultType,
+    fixURLProtocol: ajax.fixURLProtocol,
+    serialize: ajax.serialize,
+
+    arrayMinus: collection_util.minus,
+    arrayMinusWithPartialMatching: collection_util.minusWithPartialMatching,
+    arraysIntersection: collection_util.intersect,
+    compact: collection_util.compact,
+    each: collection_util.each,
+    makeArray: collection_util.makeArray,
+    slice: collection_util.slice,
+
+    delay: func_util.delay,
+    
+    areSame: object_util.areSame,
+    compactObject: object_util.compact,
+    getDeepValue: object_util.getDeepValue,
+
+    isArray: lang_util.isArray,
+    isEmptyObject: lang_util.isEmptyObject,
+    isFunction: lang_util.isFunction,
+    isPlainObject: lang_util.isPlainObject,
+
+    uniqueId: generateId,
+
+    /**
+     * Проверяет, что указанные поля в объекте заполнены.
+     * @param {Object} obj - проверяемый объект
+     * @param {Array} fields - список названий полей, которые надо проверить
+     * @returns {boolean}
+     */
+    fieldsNotEmpty: function(obj, fields){
+        if (!lang_util.isPlainObject(obj)) {
+            return false;
+        }
+        var result = true;
+        collection_util.each(fields, function (field, i) {
+            result = !!(obj[field]);
+            return result;
+        });
+        return result;
+    },
+
+    /**
+     * Возвращает карту объектов по их идентификаторам.
+     * Принимает на вход массив объектов и идентифицирующее поле.
+     * Возвращает карты, ключом в которой является значение идентифицирующего поля,
+     *   а значением — исходный объект.
+     * Заодно добавляет объектам поле с порядковым номером.
+     * @param {Array} arr - массив объектов
+     * @param {string} idField - название идентифицирующего поля
+     * @param {string} indexField - название поля с порядковым номером
+     * @return {Object} карта объектов по их идентификаторам
+     */
+    indexBy: function (arr, idField, indexField) {
+        var result = {};
+
+        collection_util.each(arr, function (obj, idx) {
+            var key = obj[idField],
+                val = {};
+
+            if (indexField) {
+                val[indexField] = idx;
+            }
+
+            result[key] = jqapi.extend(true, val, obj);
+        });
+
+        return result;
+    }
+};
+
+var DEFAULT_OPTIONS = {
+    autoSelectFirst: false,
+    // основной url, может быть переопределен
+    serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
+    // url, который заменяет serviceUrl + method + type
+    // то есть, если он задан, то для всех запросов будет использоваться именно он
+    // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
+    // и заменен протокол на протокол текущей страницы
+    url: null,
+    onSearchStart: $.noop,
+    onSearchComplete: $.noop,
+    onSearchError: $.noop,
+    onSuggestionsFetch: null,
+    onSelect: null,
+    onSelectNothing: null,
+    onInvalidateSelection: null,
+    minChars: 1,
+    deferRequestBy: 100,
+    params: {},
+    paramName: 'query',
+    timeout: 3000,
+    formatResult: null,
+    formatSelected: null,
+    noCache: false,
+    containerClass: 'suggestions-suggestions',
+    tabDisabled: false,
+    triggerSelectOnSpace: false,
+    triggerSelectOnEnter: true,
+    triggerSelectOnBlur: true,
+    preventBadQueries: false,
+    hint: 'Выберите вариант или продолжите ввод',
+    noSuggestionsHint: null,
+    type: null,
+    requestMode: 'suggest',
+    count: 5,
+    $helpers: null,
+    headers: null,
+    scrollOnFocus: true,
+    mobileWidth: 980,
+    initializeInterval: 100
+};
 
 /**
  * Matchers return index of suitable suggestion
@@ -466,48 +779,6 @@ var matchers = function() {
     };
 
 }();
-
-var DEFAULT_OPTIONS = {
-    autoSelectFirst: false,
-    // основной url, может быть переопределен
-    serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
-    // url, который заменяет serviceUrl + method + type
-    // то есть, если он задан, то для всех запросов будет использоваться именно он
-    // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
-    // и заменен протокол на протокол текущей страницы
-    url: null,
-    onSearchStart: $.noop,
-    onSearchComplete: $.noop,
-    onSearchError: $.noop,
-    onSuggestionsFetch: null,
-    onSelect: null,
-    onSelectNothing: null,
-    onInvalidateSelection: null,
-    minChars: 1,
-    deferRequestBy: 100,
-    params: {},
-    paramName: 'query',
-    timeout: 3000,
-    formatResult: null,
-    formatSelected: null,
-    noCache: false,
-    containerClass: 'suggestions-suggestions',
-    tabDisabled: false,
-    triggerSelectOnSpace: false,
-    triggerSelectOnEnter: true,
-    triggerSelectOnBlur: true,
-    preventBadQueries: false,
-    hint: 'Выберите вариант или продолжите ввод',
-    noSuggestionsHint: null,
-    type: null,
-    requestMode: 'suggest',
-    count: 5,
-    $helpers: null,
-    headers: null,
-    scrollOnFocus: true,
-    mobileWidth: 980,
-    initializeInterval: 100
-};
 
 /**
  * Type is a bundle of properties:
@@ -752,11 +1023,11 @@ types['NAME'] = {
             data = suggestion.data,
             fields;
 
-        if ($.isFunction(params)) {
+        if (utils.isFunction(params)) {
             params = params.call(that.element, suggestion.value);
         }
         if (params && params.parts) {
-            fields = $.map(params.parts, function (part) {
+            fields = params.parts.map(function (part) {
                 return part.toLowerCase();
             });
         } else {
@@ -778,8 +1049,8 @@ types['ADDRESS'] = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
-        $.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-        $.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
+        jqapi.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
+        jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
     ],
     dataComponents: ADDRESS_COMPONENTS,
     dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
@@ -790,7 +1061,7 @@ types['ADDRESS'] = {
         var fields = [this.bounds.to || 'flat'],
             data = suggestion.data;
 
-        return !$.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
+        return !utils.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
     },
     composeValue: function (data, options) {
         var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
@@ -840,9 +1111,9 @@ types['ADDRESS'] = {
         var componentsUnderCityDistrict = [],
             _underCityDistrict = false;
 
-        $.each(ADDRESS_COMPONENTS, function () {
-            if (_underCityDistrict) componentsUnderCityDistrict.push(this.id);
-            if (this.id === 'city_district') _underCityDistrict = true;
+        ADDRESS_COMPONENTS.forEach(function (component) {
+            if (_underCityDistrict) componentsUnderCityDistrict.push(component.id);
+            if (component.id === 'city_district') _underCityDistrict = true;
         });
 
         return function (value, currentValue, suggestion, options) {
@@ -868,7 +1139,7 @@ types['ADDRESS'] = {
             value = that.wrapFormattedValue(value, suggestion);
 
             if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                && !$.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
+                && !utils.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
                 value +=
                     '<div class="' + that.classes.subtext + '">' +
                     that.highlightMatches(district, currentValue, suggestion) +
@@ -979,7 +1250,7 @@ types['PARTY'] = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
-        $.proxy(matchers.matchByFields, {
+        jqapi.proxy(matchers.matchByFields, {
             // These fields of suggestion's `data` used by by-words matcher
             fieldsStopwords: {
                 'value': null,
@@ -1039,7 +1310,7 @@ types['PARTY'] = {
             formattedInn = that.highlightMatches(inn, currentValue, suggestion);
             if (innPartsLength) {
                 formattedInn = formattedInn.split('');
-                innParts = $.map(innPartsLength, function (partLength) {
+                innParts = innPartsLength.map(function (partLength) {
                     var formattedPart = '',
                         ch;
 
@@ -1071,7 +1342,7 @@ types['EMAIL'] = {
 types['BANK'] = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
-    matchers: [$.proxy(matchers.matchByFields, {
+    matchers: [jqapi.proxy(matchers.matchByFields, {
         // These fields of suggestion's `data` used by by-words matcher
         fieldsStopwords: {
             'value': null,
@@ -1115,7 +1386,7 @@ types['BANK'] = {
     }
 };
 
-$.extend(DEFAULT_OPTIONS, {
+jqapi.extend(DEFAULT_OPTIONS, {
     suggest_local: true
 });
 
@@ -1123,12 +1394,12 @@ var notificator = {
 
     chains: {},
 
-    'on': function (name, method) {
+    on: function (name, method) {
         this.get(name).push(method);
         return this;
     },
 
-    'get': function (name) {
+    get: function (name) {
         var chains = this.chains;
         return chains[name] || (chains[name] = []);
     }
@@ -2219,8 +2490,8 @@ notificator
 var statusRequests = {};
 
 function resetTokens () {
-    $.each(statusRequests, function(){
-        this.abort();
+    utils.each(statusRequests, function(req) {
+        req.abort();
     });
     statusRequests = {};
 }
@@ -2231,18 +2502,18 @@ var methods$1 = {
 
     checkStatus: function () {
         var that = this,
-            token = $.trim(that.options.token),
+            token = that.options.token && that.options.token.trim() || '',
             requestKey = that.options.type + token,
             request = statusRequests[requestKey];
 
         if (!request) {
-            request = statusRequests[requestKey] = $.ajax(that.getAjaxParams('status'));
+            request = statusRequests[requestKey] = jqapi.ajax(that.getAjaxParams('status'));
         }
 
         request
             .done(function(status){
                 if (status.search) {
-                    $.extend(that.status, status);
+                    jqapi.extend(that.status, status);
                 } else {
                     triggerError('Service Unavailable');
                 }
@@ -2253,7 +2524,7 @@ var methods$1 = {
 
         function triggerError(errorThrown){
             // If unauthorized
-            if ($.isFunction(that.options.onSearchError)) {
+            if (utils.isFunction(that.options.onSearchError)) {
                 that.options.onSearchError.call(that.element, null, request, 'error', errorThrown);
             }
         }
@@ -2263,7 +2534,7 @@ var methods$1 = {
 
 Suggestions.resetTokens = resetTokens;
 
-$.extend(Suggestions.prototype, methods$1);
+jqapi.extend(Suggestions.prototype, methods$1);
 
 notificator
     .on('setOptions', methods$1.checkStatus);
@@ -3283,7 +3554,7 @@ var ConstraintLocation = function(data, instance){
         });
     }
 
-    fieldNames = utils.objectKeys(that.fields);
+    fieldNames = Object.keys(that.fields);
     fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
     if (fiasFieldNames.length) {
         $.each(fiasFieldNames, function(index, fieldName) {
@@ -3729,7 +4000,7 @@ var methods$7 = {
      */
     selectCurrentValue: function (selectionOptions) {
         var that = this,
-            result = $.Deferred();
+            result = jqapi.Deferred();
 
         // force onValueChange to be executed if it has been deferred
         that.inputPhase.resolve();
@@ -3782,11 +4053,11 @@ var methods$7 = {
 
         if (index === -1) {
             // matchers always operate with trimmed strings
-            value = $.trim(that.el.val());
+            value = that.el.val().trim();
             if (value) {
-                $.each(that.type.matchers, function (i, matcher) {
+                that.type.matchers.some(function (matcher) {
                     index = matcher(value, that.suggestions);
-                    return index === -1;
+                    return index !== -1;
                 });
             }
         }
@@ -3825,10 +4096,11 @@ var methods$7 = {
 
         that.enrichSuggestion(suggestion, selectionOptions)
             .done(function (enrichedSuggestion, hasBeenEnriched) {
-                that.selectSuggestion(enrichedSuggestion, index, currentValue, $.extend({
+                var newSelectionOptions = jqapi.extend({
                     hasBeenEnriched: hasBeenEnriched,
                     hasSameValues: hasSameValues
-                }, selectionOptions));
+                }, selectionOptions);
+                that.selectSuggestion(enrichedSuggestion, index, currentValue, newSelectionOptions);
             });
 
     },
@@ -3918,7 +4190,7 @@ var methods$7 = {
             callback = that.options['on' + event];
 
         that.triggering[event] = true;
-        if ($.isFunction(callback)) {
+        if (utils.isFunction(callback)) {
             callback.apply(that.element, args);
         }
         that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
@@ -3927,7 +4199,7 @@ var methods$7 = {
 
 };
 
-$.extend(Suggestions.prototype, methods$7);
+jqapi.extend(Suggestions.prototype, methods$7);
 
 notificator
     .on('assignSuggestions', methods$7.selectFoundSuggestion);
@@ -4079,10 +4351,10 @@ notificator
     .on('requestParams', methods$8.constructBoundsParams);
 
 /**
- * DOM querying abstractions.
+ * Утилиты для работы с DOM.
  */
 
-// currently promo is disabled
+// Отключено, пока не будет механизма определения платный/бесплатный тариф
 // notificator
 // .on('assignSuggestions', show);
 

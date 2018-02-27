@@ -6,6 +6,7 @@
         var token = Token.get(),
             type = 'ADDRESS',
             $suggestions = $('#suggestions'),
+            $name = $('#name'),
             $email = $('#email'),
             $fixDataButton = $('#fixData'),
             $region = $('#region'),
@@ -27,6 +28,11 @@
 
         $fixDataButton.on('click', function () {
             $suggestions.suggestions().fixData();
+        });
+
+        $name.suggestions({
+            token: token,
+            type: "NAME"
         });
 
         $email.suggestions({

@@ -25,9 +25,7 @@ var CLASSES = {
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
-var WORD_SPLITTER = new RegExp('[' + WORD_DELIMITERS + ']+', 'g');
 var WORD_PARTS_DELIMITERS = '\\-\\+\\/\\\\\\?!@#$%^&';
-var WORD_PARTS_SPLITTER = new RegExp('[' + WORD_PARTS_DELIMITERS + ']+', 'g');
 
 export {
     KEYS,
@@ -35,7 +33,5 @@ export {
     EVENT_NS,
     DATA_ATTR_KEY,
     WORD_DELIMITERS,
-    WORD_SPLITTER,
-    WORD_PARTS_DELIMITERS,
-    WORD_PARTS_SPLITTER
+    WORD_PARTS_DELIMITERS
 }

@@ -1,5 +1,4 @@
-import $ from 'jquery';
-
+import { jqapi } from './jqapi';
 import { utils } from './utils';
 import { Suggestions } from './suggestions';
 import { notificator } from './notificator';
@@ -27,7 +26,7 @@ var methods = {
      */
     selectCurrentValue: function (selectionOptions) {
         var that = this,
-            result = $.Deferred();
+            result = jqapi.Deferred();
 
         // force onValueChange to be executed if it has been deferred
         that.inputPhase.resolve();
@@ -80,11 +79,11 @@ var methods = {
 
         if (index === -1) {
             // matchers always operate with trimmed strings
-            value = $.trim(that.el.val());
+            value = that.el.val().trim();
             if (value) {
-                $.each(that.type.matchers, function (i, matcher) {
+                that.type.matchers.some(function (matcher) {
                     index = matcher(value, that.suggestions);
-                    return index === -1;
+                    return index !== -1;
                 });
             }
         }
@@ -123,10 +122,11 @@ var methods = {
 
         that.enrichSuggestion(suggestion, selectionOptions)
             .done(function (enrichedSuggestion, hasBeenEnriched) {
-                that.selectSuggestion(enrichedSuggestion, index, currentValue, $.extend({
+                var newSelectionOptions = jqapi.extend({
                     hasBeenEnriched: hasBeenEnriched,
                     hasSameValues: hasSameValues
-                }, selectionOptions));
+                }, selectionOptions);
+                that.selectSuggestion(enrichedSuggestion, index, currentValue, newSelectionOptions);
             });
 
     },
@@ -216,7 +216,7 @@ var methods = {
             callback = that.options['on' + event];
 
         that.triggering[event] = true;
-        if ($.isFunction(callback)) {
+        if (utils.isFunction(callback)) {
             callback.apply(that.element, args);
         }
         that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
@@ -225,7 +225,7 @@ var methods = {
 
 };
 
-$.extend(Suggestions.prototype, methods);
+jqapi.extend(Suggestions.prototype, methods);
 
 notificator
     .on('assignSuggestions', methods.selectFoundSuggestion);
