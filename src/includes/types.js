@@ -234,7 +234,7 @@ var types = {};
 
 types['NAME'] = {
     urlSuffix: 'fio',
-    noSuggestionsHint: 'Неизвестное ФИО',
+    noSuggestionsHint: false,
     matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
     // names for labels, describing which fields are displayed
     fieldNames: {
