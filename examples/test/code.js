@@ -12,7 +12,8 @@
             $region = $('#region'),
             $city = $('#city'),
             $street = $('#street'),
-            $house = $('#house');
+            $house = $('#house'),
+            $party = $('#party');
 
         // просто подсказки
         var suggestionsInstance = $suggestions.suggestions({
@@ -102,6 +103,14 @@
                 value: $sug798.val(),
                 data: {}
             });
+
+        $party.suggestions({
+            token: token,
+            type: "PARTY",
+            onSelect: function(suggestion) {
+                console.log(suggestion);
+            }
+        });
 
     });
 

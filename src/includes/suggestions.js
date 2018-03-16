@@ -597,6 +597,7 @@ Suggestions.prototype = {
             options = that.options,
             noCallbacks = requestOptions && requestOptions.noCallbacks,
             useEnrichmentCache = requestOptions && requestOptions.useEnrichmentCache,
+            method = requestOptions && requestOptions.method || that.requestMode.method,
             params = that.constructRequestParams(query, customParams),
             cacheKey = $.param(params || {}),
             resolver = $.Deferred();
@@ -611,7 +612,7 @@ Suggestions.prototype = {
                 if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
                     resolver.reject();
                 } else {
-                    that.doGetSuggestions(params)
+                    that.doGetSuggestions(params, method)
                         .done(function (response) {
                             // if response is correct and current value has not been changed
                             if (that.processResponse(response) && query == that.currentValue) {
@@ -653,10 +654,10 @@ Suggestions.prototype = {
      * @param {Object} params request params
      * @returns {$.Deferred} response promise
      */
-    doGetSuggestions: function (params) {
+    doGetSuggestions: function (params, method) {
         var that = this,
             request = $.ajax(
-                that.getAjaxParams(that.requestMode.method, { data: utils.serialize(params) })
+                that.getAjaxParams(method, { data: utils.serialize(params) })
             );
 
         that.abortRequest();

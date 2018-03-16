@@ -234,7 +234,7 @@ var types = {};
 
 types['NAME'] = {
     urlSuffix: 'fio',
-    noSuggestionsHint: 'Неизвестное ФИО',
+    noSuggestionsHint: false,
     matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
     // names for labels, describing which fields are displayed
     fieldNames: {
@@ -281,6 +281,17 @@ types['ADDRESS'] = {
     dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
     unformattableTokens: ADDRESS_STOPWORDS,
     enrichmentEnabled: true,
+    enrichmentMethod: 'suggest',
+    enrichmentParams: {
+        count: 1,
+        locations: null,
+        locations_boost: null,
+        from_bound: null,
+        to_bound: null
+    },
+    getEnrichmentQuery: function(suggestion) {
+        return suggestion.unrestricted_value;
+    },
     geoEnabled: true,
     isDataComplete: function (suggestion) {
         var fields = [this.bounds.to || 'flat'],
@@ -486,6 +497,15 @@ types['PARTY'] = {
         })
     ],
     dataComponents: ADDRESS_COMPONENTS,
+    enrichmentEnabled: true,
+    enrichmentMethod: 'findById',
+    enrichmentParams: {
+        count: 1,
+        locations_boost: null
+    },
+    getEnrichmentQuery: function(suggestion) {
+        return suggestion.data.hid;
+    },
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
         var that = this,
