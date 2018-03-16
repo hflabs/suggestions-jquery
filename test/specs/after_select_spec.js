@@ -12,7 +12,8 @@ describe('After selecting', function () {
         this.$input = $(this.input).appendTo($('body'));
         this.instance = this.$input.suggestions({
             serviceUrl: serviceUrl,
-            type: 'NAME'
+            type: 'NAME',
+            enrichmentEnabled: false
         }).suggestions();
 
         helpers.returnPoorStatus(this.server);

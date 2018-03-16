@@ -18,6 +18,7 @@ var DEFAULT_OPTIONS = {
     onInvalidateSelection: null,
     minChars: 1,
     deferRequestBy: 100,
+    enrichmentEnabled: true,
     params: {},
     paramName: 'query',
     timeout: 3000,

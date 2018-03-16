@@ -8,8 +8,10 @@ var methods = {
         var that = this,
             resolver = $.Deferred();
 
-        if (!that.status.enrich || !that.type.enrichmentEnabled || !that.requestMode.enrichmentEnabled ||
-            selectionOptions && selectionOptions.dontEnrich) {
+        if (!that.options.enrichmentEnabled 
+            || !that.type.enrichmentEnabled 
+            || !that.requestMode.enrichmentEnabled 
+            || selectionOptions && selectionOptions.dontEnrich) {
             return resolver.resolve(suggestion);
         }
 
@@ -19,24 +21,23 @@ var methods = {
         }
 
         that.disableDropdown();
-
+ 
+        var query = that.type.getEnrichmentQuery(suggestion);
+        var customParams = that.type.enrichmentParams;
+        var requestOptions = {
+            noCallbacks: true,
+            useEnrichmentCache: true,
+            method: that.type.enrichmentMethod
+        };
+        
         // Set `currentValue` to make `processResponse` to consider enrichment response valid
-        that.currentValue = suggestion.unrestricted_value ;
+        that.currentValue = query;
 
         // prevent request abortion during onBlur
         that.enrichPhase = that.getSuggestions(
-            suggestion.unrestricted_value,
-            {
-                count: 1,
-                locations: null,
-                locations_boost: null,
-                from_bound: null,
-                to_bound: null
-            },
-            {
-                noCallbacks: true,
-                useEnrichmentCache: true
-            }
+            query,
+            customParams,
+            requestOptions
         )
             .always(function () {
                 that.enableDropdown();

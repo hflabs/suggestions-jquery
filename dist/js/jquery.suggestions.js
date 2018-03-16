@@ -584,6 +584,7 @@ var DEFAULT_OPTIONS = {
     onInvalidateSelection: null,
     minChars: 1,
     deferRequestBy: 100,
+    enrichmentEnabled: true,
     params: {},
     paramName: 'query',
     timeout: 3000,
@@ -1056,6 +1057,17 @@ types['ADDRESS'] = {
     dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
     unformattableTokens: ADDRESS_STOPWORDS,
     enrichmentEnabled: true,
+    enrichmentMethod: 'suggest',
+    enrichmentParams: {
+        count: 1,
+        locations: null,
+        locations_boost: null,
+        from_bound: null,
+        to_bound: null
+    },
+    getEnrichmentQuery: function(suggestion) {
+        return suggestion.unrestricted_value;
+    },
     geoEnabled: true,
     isDataComplete: function (suggestion) {
         var fields = [this.bounds.to || 'flat'],
@@ -1261,6 +1273,15 @@ types['PARTY'] = {
         })
     ],
     dataComponents: ADDRESS_COMPONENTS,
+    enrichmentEnabled: true,
+    enrichmentMethod: 'findById',
+    enrichmentParams: {
+        count: 1,
+        locations_boost: null
+    },
+    getEnrichmentQuery: function(suggestion) {
+        return suggestion.data.hid;
+    },
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
         var that = this,
@@ -1996,6 +2017,7 @@ Suggestions.prototype = {
             options = that.options,
             noCallbacks = requestOptions && requestOptions.noCallbacks,
             useEnrichmentCache = requestOptions && requestOptions.useEnrichmentCache,
+            method = requestOptions && requestOptions.method || that.requestMode.method,
             params = that.constructRequestParams(query, customParams),
             cacheKey = $.param(params || {}),
             resolver = $.Deferred();
@@ -2010,7 +2032,7 @@ Suggestions.prototype = {
                 if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
                     resolver.reject();
                 } else {
-                    that.doGetSuggestions(params)
+                    that.doGetSuggestions(params, method)
                         .done(function (response) {
                             // if response is correct and current value has not been changed
                             if (that.processResponse(response) && query == that.currentValue) {
@@ -2052,10 +2074,10 @@ Suggestions.prototype = {
      * @param {Object} params request params
      * @returns {$.Deferred} response promise
      */
-    doGetSuggestions: function (params) {
+    doGetSuggestions: function (params, method) {
         var that = this,
             request = $.ajax(
-                that.getAjaxParams(that.requestMode.method, { data: utils.serialize(params) })
+                that.getAjaxParams(method, { data: utils.serialize(params) })
             );
 
         that.abortRequest();
@@ -2631,8 +2653,10 @@ var methods$3 = {
         var that = this,
             resolver = $.Deferred();
 
-        if (!that.status.enrich || !that.type.enrichmentEnabled || !that.requestMode.enrichmentEnabled ||
-            selectionOptions && selectionOptions.dontEnrich) {
+        if (!that.options.enrichmentEnabled 
+            || !that.type.enrichmentEnabled 
+            || !that.requestMode.enrichmentEnabled 
+            || selectionOptions && selectionOptions.dontEnrich) {
             return resolver.resolve(suggestion);
         }
 
@@ -2642,24 +2666,23 @@ var methods$3 = {
         }
 
         that.disableDropdown();
-
+ 
+        var query = that.type.getEnrichmentQuery(suggestion);
+        var customParams = that.type.enrichmentParams;
+        var requestOptions = {
+            noCallbacks: true,
+            useEnrichmentCache: true,
+            method: that.type.enrichmentMethod
+        };
+        
         // Set `currentValue` to make `processResponse` to consider enrichment response valid
-        that.currentValue = suggestion.unrestricted_value ;
+        that.currentValue = query;
 
         // prevent request abortion during onBlur
         that.enrichPhase = that.getSuggestions(
-            suggestion.unrestricted_value,
-            {
-                count: 1,
-                locations: null,
-                locations_boost: null,
-                from_bound: null,
-                to_bound: null
-            },
-            {
-                noCallbacks: true,
-                useEnrichmentCache: true
-            }
+            query,
+            customParams,
+            requestOptions
         )
             .always(function () {
                 that.enableDropdown();

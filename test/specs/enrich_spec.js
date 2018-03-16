@@ -41,7 +41,7 @@ describe('Enrich', function () {
             poorParty: [{
                 value: 'Фирма',
                 data: {
-                    qc: null
+                    hid: '123'
                 }
             }],
             enriched: [{
@@ -95,7 +95,7 @@ describe('Enrich', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
-    it('Should NOT enrich a suggestion for parties', function () {
+    it('Should enrich a suggestion for parties', function () {
         this.instance.setOptions({
             type: 'PARTY'
         });
@@ -110,7 +110,9 @@ describe('Enrich', function () {
         helpers.hitEnter(this.input);
 
         // request for enriched suggestion not sent
-        expect(this.server.requests.length).toEqual(0);
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].requestBody).toContain('"count":1');
+        expect(this.server.requests[0].requestBody).toContain('"query":"' + fixtures.poorParty[0].data.hid + '"');
     });
 
     it('Should enrich address when selected', function () {
@@ -193,7 +195,7 @@ describe('Enrich', function () {
         expect(this.server.requests.length).toEqual(0);
     });
 
-    it('Should NOT enrich a suggestion when server returns `enrich:false` in status', function () {
+    it('Should ignore server `enrich:false` status', function () {
         $.Suggestions.resetTokens();
         this.instance.setOptions({
             token: '456'
@@ -213,8 +215,8 @@ describe('Enrich', function () {
         this.instance.selectedIndex = 0;
         helpers.hitEnter(this.input);
 
-        // request for enriched suggestion not sent
-        expect(this.server.requests.length).toEqual(0);
+        // request enriched suggestion is sent
+        expect(this.server.requests.length).toEqual(1);
     });
 
     it('Should NOT enrich a suggestion with specified qc', function () {

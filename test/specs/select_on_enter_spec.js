@@ -175,7 +175,8 @@ describe('Select on Enter', function () {
             serviceUrl: serviceUrl,
             type: 'ADDRESS',
             onSelect: $.noop,
-            geoLocation: false
+            geoLocation: false,
+            enrichmentEnabled: false
         }).suggestions();
 
         this.server.respond();

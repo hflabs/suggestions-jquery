@@ -167,7 +167,8 @@ describe('Adding space on selecting', function () {
             this.instance = this.$input.suggestions({
                 serviceUrl: serviceUrl,
                 type: 'ADDRESS',
-                geoLocation: false
+                geoLocation: false,
+                enrichmentEnabled: false
             }).suggestions();
 
             helpers.returnPoorStatus(this.server);
