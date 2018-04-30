@@ -222,6 +222,10 @@ var methods = {
         return document.activeElement === this.element;
     },
 
+    isElementDisabled: function() {
+        return Boolean(this.element.getAttribute('disabled') || this.element.getAttribute('readonly'));
+    },
+
     isCursorAtEnd: function () {
         var that = this,
             valLength = that.el.val().length,

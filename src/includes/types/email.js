@@ -3,7 +3,7 @@ import { matchers } from '../matchers';
 var EMAIL_TYPE = {
     urlSuffix: 'email',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery],
+    matchers: [ matchers.matchByNormalizedQuery() ],
     isQueryRequestable: function (query) {
         return this.options.suggest_local || query.indexOf('@') >= 0;
     }

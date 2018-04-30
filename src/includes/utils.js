@@ -24,12 +24,9 @@ var utils = {
     escapeRegExChars: text_util.escapeRegExChars,
     escapeHtml: text_util.escapeHtml,
     formatToken: text_util.formatToken,
-    getTokens: text_util.tokenize,
-    getWords: text_util.split,
     normalize: text_util.normalize,
     reWordExtractor: text_util.getWordExtractorRegExp,
     stringEncloses: text_util.stringEncloses,
-    withSubTokens: text_util.withSubTokens,
 
     addUrlParams: ajax.addUrlParams,
     getDefaultContentType: ajax.getDefaultContentType,

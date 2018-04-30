@@ -86,13 +86,15 @@ var text_util = {
     },
 
     /**
-     * Разбивает строку на слова.
-     * Отсеивает стоп-слова из списка.
+     * Нормализует строку, разбивает на слова,
+     * отсеивает стоп-слова из списка.
+     * Расклеивает буквы и цифры, написанные слитно.
      */
     split: function(str, stopwords) {
-        // Split numbers and letters written together
-        str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
-            .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
+        str = str.toLowerCase();
+        str = str.replace('ё', 'е')
+            .replace(/(\d+)([а-я]{2,})/g, '$1 $2')
+            .replace(/([а-я]+)(\d+)/g, '$1 $2');
 
         var words = collection_util.compact(str.split(WORD_SPLITTER)),
             lastWord = words.pop(),
@@ -101,13 +103,27 @@ var text_util = {
         goodWords.push(lastWord);
         return goodWords;
     },
+    
+    /**
+     * Заменяет слова на составные части.
+     * В отличие от withSubTokens, не сохраняет исходные слова.
+     */
+    splitTokens: function(tokens) {
+        var result = [];
+        collection_util.each(tokens, function (token, i) {
+            var subtokens = token.split(WORD_PARTS_SPLITTER);
+            result = result.concat(collection_util.compact(subtokens));
+        });
+        return result;
+    },
 
     /**
      * Проверяет, включает ли строка 1 строку 2.
      * Если строки равны, возвращает false.
      */
     stringEncloses: function(str1, str2) {
-        return str1.length > str2.length && str1.indexOf(str2) !== -1;
+        return str1.length > str2.length 
+            && str1.toLowerCase().indexOf(str2.toLowerCase()) !== -1;
     },
 
     /**
@@ -130,7 +146,8 @@ var text_util = {
     },
     
     /**
-     * Разбивает составные слова на части.
+     * Разбивает составные слова на части 
+     * и дописывает их к исходному массиву.
      * @param {Array} tokens - слова
      * @return {Array} Массив атомарных слов
      */

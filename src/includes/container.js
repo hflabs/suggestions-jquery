@@ -2,6 +2,7 @@ import $ from 'jquery';
 
 import { CLASSES } from './constants';
 import { DEFAULT_OPTIONS } from './default-options';
+import { text_util } from './utils/text';
 import { utils } from './utils';
 import { Suggestions } from './suggestions';
 import { notificator } from './notificator';
@@ -317,7 +318,7 @@ var methods = {
 
         if (!value) return '';
 
-        tokens = utils.getTokens(currentValue, unformattableTokens);
+        tokens = text_util.tokenize(currentValue, unformattableTokens);
 
         tokenMatchers = $.map(tokens, function (token) {
             return new RegExp('^((.*)([' + WORD_PARTS_DELIMITERS + ']+))?' +

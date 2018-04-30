@@ -331,7 +331,7 @@ var CLASSES = {
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
-var WORD_PARTS_DELIMITERS = '\\-\\+\\/\\\\\\?!@#$%^&';
+var WORD_PARTS_DELIMITERS = '\\-\\+\\\\\\?!@#$%^&';
 
 /**
  * Утилиты для работы с текстом.
@@ -418,13 +418,15 @@ var text_util = {
     },
 
     /**
-     * Разбивает строку на слова.
-     * Отсеивает стоп-слова из списка.
+     * Нормализует строку, разбивает на слова,
+     * отсеивает стоп-слова из списка.
+     * Расклеивает буквы и цифры, написанные слитно.
      */
     split: function(str, stopwords) {
-        // Split numbers and letters written together
-        str = str.replace(/(\d+)([а-яА-ЯёЁ]{2,})/g, '$1 $2')
-            .replace(/([а-яА-ЯёЁ]+)(\d+)/g, '$1 $2');
+        str = str.toLowerCase();
+        str = str.replace('ё', 'е')
+            .replace(/(\d+)([а-я]{2,})/g, '$1 $2')
+            .replace(/([а-я]+)(\d+)/g, '$1 $2');
 
         var words = collection_util.compact(str.split(WORD_SPLITTER)),
             lastWord = words.pop(),
@@ -433,13 +435,27 @@ var text_util = {
         goodWords.push(lastWord);
         return goodWords;
     },
+    
+    /**
+     * Заменяет слова на составные части.
+     * В отличие от withSubTokens, не сохраняет исходные слова.
+     */
+    splitTokens: function(tokens) {
+        var result = [];
+        collection_util.each(tokens, function (token, i) {
+            var subtokens = token.split(WORD_PARTS_SPLITTER);
+            result = result.concat(collection_util.compact(subtokens));
+        });
+        return result;
+    },
 
     /**
      * Проверяет, включает ли строка 1 строку 2.
      * Если строки равны, возвращает false.
      */
     stringEncloses: function(str1, str2) {
-        return str1.length > str2.length && str1.indexOf(str2) !== -1;
+        return str1.length > str2.length 
+            && str1.toLowerCase().indexOf(str2.toLowerCase()) !== -1;
     },
 
     /**
@@ -462,7 +478,8 @@ var text_util = {
     },
     
     /**
-     * Разбивает составные слова на части.
+     * Разбивает составные слова на части 
+     * и дописывает их к исходному массиву.
      * @param {Array} tokens - слова
      * @return {Array} Массив атомарных слов
      */
@@ -584,12 +601,9 @@ var utils = {
     escapeRegExChars: text_util.escapeRegExChars,
     escapeHtml: text_util.escapeHtml,
     formatToken: text_util.formatToken,
-    getTokens: text_util.tokenize,
-    getWords: text_util.split,
     normalize: text_util.normalize,
     reWordExtractor: text_util.getWordExtractorRegExp,
     stringEncloses: text_util.stringEncloses,
-    withSubTokens: text_util.withSubTokens,
 
     addUrlParams: ajax.addUrlParams,
     getDefaultContentType: ajax.getDefaultContentType,
@@ -665,64 +679,96 @@ var DEFAULT_OPTIONS = {
 };
 
 /**
+ * Factory to create same parent checker function
+ * @param preprocessFn called on each value before comparison
+ * @returns {Function} same parent checker function
+ */
+function sameParentChecker (preprocessFn) {
+    return function (suggestions) {
+        if (suggestions.length === 0) {
+            return false;
+        }
+        if (suggestions.length === 1) {
+            return true;
+        }
+
+        var parentValue = preprocessFn(suggestions[0].value),
+            aliens = suggestions.filter(function (suggestion) {
+                return preprocessFn(suggestion.value).indexOf(parentValue) !== 0;
+            });
+
+        return aliens.length === 0;
+    }
+}
+
+/**
+ * Default same parent checker. Compares raw values.
+ * @type {Function}
+ */
+var haveSameParent = sameParentChecker(function(val) { return val; });
+
+/**
+ * Same parent checker for addresses. Strips house and extension before comparison.
+ * @type {Function}
+ */
+var haveSameParentAddress = sameParentChecker(function(val) {
+    return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
+});
+
+/**
+ * Сравнивает запрос c подсказками, по словам.
+ * Срабатывает, только если у всех подсказок общий родитель
+ * (функция сверки передаётся параметром).
+ * Игнорирует стоп-слова.
+ * Возвращает индекс единственной подходящей подсказки
+ * или -1, если подходящих нет или несколько.
+ */
+function _matchByWords(stopwords, parentCheckerFn) {
+    return function(query, suggestions) {
+        var queryTokens;
+        var matches = [];
+
+        if (parentCheckerFn(suggestions)) {
+            queryTokens = text_util.splitTokens(text_util.split(query, stopwords));
+
+            collection_util.each(suggestions, function(suggestion, i) {
+                var suggestedValue = suggestion.value;
+
+                if (text_util.stringEncloses(query, suggestedValue)) {
+                    return false;
+                }
+
+                // check if query words are a subset of suggested words
+                var suggestionWords = text_util.splitTokens(text_util.split(suggestedValue, stopwords));
+
+                if (collection_util.minus(queryTokens, suggestionWords).length === 0) {
+                    matches.push(i);
+                }
+            });
+        }
+
+        return matches.length === 1 ? matches[0] : -1;
+    }
+}
+
+/**
  * Matchers return index of suitable suggestion
  * Context inside is optionally set in types.js
  */
-var matchers = function() {
-
+var matchers =  {
     /**
-     * Factory to create same parent checker function
-     * @param preprocessFn called on each value before comparison
-     * @returns {Function} same parent checker function
+     * Matches query against suggestions, removing all the stopwords.
      */
-    function sameParentChecker (preprocessFn) {
-        return function (suggestions) {
-            if (suggestions.length === 0) {
-                return false;
-            }
-            if (suggestions.length === 1) {
-                return true;
-            }
+    matchByNormalizedQuery: function (stopwords) {
+        return function(query, suggestions) {
+            var normalizedQuery = text_util.normalize(query, stopwords);
+            var matches = [];
 
-            var parentValue = preprocessFn(suggestions[0].value),
-                aliens = $.grep(suggestions, function (suggestion) {
-                    return preprocessFn(suggestion.value).indexOf(parentValue) === 0;
-                }, true);
-
-            return aliens.length === 0;
-        }
-    }
-
-    /**
-     * Default same parent checker. Compares raw values.
-     * @type {Function}
-     */
-    var haveSameParent = sameParentChecker(function(val) { return val; });
-
-    /**
-     * Same parent checker for addresses. Strips house and extension before comparison.
-     * @type {Function}
-     */
-    var haveSameParentAddress = sameParentChecker(function(val) {
-        return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
-    });
-
-    return {
-
-        /**
-         * Matches query against suggestions, removing all the stopwords.
-         */
-        matchByNormalizedQuery: function (query, suggestions) {
-            var queryLowerCase = query.toLowerCase(),
-                stopwords = this && this.stopwords,
-                normalizedQuery = utils.normalize(queryLowerCase, stopwords),
-                matches = [];
-
-            $.each(suggestions, function(i, suggestion) {
+            collection_util.each(suggestions, function(suggestion, i) {
                 var suggestedValue = suggestion.value.toLowerCase();
                 // if query encloses suggestion, than it has already been selected
                 // so we should not select it anymore
-                if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                if (text_util.stringEncloses(query, suggestedValue)) {
                     return false;
                 }
                 // if there is suggestion that contains query as its part
@@ -730,93 +776,41 @@ var matchers = function() {
                 if (suggestedValue.indexOf(normalizedQuery) > 0) {
                     return false;
                 }
-                if (normalizedQuery === utils.normalize(suggestedValue, stopwords)) {
+                if (normalizedQuery === text_util.normalize(suggestedValue, stopwords)) {
                     matches.push(i);
                 }
             });
 
             return matches.length === 1 ? matches[0] : -1;
-        },
+        }
+    },
 
-        /**
-         * Matches query against suggestions word-by-word (with respect to stopwords).
-         * Matches if query words are a subset of suggested words.
-         */
-        matchByWords: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                matches = [];
+    matchByWords: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParent);
+    },
 
-            if (haveSameParent(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+    matchByWordsAddress: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParentAddress);
+    },
 
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        matches.push(i);
-                    }
-                });
-            }
-
-            return matches.length === 1 ? matches[0] : -1;
-        },
-
-        matchByWordsAddress: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                index = -1;
-
-            if (haveSameParentAddress(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
-
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        index = i;
-                        return false;
-                    }
-                });
-            }
-
-            return index;
-        },
-
-        /**
-         * Matches query against values contained in suggestion fields
-         * for cases, when there is only one suggestion
-         * only considers fields specified in fieldsStopwords map
-         * uses partial matching:
-         *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
-         */
-        matchByFields: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                fieldsStopwords = this && this.fieldsStopwords,
-                tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
-                suggestionWords = [];
+    /**
+     * Matches query against values contained in suggestion fields
+     * for cases, when there is only one suggestion
+     * only considers fields specified in fields map
+     * uses partial matching:
+     *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
+     */
+    matchByFields: function (fields) {
+        return function(query, suggestions) {
+            var tokens = text_util.splitTokens(text_util.split(query));
+            var suggestionWords = [];
 
             if (suggestions.length === 1) {
-                if (fieldsStopwords) {
-                    $.each(fieldsStopwords, function (field, stopwords) {
-                        var fieldValue = utils.getDeepValue(suggestions[0], field),
-                            fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
+                if (fields) {
+                    collection_util.each(fields, function (stopwords, field) {
+                        var fieldValue = object_util.getDeepValue(suggestions[0], field);
+                        var fieldWords = fieldValue 
+                            && text_util.splitTokens(text_util.split(fieldValue, stopwords));
 
                         if (fieldWords && fieldWords.length) {
                             suggestionWords = suggestionWords.concat(fieldWords);
@@ -824,17 +818,15 @@ var matchers = function() {
                     });
                 }
 
-                if (utils.arrayMinusWithPartialMatching(tokens, suggestionWords).length === 0) {
+                if (collection_util.minusWithPartialMatching(tokens, suggestionWords).length === 0) {
                     return 0;
                 }
             }
 
             return -1;
         }
-
-    };
-
-}();
+    }
+};
 
 var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
@@ -1014,8 +1006,8 @@ var ADDRESS_TYPE = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
-        jqapi.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-        jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
+        matchers.matchByNormalizedQuery(ADDRESS_STOPWORDS),
+        matchers.matchByWordsAddress(ADDRESS_STOPWORDS)
     ],
     dataComponents: ADDRESS_COMPONENTS,
     dataComponentsById: object_util.indexObjectsById(ADDRESS_COMPONENTS, 'id', 'index'),
@@ -1127,25 +1119,24 @@ var ADDRESS_TYPE = {
     }(),
 
     /**
-     * Возвращает список слов в запросе для которых не найдено соответствующего слова в ответе
+     * Возвращает список слов в запросе,
+     * которые не встречаются в подсказке
      */
     findUnusedTokens: function(tokens, value) {
         var tokenIndex,
             token,
             unused = [];
 
-        for(tokenIndex in tokens) {
-            token = tokens[tokenIndex];
-            if (value.indexOf(token) === -1) {
-                unused.push(token);
-            }
-        }
+        unused = tokens.filter(function(token) {
+            return value.indexOf(token) === -1;
+        });
 
         return unused;
     },
 
     /**
-     * Возвращает исторические названия для слов запроса, для которых не найдено совпадения в основном значении
+     * Возвращает исторические названия для слов запроса, 
+     * для которых не найдено совпадения в основном значении подсказки
      */
     getFormattedHistoryValues: function(unusedTokens, historyValues) {
         var tokenIndex,
@@ -1155,16 +1146,14 @@ var ADDRESS_TYPE = {
             values = [],
             formatted = '';
 
-        for(historyValueIndex in historyValues) {
-            historyValue = historyValues[historyValueIndex];
-            for(tokenIndex in unusedTokens) {
-                token = unusedTokens[tokenIndex];
+        historyValues.forEach(function(historyValue) {
+            collection_util.each(unusedTokens, function(token) {
                 if (historyValue.toLowerCase().indexOf(token) >= 0) {
                     values.push(historyValue);
-                    break;
+                    return false;
                 }
-            }
-        }
+            });
+        });
 
         if (values.length > 0) {
             formatted = ' (бывш. ' + values.join(', ') + ')';
@@ -1233,7 +1222,10 @@ function valueStartsWith (suggestion, field) {
 var NAME_TYPE = {
     urlSuffix: 'fio',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
+    matchers: [
+        matchers.matchByNormalizedQuery(),
+        matchers.matchByWords()
+    ],
     // names for labels, describing which fields are displayed
     fieldNames: {
         surname: 'фамилия',
@@ -1292,15 +1284,15 @@ var PARTY_TYPE = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
-        jqapi.proxy(matchers.matchByFields, {
+        matchers.matchByFields(
             // These fields of suggestion's `data` used by by-words matcher
-            fieldsStopwords: {
+            {
                 'value': null,
                 'data.address.value': ADDRESS_STOPWORDS,
                 'data.inn': null,
                 'data.ogrn': null
             }
-        })
+        )
     ],
     dataComponents: ADDRESS_COMPONENTS,
     enrichmentEnabled: true,
@@ -1384,7 +1376,7 @@ var PARTY_TYPE = {
 var EMAIL_TYPE = {
     urlSuffix: 'email',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery],
+    matchers: [ matchers.matchByNormalizedQuery() ],
     isQueryRequestable: function (query) {
         return this.options.suggest_local || query.indexOf('@') >= 0;
     }
@@ -1393,14 +1385,14 @@ var EMAIL_TYPE = {
 var BANK_TYPE = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
-    matchers: [jqapi.proxy(matchers.matchByFields, {
+    matchers: [matchers.matchByFields(
         // These fields of suggestion's `data` used by by-words matcher
-        fieldsStopwords: {
+        {
             'value': null,
             'data.bic': null,
             'data.swift': null
         }
-    })],
+    )],
     dataComponents: ADDRESS_COMPONENTS,
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
@@ -2521,6 +2513,10 @@ var methods = {
         return document.activeElement === this.element;
     },
 
+    isElementDisabled: function() {
+        return Boolean(this.element.getAttribute('disabled') || this.element.getAttribute('readonly'));
+    },
+
     isCursorAtEnd: function () {
         var that = this,
             valLength = that.el.val().length,
@@ -3091,7 +3087,7 @@ var methods$4 = {
 
         if (!value) return '';
 
-        tokens = utils.getTokens(currentValue, unformattableTokens);
+        tokens = text_util.tokenize(currentValue, unformattableTokens);
 
         tokenMatchers = $.map(tokens, function (token) {
             return new RegExp('^((.*)([' + WORD_PARTS_DELIMITERS + ']+))?' +
@@ -3366,26 +3362,24 @@ var ADDON_TYPES = {
 };
 
 var Addon = function (owner) {
-    var that = this,
-        $el = $('<span class="suggestions-addon"/>');
+    var $el = jqapi.select('<span class="suggestions-addon"/>');
 
-    that.owner = owner;
-    that.$el = $el;
-    that.type = ADDON_TYPES.NONE;
-    that.visible = false;
-    that.initialPadding = null;
+    this.owner = owner;
+    this.$el = $el;
+    this.type = ADDON_TYPES.NONE;
+    this.visible = false;
+    this.initialPadding = null;
 
-    $el.on('click', $.proxy(that, 'onClick'));
+    $el.on('click', jqapi.proxy(this, 'onClick'));
 };
 
 Addon.prototype = {
 
-    checkType: function () {
-        var that = this,
-            type = that.owner.options.addon,
-            isTypeCorrect = false;
+    checkType: function() {
+        var type = this.owner.options.addon;
+        var isTypeCorrect = false;
 
-        $.each(ADDON_TYPES, function (key, value) {
+        collection_util.each(ADDON_TYPES, function (value, key) {
             isTypeCorrect = value == type;
             if (isTypeCorrect) {
                 return false;
@@ -3393,52 +3387,59 @@ Addon.prototype = {
         });
 
         if (!isTypeCorrect) {
-            type = that.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
+            type = this.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
         }
 
-        if (type != that.type) {
-            that.type = type;
-            that.$el.attr('data-addon-type', type);
-            that.toggle(true);
+        if (type != this.type) {
+            this.type = type;
+            this.$el.attr('data-addon-type', type);
+            this.toggle(true);
         }
     },
 
-    toggle: function (immediate) {
-        var that = this,
-            visible;
+    isEnabled: function() {
+        return !this.owner.isElementDisabled();
+    },
 
-        switch (that.type) {
+    toggle: function(immediate) {
+        var visible;
+
+        switch (this.type) {
             case ADDON_TYPES.CLEAR:
-                visible = !!that.owner.currentValue;
+                visible = !!this.owner.currentValue;
                 break;
             case ADDON_TYPES.SPINNER:
-                visible = !!that.owner.currentRequest;
+                visible = !!this.owner.currentRequest;
                 break;
             default:
                 visible = false;
         }
 
-        if (visible != that.visible) {
-            that.visible = visible;
+        if (!this.isEnabled()) {
+            visible = false;
+        }
+
+        if (visible != this.visible) {
+            this.visible = visible;
             if (visible) {
-                that.show(immediate);
+                this.show(immediate);
             } else {
-                that.hide(immediate);
+                this.hide(immediate);
             }
         }
     },
 
-    show: function (immediate) {
-        var that = this,
-            style = {'opacity': 1};
+    show: function(immediate) {
+        var that = this;
+        var style = {'opacity': 1};
 
         if (immediate) {
-            that.$el
+            this.$el
                 .show()
                 .css(style);
-            that.showBackground(true);
+                this.showBackground(true);
         } else {
-            that.$el
+            this.$el
                 .stop(true, true)
                 .delay(BEFORE_SHOW_ADDON)
                 .queue(function () {
@@ -3450,16 +3451,16 @@ Addon.prototype = {
         }
     },
 
-    hide: function (immediate) {
-        var that = this,
-            style = {'opacity': 0};
+    hide: function(immediate) {
+        var that = this;
+        var style = {'opacity': 0};
 
         if (immediate) {
-            that.$el
+            this.$el
                 .hide()
                 .css(style);
         }
-        that.$el
+        this.$el
             .stop(true)
             .animate(style, {
                 duration: 'fast',
@@ -3471,31 +3472,29 @@ Addon.prototype = {
     },
 
     fixPosition: function(origin, elLayout){
-        var that = this,
-            addonSize = elLayout.innerHeight;
+        var addonSize = elLayout.innerHeight;
 
-        that.checkType();
-        that.$el.css({
+        this.checkType();
+        this.$el.css({
             left: origin.left + elLayout.borderLeft + elLayout.innerWidth - addonSize + 'px',
             top: origin.top + elLayout.borderTop + 'px',
             height: addonSize,
             width: addonSize
         });
 
-        that.initialPadding = elLayout.paddingRight;
-        that.width = addonSize;
-        if (that.visible) {
+        this.initialPadding = elLayout.paddingRight;
+        this.width = addonSize;
+        if (this.visible) {
             elLayout.componentsRight += addonSize;
         }
     },
 
-    showBackground: function (immediate) {
-        var that = this,
-            $el = that.owner.el,
-            style = {'paddingRight': that.width};
+    showBackground: function(immediate) {
+        var $el = this.owner.el;
+        var style = {'paddingRight': this.width};
 
-        if (that.width > that.initialPadding) {
-            that.stopBackground();
+        if (this.width > this.initialPadding) {
+            this.stopBackground();
             if (immediate) {
                 $el.css(style);
             } else {
@@ -3506,13 +3505,12 @@ Addon.prototype = {
         }
     },
 
-    hideBackground: function (immediate) {
-        var that = this,
-            $el = that.owner.el,
-            style = {'paddingRight': that.initialPadding};
+    hideBackground: function(immediate) {
+        var $el = this.owner.el;
+        var style = {'paddingRight': this.initialPadding};
 
-        if (that.width > that.initialPadding) {
-            that.stopBackground(true);
+        if (this.width > this.initialPadding) {
+            this.stopBackground(true);
             if (immediate) {
                 $el.css(style);
             } else {
@@ -3524,49 +3522,42 @@ Addon.prototype = {
         }
     },
 
-    stopBackground: function (gotoEnd) {
+    stopBackground: function(gotoEnd) {
         this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
     },
 
-    onClick: function (e) {
-        var that = this;
-
-        if (that.type == ADDON_TYPES.CLEAR) {
-            that.owner.clear();
+    onClick: function(e) {
+        if (this.isEnabled() && this.type == ADDON_TYPES.CLEAR) {
+            this.owner.clear();
         }
     }
-
 };
 
 var methods$5 = {
-
-    createAddon: function () {
-        var that = this,
-            addon = new Addon(that);
-
-        that.$wrapper.append(addon.$el);
-        that.addon = addon;
+    createAddon: function() {
+        var addon = new Addon(this);
+        this.$wrapper.append(addon.$el);
+        this.addon = addon;
     },
 
-    fixAddonPosition: function (origin, elLayout) {
+    fixAddonPosition: function(origin, elLayout) {
         this.addon.fixPosition(origin, elLayout);
     },
 
-    checkAddonType: function () {
+    checkAddonType: function() {
         this.addon.checkType();
     },
 
-    checkAddonVisibility: function () {
+    checkAddonVisibility: function() {
         this.addon.toggle();
     },
 
-    stopBackground: function () {
+    stopBackground: function() {
         this.addon.stopBackground();
     }
-
 };
 
-$.extend(DEFAULT_OPTIONS, optionsUsed$1);
+jqapi.extend(DEFAULT_OPTIONS, optionsUsed$1);
 
 notificator
     .on('initialize', methods$5.createAddon)

@@ -28,15 +28,15 @@ var PARTY_TYPE = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
-        jqapi.proxy(matchers.matchByFields, {
+        matchers.matchByFields(
             // These fields of suggestion's `data` used by by-words matcher
-            fieldsStopwords: {
+            {
                 'value': null,
                 'data.address.value': ADDRESS_STOPWORDS,
                 'data.inn': null,
                 'data.ogrn': null
             }
-        })
+        )
     ],
     dataComponents: ADDRESS_COMPONENTS,
     enrichmentEnabled: true,

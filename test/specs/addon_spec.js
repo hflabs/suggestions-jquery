@@ -49,6 +49,27 @@ describe('Right-sided control', function () {
                 expect(this.$button.attr(attr)).toEqual('clear');
             });
 
+            it('should clear text on button click', function () {
+                this.input.value = 'но';
+                this.instance.onValueChange();
+
+                jasmine.clock().tick(51);
+                helpers.click(this.$button);
+
+                expect(this.input.value).toEqual('');
+            });
+
+            it('should not clear text on button click if field is disabled', function () {
+                this.input.value = 'но';
+                this.instance.onValueChange();
+                this.input.setAttribute('disabled', true);
+
+                jasmine.clock().tick(51);
+                helpers.click(this.$button);
+
+                expect(this.input.value).toEqual('но');
+            });
+
         });
 
         describe('for desktop view', function () {
