@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 18.3.1
+ * DaData.ru Suggestions jQuery plugin, version 18.3.2
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -61,14 +61,6 @@ var lang_util = {
  * Утилиты для работы с коллекциями.
  */
 var collection_util = {
-    /**
-     * Функция-обработчик для итератора. Принимает ключ и значение элемента.
-     * 
-     * @callback eachCallback
-     * @param key - ключ
-     * @param value - значение
-     */ 
-
     /**
      * Возвращает массив без пустых элементов
      */
@@ -203,6 +195,34 @@ var object_util = {
     },
 
     /**
+     * Копирует свойства и их значения из исходных объектов в целевой
+     */
+    assign: function(target, varArgs) {
+        if (typeof Object.assign === 'function') {
+            return Object.assign.apply(null, arguments);
+        }
+        if (target == null) { // TypeError if undefined or null
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+
+        var to = Object(target);
+
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+
+            if (nextSource != null) { // Skip over if undefined or null
+                for (var nextKey in nextSource) {
+                    // Avoid bugs when hasOwnProperty is shadowed
+                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
+                }
+            }
+        }
+        return to;
+    },
+
+    /**
      * Клонирует объект глубоким копированием
      */
     clone: function(obj) {
@@ -227,6 +247,24 @@ var object_util = {
     },
 
     /**
+     * Проверяет, что указанные поля в объекте заполнены.
+     * @param {Object} obj - проверяемый объект
+     * @param {Array} fields - список названий полей, которые надо проверить
+     * @returns {boolean}
+     */
+    fieldsAreNotEmpty: function(obj, fields){
+        if (!lang_util.isPlainObject(obj)) {
+            return false;
+        }
+        var result = true;
+        collection_util.each(fields, function (field, i) {
+            result = !!(obj[field]);
+            return result;
+        });
+        return result;
+    },
+
+    /**
      * Возвращает вложенное значение по указанному пути
      * например, 'data.address.value'
      */
@@ -235,6 +273,34 @@ var object_util = {
             step = path.shift();
 
         return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
+    },
+
+    /**
+     * Возвращает карту объектов по их идентификаторам.
+     * Принимает на вход массив объектов и идентифицирующее поле.
+     * Возвращает карты, ключом в которой является значение идентифицирующего поля,
+     *   а значением — исходный объект.
+     * Заодно добавляет объектам поле с порядковым номером.
+     * @param {Array} objectsArray - массив объектов
+     * @param {string} idField - название идентифицирующего поля
+     * @param {string} indexField - название поля с порядковым номером
+     * @return {Object} карта объектов по их идентификаторам
+     */
+    indexObjectsById: function (objectsArray, idField, indexField) {
+        var result = {};
+
+        collection_util.each(objectsArray, function (obj, idx) {
+            var key = obj[idField];
+            var val = {};
+
+            if (indexField) {
+                val[indexField] = idx;
+            }
+
+            result[key] = object_util.assign(val, obj);
+        });
+
+        return result;
     }
 };
 
@@ -327,6 +393,31 @@ var text_util = {
     },
 
     /**
+     * Добивает строку указанным символов справа до указанной длины
+     * @param sourceString  исходная строка
+     * @param targetLength  до какой длины добивать
+     * @param padString  каким символом добивать
+     * @returns строка указанной длины
+     */
+    padEnd: function(sourceString, targetLength, padString) {
+        if (String.prototype.padEnd) {
+            return sourceString.padEnd(targetLength, padString);
+        }
+        targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+        padString = String((typeof padString !== 'undefined' ? padString : ' '));
+        if (sourceString.length > targetLength) {
+            return String(sourceString);
+        }
+        else {
+            targetLength = targetLength - sourceString.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return String(sourceString) + padString.slice(0,targetLength);
+        }
+    },
+
+    /**
      * Разбивает строку на слова.
      * Отсеивает стоп-слова из списка.
      */
@@ -405,12 +496,20 @@ var jqapi = {
         return $.extend.apply(null, arguments);
     },
 
+    isJqObject: function(obj) {
+        return obj instanceof $;
+    },
+
     param: function(obj) {
         return $.param(obj);
     },
 
     proxy: function(func, context) {
         return $.proxy(func, context);
+    },
+
+    select: function(selector) {
+        return $(selector);
     },
 
     supportsCors: function() {
@@ -511,59 +610,15 @@ var utils = {
     areSame: object_util.areSame,
     compactObject: object_util.compact,
     getDeepValue: object_util.getDeepValue,
+    fieldsNotEmpty: object_util.fieldsAreNotEmpty,
+    indexBy: object_util.indexObjectsById,
 
     isArray: lang_util.isArray,
     isEmptyObject: lang_util.isEmptyObject,
     isFunction: lang_util.isFunction,
     isPlainObject: lang_util.isPlainObject,
 
-    uniqueId: generateId,
-
-    /**
-     * Проверяет, что указанные поля в объекте заполнены.
-     * @param {Object} obj - проверяемый объект
-     * @param {Array} fields - список названий полей, которые надо проверить
-     * @returns {boolean}
-     */
-    fieldsNotEmpty: function(obj, fields){
-        if (!lang_util.isPlainObject(obj)) {
-            return false;
-        }
-        var result = true;
-        collection_util.each(fields, function (field, i) {
-            result = !!(obj[field]);
-            return result;
-        });
-        return result;
-    },
-
-    /**
-     * Возвращает карту объектов по их идентификаторам.
-     * Принимает на вход массив объектов и идентифицирующее поле.
-     * Возвращает карты, ключом в которой является значение идентифицирующего поля,
-     *   а значением — исходный объект.
-     * Заодно добавляет объектам поле с порядковым номером.
-     * @param {Array} arr - массив объектов
-     * @param {string} idField - название идентифицирующего поля
-     * @param {string} indexField - название поля с порядковым номером
-     * @return {Object} карта объектов по их идентификаторам
-     */
-    indexBy: function (arr, idField, indexField) {
-        var result = {};
-
-        collection_util.each(arr, function (obj, idx) {
-            var key = obj[idField],
-                val = {};
-
-            if (indexField) {
-                val[indexField] = idx;
-            }
-
-            result[key] = jqapi.extend(true, val, obj);
-        });
-
-        return result;
-    }
+    uniqueId: generateId
 };
 
 var DEFAULT_OPTIONS = {
@@ -781,28 +836,6 @@ var matchers = function() {
 
 }();
 
-/**
- * Type is a bundle of properties:
- * - urlSuffix Mandatory. String
- * - matchers Mandatory. Array of functions (with optional data bound as a context) that find appropriate suggestion to select
- * - `fieldNames` Map fields of suggestion.data to their displayable names
- * - `unformattableTokens` Array of strings which should not be highlighted
- * - `dataComponents` Array of 'bound's can be set as `bounds` option. Order is important.
- *
- * flags:
- * - `alwaysContinueSelecting` Forbids to hide dropdown after selecting
- * - `geoEnabled` Makes to detect client's location for passing it to all requests
- * - `enrichmentEnabled` Makes to send additional request when a suggestion is selected
- *
- * and methods:
- * - `isDataComplete` Checks if suggestion.data can be operated as full data of it's type
- * - `composeValue` returns string value based on suggestion.data
- * - `formatResult` returns html of a suggestion. Overrides default method
- * - `formatResultInn` returns html of suggestion.data.inn
- * - `isQueryRequestable` checks if query is appropriated for requesting server
- * - `formatSelected` returns string to be inserted in textbox
- */
-
 var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
 /**
@@ -977,76 +1010,7 @@ var ADDRESS_COMPONENTS = [
 
 ];
 
-var rHasMatch = /<strong>/;
-
-var innPartsLengths = {
-    'LEGAL': [2, 2, 5, 1],
-    'INDIVIDUAL': [2, 2, 6, 2]
-};
-
-function valueStartsWith (suggestion, field) {
-    var fieldValue = suggestion.data && suggestion.data[field];
-
-    return fieldValue &&
-        new RegExp('^' + utils.escapeRegExChars(fieldValue) + '([' + WORD_DELIMITERS + ']|$)','i')
-            .test(suggestion.value);
-}
-
-function chooseFormattedField (formattedMain, formattedAlt) {
-    return rHasMatch.test(formattedAlt) && !rHasMatch.test(formattedMain)
-        ? formattedAlt
-        : formattedMain;
-}
-
-function formattedField (main, alt, currentValue, suggestion, options) {
-    var that = this,
-        formattedMain = that.highlightMatches(main, currentValue, suggestion, options),
-        formattedAlt = that.highlightMatches(alt, currentValue, suggestion, options);
-
-    return chooseFormattedField(formattedMain, formattedAlt);
-}
-
-var types = {};
-
-types['NAME'] = {
-    urlSuffix: 'fio',
-    noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
-    // names for labels, describing which fields are displayed
-    fieldNames: {
-        surname: 'фамилия',
-        name: 'имя',
-        patronymic: 'отчество'
-    },
-    isDataComplete: function (suggestion) {
-        var that = this,
-            params = that.options.params,
-            data = suggestion.data,
-            fields;
-
-        if (utils.isFunction(params)) {
-            params = params.call(that.element, suggestion.value);
-        }
-        if (params && params.parts) {
-            fields = params.parts.map(function (part) {
-                return part.toLowerCase();
-            });
-        } else {
-            // when NAME is first, patronymic is mot mandatory
-            fields = ['surname', 'name'];
-            // when SURNAME is first, it is
-            if (valueStartsWith(suggestion, 'surname')) {
-                fields.push('patronymic');
-            }
-        }
-        return utils.fieldsNotEmpty(data, fields);
-    },
-    composeValue: function (data) {
-        return utils.compact([data.surname, data.name, data.patronymic]).join(' ');
-    }
-};
-
-types['ADDRESS'] = {
+var ADDRESS_TYPE = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
@@ -1054,7 +1018,7 @@ types['ADDRESS'] = {
         jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
     ],
     dataComponents: ADDRESS_COMPONENTS,
-    dataComponentsById: utils.indexBy(ADDRESS_COMPONENTS, 'id', 'index'),
+    dataComponentsById: object_util.indexObjectsById(ADDRESS_COMPONENTS, 'id', 'index'),
     unformattableTokens: ADDRESS_STOPWORDS,
     enrichmentEnabled: true,
     enrichmentMethod: 'suggest',
@@ -1073,17 +1037,17 @@ types['ADDRESS'] = {
         var fields = [this.bounds.to || 'flat'],
             data = suggestion.data;
 
-        return !utils.isPlainObject(data) || utils.fieldsNotEmpty(data, fields);
+        return !lang_util.isPlainObject(data) || object_util.fieldsAreNotEmpty(data, fields);
     },
     composeValue: function (data, options) {
-        var region = data.region_with_type || utils.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
-            area = data.area_with_type || utils.compact([data.area_type, data.area]).join(' ') || data.area_type_full,
-            city = data.city_with_type || utils.compact([data.city_type, data.city]).join(' ') || data.city_type_full,
-            settelement = data.settlement_with_type || utils.compact([data.settlement_type, data.settlement]).join(' ') || data.settlement_type_full,
-            cityDistrict = data.city_district_with_type || utils.compact([data.city_district_type, data.city_district]).join(' ') || data.city_district_type_full,
-            street = data.street_with_type || utils.compact([data.street_type, data.street]).join(' ') || data.street_type_full,
-            house = utils.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
-            flat = utils.compact([data.flat_type, data.flat]).join(' '),
+        var region = data.region_with_type || collection_util.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
+            area = data.area_with_type || collection_util.compact([data.area_type, data.area]).join(' ') || data.area_type_full,
+            city = data.city_with_type || collection_util.compact([data.city_type, data.city]).join(' ') || data.city_type_full,
+            settelement = data.settlement_with_type || collection_util.compact([data.settlement_type, data.settlement]).join(' ') || data.settlement_type_full,
+            cityDistrict = data.city_district_with_type || collection_util.compact([data.city_district_type, data.city_district]).join(' ') || data.city_district_type_full,
+            street = data.street_with_type || collection_util.compact([data.street_type, data.street]).join(' ') || data.street_type_full,
+            house = collection_util.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
+            flat = collection_util.compact([data.flat_type, data.flat]).join(' '),
             postal_box = data.postal_box && ('а/я ' + data.postal_box),
             result;
 
@@ -1105,7 +1069,7 @@ types['ADDRESS'] = {
             }
         }
 
-        result = utils.compact([
+        result = collection_util.compact([
             region,
             area,
             city,
@@ -1139,7 +1103,7 @@ types['ADDRESS'] = {
 
             // добавляем исторические значения
             if (historyValues && historyValues.length > 0) {
-                tokens = utils.getTokens(currentValue, unformattableTokens);
+                tokens = text_util.tokenize(currentValue, unformattableTokens);
                 unusedTokens = this.type.findUnusedTokens(tokens, value);
                 formattedHistoryValues = this.type.getFormattedHistoryValues(unusedTokens, historyValues);
                 if (formattedHistoryValues) {
@@ -1151,7 +1115,7 @@ types['ADDRESS'] = {
             value = that.wrapFormattedValue(value, suggestion);
 
             if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                && !utils.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
+                && !lang_util.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
                 value +=
                     '<div class="' + that.classes.subtext + '">' +
                     that.highlightMatches(district, currentValue, suggestion) +
@@ -1258,7 +1222,73 @@ types['ADDRESS'] = {
 
 };
 
-types['PARTY'] = {
+function valueStartsWith (suggestion, field) {
+    var fieldValue = suggestion.data && suggestion.data[field];
+
+    return fieldValue &&
+        new RegExp('^' + text_util.escapeRegExChars(fieldValue) + '([' + WORD_DELIMITERS + ']|$)','i')
+            .test(suggestion.value);
+}
+
+var NAME_TYPE = {
+    urlSuffix: 'fio',
+    noSuggestionsHint: false,
+    matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
+    // names for labels, describing which fields are displayed
+    fieldNames: {
+        surname: 'фамилия',
+        name: 'имя',
+        patronymic: 'отчество'
+    },
+    isDataComplete: function (suggestion) {
+        var that = this,
+            params = that.options.params,
+            data = suggestion.data,
+            fields;
+
+        if (lang_util.isFunction(params)) {
+            params = params.call(that.element, suggestion.value);
+        }
+        if (params && params.parts) {
+            fields = params.parts.map(function (part) {
+                return part.toLowerCase();
+            });
+        } else {
+            // when NAME is first, patronymic is mot mandatory
+            fields = ['surname', 'name'];
+            // when SURNAME is first, it is
+            if (valueStartsWith(suggestion, 'surname')) {
+                fields.push('patronymic');
+            }
+        }
+        return object_util.fieldsAreNotEmpty(data, fields);
+    },
+    composeValue: function (data) {
+        return collection_util.compact([data.surname, data.name, data.patronymic]).join(' ');
+    }
+};
+
+var innPartsLengths = {
+    'LEGAL': [2, 2, 5, 1],
+    'INDIVIDUAL': [2, 2, 6, 2]
+};
+
+function chooseFormattedField (formattedMain, formattedAlt) {
+    var rHasMatch = /<strong>/;
+    return rHasMatch.test(formattedAlt) && !rHasMatch.test(formattedMain)
+        ? formattedAlt
+        : formattedMain;
+}
+
+function formattedField (main, alt, currentValue, suggestion, options) {
+    var that = this,
+        formattedMain = that.highlightMatches(main, currentValue, suggestion, options),
+        formattedAlt = that.highlightMatches(alt, currentValue, suggestion, options);
+
+    return chooseFormattedField(formattedMain, formattedAlt);
+}
+
+var PARTY_TYPE = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
@@ -1286,16 +1316,16 @@ types['PARTY'] = {
     formatResult: function (value, currentValue, suggestion, options) {
         var that = this,
             formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
-            formatterOGRN = that.highlightMatches(utils.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
+            formatterOGRN = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
             formattedInnOGRN = chooseFormattedField(formattedInn, formatterOGRN),
-            formattedFIO = that.highlightMatches(utils.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
-            address = utils.getDeepValue(suggestion.data, 'address.value') || '';
+            formattedFIO = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
+            address = object_util.getDeepValue(suggestion.data, 'address.value') || '';
 
         if (that.isMobile) {
             (options || (options = {})).maxLength = 50;
         }
 
-        value = formattedField.call(that, value, utils.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
+        value = formattedField.call(that, value, object_util.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
         value = that.wrapFormattedValue(value, suggestion);
 
         if (address) {
@@ -1351,7 +1381,7 @@ types['PARTY'] = {
     }
 };
 
-types['EMAIL'] = {
+var EMAIL_TYPE = {
     urlSuffix: 'email',
     noSuggestionsHint: false,
     matchers: [matchers.matchByNormalizedQuery],
@@ -1360,7 +1390,7 @@ types['EMAIL'] = {
     }
 };
 
-types['BANK'] = {
+var BANK_TYPE = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
     matchers: [jqapi.proxy(matchers.matchByFields, {
@@ -1375,8 +1405,8 @@ types['BANK'] = {
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
         var that = this,
-            formattedBIC = that.highlightMatches(utils.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
-            address = utils.getDeepValue(suggestion.data, 'address.value') || '';
+            formattedBIC = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
+            address = object_util.getDeepValue(suggestion.data, 'address.value') || '';
 
         value = that.highlightMatches(value, currentValue, suggestion, options);
         value = that.wrapFormattedValue(value, suggestion);
@@ -1403,8 +1433,38 @@ types['BANK'] = {
         return value;
     },
     formatSelected: function (suggestion) {
-        return utils.getDeepValue(suggestion, 'data.name.payment') || null;
+        return object_util.getDeepValue(suggestion, 'data.name.payment') || null;
     }
+};
+
+/**
+ * Type is a bundle of properties:
+ * - urlSuffix Mandatory. String
+ * - matchers Mandatory. Array of functions (with optional data bound as a context) that find appropriate suggestion to select
+ * - `fieldNames` Map fields of suggestion.data to their displayable names
+ * - `unformattableTokens` Array of strings which should not be highlighted
+ * - `dataComponents` Array of 'bound's can be set as `bounds` option. Order is important.
+ *
+ * flags:
+ * - `alwaysContinueSelecting` Forbids to hide dropdown after selecting
+ * - `geoEnabled` Makes to detect client's location for passing it to all requests
+ * - `enrichmentEnabled` Makes to send additional request when a suggestion is selected
+ *
+ * and methods:
+ * - `isDataComplete` Checks if suggestion.data can be operated as full data of it's type
+ * - `composeValue` returns string value based on suggestion.data
+ * - `formatResult` returns html of a suggestion. Overrides default method
+ * - `formatResultInn` returns html of suggestion.data.inn
+ * - `isQueryRequestable` checks if query is appropriated for requesting server
+ * - `formatSelected` returns string to be inserted in textbox
+ */
+
+var types = {
+    'NAME': NAME_TYPE,
+    'ADDRESS': ADDRESS_TYPE,
+    'PARTY': PARTY_TYPE,
+    'EMAIL': EMAIL_TYPE,
+    'BANK': BANK_TYPE
 };
 
 jqapi.extend(DEFAULT_OPTIONS, {
@@ -3544,11 +3604,37 @@ function belongsToArea(suggestion, instance){
         result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
     if (result) {
-        $.each(instance.bounds.all, function (i, bound) {
+        collection_util.each(instance.bounds.all, function (bound, i) {
             return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
         });
     }
     return result;
+}
+
+/**
+ * Возвращает КЛАДР-код, обрезанный до последнего непустого уровня
+ * 50 000 040 000 00 → 50 000 040
+ * @param kladr_id
+ * @returns {string}
+ */
+function getSignificantKladrId(kladr_id) {
+    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+    var length = significantKladrId.length;
+    var significantLength = -1;
+    if (length <= 2) {
+        significantLength = 2;
+    } else if (length > 2 && length <= 5) {
+        significantLength = 5;
+    } else if (length > 5 && length <= 8) {
+        significantLength = 8;
+    } else if (length > 8 && length <= 11) {
+        significantLength = 11;
+    } else if (length > 11 && length <= 15) {
+        significantLength = 15;
+    } else if (length > 15) {
+        significantLength = 19;
+    }
+    return text_util.padEnd(significantKladrId, significantLength, "0");
 }
 
 /**
@@ -3566,8 +3652,8 @@ var ConstraintLocation = function(data, instance){
     that.fields = {};
     that.specificity = -1;
 
-    if ($.isPlainObject(data) && instance.type.dataComponents) {
-        $.each(instance.type.dataComponents, function (i, component) {
+    if (lang_util.isPlainObject(data) && instance.type.dataComponents) {
+        collection_util.each(instance.type.dataComponents, function (component, i) {
             var fieldName = component.id;
 
             if (component.forLocations && data[fieldName]) {
@@ -3578,20 +3664,21 @@ var ConstraintLocation = function(data, instance){
     }
 
     fieldNames = Object.keys(that.fields);
-    fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
+    fiasFieldNames = collection_util.intersect(fieldNames, fiasParamNames);
     if (fiasFieldNames.length) {
-        $.each(fiasFieldNames, function(index, fieldName) {
+        collection_util.each(fiasFieldNames, function(fieldName, index) {
             fiasFields[fieldName] = that.fields[fieldName];
         });
         that.fields = fiasFields;
         that.specificity = that.getFiasSpecificity(fiasFieldNames);
     } else if (that.fields.kladr_id) {
         that.fields = { kladr_id: that.fields.kladr_id };
-        that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
+        that.significantKladr = getSignificantKladrId(that.fields.kladr_id);
+        that.specificity = that.getKladrSpecificity(that.significantKladr);
     }
 };
 
-$.extend(ConstraintLocation.prototype, {
+jqapi.extend(ConstraintLocation.prototype, {
     getLabel: function(){
         return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
     },
@@ -3601,7 +3688,7 @@ $.extend(ConstraintLocation.prototype, {
     },
 
     isValid: function(){
-        return !$.isEmptyObject(this.fields);
+        return !lang_util.isEmptyObject(this.fields);
     },
 
     /**
@@ -3610,15 +3697,12 @@ $.extend(ConstraintLocation.prototype, {
      * @param kladr_id
      * @returns {number}
      */
-    getKladrSpecificity: function (kladr_id) {
-        var specificity = -1,
-            significantLength;
+    getKladrSpecificity: function(kladr_id) {
+        var specificity = -1;
+        var kladrLength = kladr_id.length;
 
-        this.significantKladr = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
-        significantLength = this.significantKladr.length;
-
-        $.each(this.instance.type.dataComponents, function (i, component) {
-            if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+        collection_util.each(this.instance.type.dataComponents, function (component, i) {
+            if (component.kladrFormat && kladrLength === component.kladrFormat.digits) {
                 specificity = i;
             }
         });
@@ -3642,8 +3726,8 @@ $.extend(ConstraintLocation.prototype, {
     getFiasSpecificity: function (fiasFieldNames) {
         var specificity = -1;
 
-        $.each(this.instance.type.dataComponents, function (i, component) {
-            if (component.fiasType && ($.inArray(component.fiasType, fiasFieldNames) > -1) && specificity < i) {
+        collection_util.each(this.instance.type.dataComponents, function (component, i) {
+            if (component.fiasType && (fiasFieldNames.indexOf(component.fiasType) > -1) && specificity < i) {
                 specificity = i;
             }
         });
@@ -3657,7 +3741,7 @@ $.extend(ConstraintLocation.prototype, {
         if (this.fields.kladr_id) {
             return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
         } else {
-            $.each(this.fields, function(fieldName, value){
+            collection_util.each(this.fields, function(value, fieldName){
                 return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
             });
 
@@ -3677,45 +3761,46 @@ Suggestions.ConstraintLocation = ConstraintLocation;
  * @constructor
  */
 var Constraint = function(data, instance) {
-    this.id = utils.uniqueId('c');
+    this.id = generateId('c');
     this.deletable = !!data.deletable;
     this.instance = instance;
 
-    this.locations = $.map($.makeArray(data && (data.locations || data.restrictions)), function (data) {
+    var locationsArray = collection_util.makeArray(data && (data.locations || data.restrictions));
+    this.locations = locationsArray.map(function (data) {
         return new ConstraintLocation(data, instance);
     });
 
-    this.locations = $.grep(this.locations, function(location) {
+    this.locations = this.locations.filter(function(location) {
         return location.isValid();
     });
 
     this.label = data.label;
     if (this.label == null && instance.type.composeValue) {
-        this.label = $.map(this.locations, function (location) {
+        this.label = this.locations.map(function (location) {
             return location.getLabel();
         }).join(', ');
     }
 
     if (this.label && this.isValid()) {
-        this.$el = $(document.createElement('li'))
-            .append($(document.createElement('span')).text(this.label))
+        this.$el = jqapi.select(document.createElement('li'))
+            .append(jqapi.select(document.createElement('span')).text(this.label))
             .attr('data-constraint-id', this.id);
 
         if (this.deletable) {
             this.$el.append(
-                $(document.createElement('span'))
+                jqapi.select(document.createElement('span'))
                     .addClass(instance.classes.removeConstraint)
             );
         }
     }
 };
 
-$.extend(Constraint.prototype, {
+jqapi.extend(Constraint.prototype, {
     isValid: function () {
         return this.locations.length > 0;
     },
     getFields: function(){
-        return $.map(this.locations, function(location){
+        return this.locations.map(function(location){
             return location.getFields();
         });
     }
@@ -3728,9 +3813,10 @@ var methods$6 = {
 
         that.constraints = {};
 
-        that.$constraints = $('<ul class="suggestions-constraints"/>');
+        that.$constraints = jqapi.select('<ul class="suggestions-constraints"/>');
         that.$wrapper.append(that.$constraints);
-        that.$constraints.on('click', '.' + that.classes.removeConstraint, $.proxy(that.onConstraintRemoveClick, that));
+        that.$constraints.on('click', '.' + that.classes.removeConstraint, 
+            jqapi.proxy(that.onConstraintRemoveClick, that));
     },
 
     setConstraintsPosition: function(origin, elLayout){
@@ -3746,7 +3832,7 @@ var methods$6 = {
 
     onConstraintRemoveClick: function (e) {
         var that = this,
-            $item = $(e.target).closest('li'),
+            $item = jqapi.select(e.target).closest('li'),
             id = $item.attr('data-constraint-id');
 
         // Delete constraint data before animation to let correct requests to be sent while fading
@@ -3769,8 +3855,8 @@ var methods$6 = {
             return;
         }
 
-        if (constraints instanceof $ || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
-            $parent = $(constraints);
+        if (jqapi.isJqObject(constraints) || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
+            $parent = jqapi.select(constraints);
             if (!$parent.is(that.constraints)) {
                 that.unbindFromParent();
                 if (!$parent.is(that.el)) {
@@ -3780,8 +3866,10 @@ var methods$6 = {
             }
         } else {
             that._constraintsUpdating = true;
-            $.each(that.constraints, $.proxy(that.removeConstraint, that));
-            $.each($.makeArray(constraints), function (i, constraint) {
+            collection_util.each(that.constraints, function(_, id) {
+                that.removeConstraint(id);
+            });
+            collection_util.each(collection_util.makeArray(constraints), function (constraint, i) {
                 that.addConstraint(constraint);
             });
             that._constraintsUpdating = false;
@@ -3793,20 +3881,20 @@ var methods$6 = {
         var locationComponents = [],
             location = {};
 
-        $.each(this.type.dataComponents, function () {
+        collection_util.each(this.type.dataComponents, function () {
             if (this.forLocations) locationComponents.push(this.id);
         });
 
-        if ($.isPlainObject(data)) {
+        if (lang_util.isPlainObject(data)) {
             // Copy to location only allowed fields
-            $.each(data, function (key, value) {
+            collection_util.each(data, function (value, key) {
                 if (value && locationComponents.indexOf(key) >= 0) {
                     location[key] = value;
                 }
             });
         }
 
-        if (!$.isEmptyObject(location)) {
+        if (!lang_util.isEmptyObject(location)) {
             return location.kladr_id ? { kladr_id: location.kladr_id } : location;
         }
     },
@@ -3845,13 +3933,13 @@ var methods$6 = {
             parentData,
             params = {};
 
-        while (constraints instanceof $ && (parentInstance = constraints.suggestions()) &&
-            !(parentData = utils.getDeepValue(parentInstance, 'selection.data'))
+        while (jqapi.isJqObject(constraints) && (parentInstance = constraints.suggestions()) &&
+            !(parentData = object_util.getDeepValue(parentInstance, 'selection.data'))
         ) {
             constraints = parentInstance.constraints;
         }
 
-        if (constraints instanceof $) {
+        if (jqapi.isJqObject(constraints)) {
             parentData = (new ConstraintLocation(parentData, parentInstance))
                 .getFields();
 
@@ -3866,7 +3954,7 @@ var methods$6 = {
             }
         } else {
             if (constraints) {
-                $.each(constraints, function (id, constraint) {
+                collection_util.each(constraints, function (constraint, id) {
                     locations = locations.concat(constraint.getFields());
                 });
 
@@ -3886,7 +3974,7 @@ var methods$6 = {
      */
     getFirstConstraintLabel: function() {
         var that = this,
-            constraints_id = $.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
+            constraints_id = lang_util.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
 
         return constraints_id ? that.constraints[constraints_id].label : '';
     },
@@ -3900,16 +3988,16 @@ var methods$6 = {
                     'suggestions-invalidateselection.' + that.uniqueId,
                     'suggestions-clear.' + that.uniqueId
                 ].join(' '),
-                $.proxy(that.onParentSelectionChanged, that)
+                jqapi.proxy(that.onParentSelectionChanged, that)
             )
-            .on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+            .on('suggestions-dispose.' + that.uniqueId, jqapi.proxy(that.onParentDispose, that));
     },
 
     unbindFromParent: function  () {
         var that = this,
             $parent = that.constraints;
 
-        if ($parent instanceof $) {
+        if (jqapi.isJqObject($parent)) {
             $parent.off('.' + that.uniqueId);
         }
     },
@@ -3926,7 +4014,7 @@ var methods$6 = {
     },
 
     getParentInstance: function () {
-        return this.constraints instanceof $ && this.constraints.suggestions();
+        return jqapi.isJqObject(this.constraints) && this.constraints.suggestions();
     },
 
     shareWithParent: function (suggestion) {
@@ -3951,8 +4039,8 @@ var methods$6 = {
             maxSpecificity = -1;
 
         // Find most specific location that could restrict current data
-        $.each(that.constraints, function (id, constraint) {
-            $.each(constraint.locations, function (i, location) {
+        collection_util.each(that.constraints, function (constraint, id) {
+            collection_util.each(constraint.locations, function (location, i) {
                 if (location.containsData(data) && location.specificity > maxSpecificity) {
                     maxSpecificity = location.specificity;
                 }
@@ -3967,12 +4055,12 @@ var methods$6 = {
             }
 
             // Collect all fieldnames from all restricted components
-            $.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (i, component) {
+            collection_util.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (component, i) {
                 restrictedKeys.push.apply(restrictedKeys, component.fields);
             });
 
             // Copy skipping restricted fields
-            $.each(data, function (key, value) {
+            collection_util.each(data, function (value, key) {
                 if (restrictedKeys.indexOf(key) === -1) {
                     unrestrictedData[key] = value;
                 }
@@ -3986,12 +4074,12 @@ var methods$6 = {
 
 };
 
-$.extend(DEFAULT_OPTIONS, optionsUsed$2);
+jqapi.extend(DEFAULT_OPTIONS, optionsUsed$2);
 
-$.extend(Suggestions.prototype, methods$6);
+jqapi.extend(Suggestions.prototype, methods$6);
 
 // Disable this feature when GET method used. See SUG-202
-if (utils.getDefaultType() != 'GET') {
+if (ajax.getDefaultType() != 'GET') {
     notificator
         .on('initialize', methods$6.createConstraints)
         .on('setOptions', methods$6.setupConstraints)
@@ -4383,7 +4471,7 @@ notificator
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = '18.3.1';
+Suggestions.version = '18.3.2';
 
 $.Suggestions = Suggestions;
 

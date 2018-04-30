@@ -1,9 +1,13 @@
-import $ from 'jquery';
-
-import { utils } from './utils';
+import { DEFAULT_OPTIONS } from './default-options';
+import { lang_util } from './utils/lang';
+import { collection_util } from './utils/collection';
+import { text_util } from './utils/text';
+import { object_util } from './utils/object';
+import { generateId } from './utils';
+import { ajax } from './ajax';
+import { jqapi } from './jqapi';
 import { Suggestions } from './suggestions';
 import { notificator } from './notificator';
-import { DEFAULT_OPTIONS } from './default-options';
 
 /**
  * Methods related to CONSTRAINTS component
@@ -32,11 +36,37 @@ function belongsToArea(suggestion, instance){
         result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
     if (result) {
-        $.each(instance.bounds.all, function (i, bound) {
+        collection_util.each(instance.bounds.all, function (bound, i) {
             return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
         });
     }
     return result;
+}
+
+/**
+ * Возвращает КЛАДР-код, обрезанный до последнего непустого уровня
+ * 50 000 040 000 00 → 50 000 040
+ * @param kladr_id
+ * @returns {string}
+ */
+function getSignificantKladrId(kladr_id) {
+    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+    var length = significantKladrId.length;
+    var significantLength = -1;
+    if (length <= 2) {
+        significantLength = 2;
+    } else if (length > 2 && length <= 5) {
+        significantLength = 5;
+    } else if (length > 5 && length <= 8) {
+        significantLength = 8;
+    } else if (length > 8 && length <= 11) {
+        significantLength = 11;
+    } else if (length > 11 && length <= 15) {
+        significantLength = 15;
+    } else if (length > 15) {
+        significantLength = 19;
+    }
+    return text_util.padEnd(significantKladrId, significantLength, "0");
 }
 
 /**
@@ -54,8 +84,8 @@ var ConstraintLocation = function(data, instance){
     that.fields = {};
     that.specificity = -1;
 
-    if ($.isPlainObject(data) && instance.type.dataComponents) {
-        $.each(instance.type.dataComponents, function (i, component) {
+    if (lang_util.isPlainObject(data) && instance.type.dataComponents) {
+        collection_util.each(instance.type.dataComponents, function (component, i) {
             var fieldName = component.id;
 
             if (component.forLocations && data[fieldName]) {
@@ -66,20 +96,21 @@ var ConstraintLocation = function(data, instance){
     }
 
     fieldNames = Object.keys(that.fields);
-    fiasFieldNames = utils.arraysIntersection(fieldNames, fiasParamNames);
+    fiasFieldNames = collection_util.intersect(fieldNames, fiasParamNames);
     if (fiasFieldNames.length) {
-        $.each(fiasFieldNames, function(index, fieldName) {
+        collection_util.each(fiasFieldNames, function(fieldName, index) {
             fiasFields[fieldName] = that.fields[fieldName];
         });
         that.fields = fiasFields;
         that.specificity = that.getFiasSpecificity(fiasFieldNames);
     } else if (that.fields.kladr_id) {
         that.fields = { kladr_id: that.fields.kladr_id };
-        that.specificity = that.getKladrSpecificity(that.fields.kladr_id);
+        that.significantKladr = getSignificantKladrId(that.fields.kladr_id);
+        that.specificity = that.getKladrSpecificity(that.significantKladr);
     }
 };
 
-$.extend(ConstraintLocation.prototype, {
+jqapi.extend(ConstraintLocation.prototype, {
     getLabel: function(){
         return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
     },
@@ -89,7 +120,7 @@ $.extend(ConstraintLocation.prototype, {
     },
 
     isValid: function(){
-        return !$.isEmptyObject(this.fields);
+        return !lang_util.isEmptyObject(this.fields);
     },
 
     /**
@@ -98,15 +129,12 @@ $.extend(ConstraintLocation.prototype, {
      * @param kladr_id
      * @returns {number}
      */
-    getKladrSpecificity: function (kladr_id) {
-        var specificity = -1,
-            significantLength;
+    getKladrSpecificity: function(kladr_id) {
+        var specificity = -1;
+        var kladrLength = kladr_id.length;
 
-        this.significantKladr = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
-        significantLength = this.significantKladr.length;
-
-        $.each(this.instance.type.dataComponents, function (i, component) {
-            if (component.kladrFormat && significantLength === component.kladrFormat.digits) {
+        collection_util.each(this.instance.type.dataComponents, function (component, i) {
+            if (component.kladrFormat && kladrLength === component.kladrFormat.digits) {
                 specificity = i;
             }
         });
@@ -130,8 +158,8 @@ $.extend(ConstraintLocation.prototype, {
     getFiasSpecificity: function (fiasFieldNames) {
         var specificity = -1;
 
-        $.each(this.instance.type.dataComponents, function (i, component) {
-            if (component.fiasType && ($.inArray(component.fiasType, fiasFieldNames) > -1) && specificity < i) {
+        collection_util.each(this.instance.type.dataComponents, function (component, i) {
+            if (component.fiasType && (fiasFieldNames.indexOf(component.fiasType) > -1) && specificity < i) {
                 specificity = i;
             }
         });
@@ -145,7 +173,7 @@ $.extend(ConstraintLocation.prototype, {
         if (this.fields.kladr_id) {
             return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
         } else {
-            $.each(this.fields, function(fieldName, value){
+            collection_util.each(this.fields, function(value, fieldName){
                 return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
             });
 
@@ -165,45 +193,46 @@ Suggestions.ConstraintLocation = ConstraintLocation;
  * @constructor
  */
 var Constraint = function(data, instance) {
-    this.id = utils.uniqueId('c');
+    this.id = generateId('c');
     this.deletable = !!data.deletable;
     this.instance = instance;
 
-    this.locations = $.map($.makeArray(data && (data.locations || data.restrictions)), function (data) {
+    var locationsArray = collection_util.makeArray(data && (data.locations || data.restrictions));
+    this.locations = locationsArray.map(function (data) {
         return new ConstraintLocation(data, instance);
     });
 
-    this.locations = $.grep(this.locations, function(location) {
+    this.locations = this.locations.filter(function(location) {
         return location.isValid();
     });
 
     this.label = data.label;
     if (this.label == null && instance.type.composeValue) {
-        this.label = $.map(this.locations, function (location) {
+        this.label = this.locations.map(function (location) {
             return location.getLabel();
         }).join(', ');
     }
 
     if (this.label && this.isValid()) {
-        this.$el = $(document.createElement('li'))
-            .append($(document.createElement('span')).text(this.label))
+        this.$el = jqapi.select(document.createElement('li'))
+            .append(jqapi.select(document.createElement('span')).text(this.label))
             .attr('data-constraint-id', this.id);
 
         if (this.deletable) {
             this.$el.append(
-                $(document.createElement('span'))
+                jqapi.select(document.createElement('span'))
                     .addClass(instance.classes.removeConstraint)
             );
         }
     }
 };
 
-$.extend(Constraint.prototype, {
+jqapi.extend(Constraint.prototype, {
     isValid: function () {
         return this.locations.length > 0;
     },
     getFields: function(){
-        return $.map(this.locations, function(location){
+        return this.locations.map(function(location){
             return location.getFields();
         });
     }
@@ -216,9 +245,10 @@ var methods = {
 
         that.constraints = {};
 
-        that.$constraints = $('<ul class="suggestions-constraints"/>');
+        that.$constraints = jqapi.select('<ul class="suggestions-constraints"/>');
         that.$wrapper.append(that.$constraints);
-        that.$constraints.on('click', '.' + that.classes.removeConstraint, $.proxy(that.onConstraintRemoveClick, that));
+        that.$constraints.on('click', '.' + that.classes.removeConstraint, 
+            jqapi.proxy(that.onConstraintRemoveClick, that));
     },
 
     setConstraintsPosition: function(origin, elLayout){
@@ -234,7 +264,7 @@ var methods = {
 
     onConstraintRemoveClick: function (e) {
         var that = this,
-            $item = $(e.target).closest('li'),
+            $item = jqapi.select(e.target).closest('li'),
             id = $item.attr('data-constraint-id');
 
         // Delete constraint data before animation to let correct requests to be sent while fading
@@ -257,8 +287,8 @@ var methods = {
             return;
         }
 
-        if (constraints instanceof $ || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
-            $parent = $(constraints);
+        if (jqapi.isJqObject(constraints) || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
+            $parent = jqapi.select(constraints);
             if (!$parent.is(that.constraints)) {
                 that.unbindFromParent();
                 if (!$parent.is(that.el)) {
@@ -268,8 +298,10 @@ var methods = {
             }
         } else {
             that._constraintsUpdating = true;
-            $.each(that.constraints, $.proxy(that.removeConstraint, that));
-            $.each($.makeArray(constraints), function (i, constraint) {
+            collection_util.each(that.constraints, function(_, id) {
+                that.removeConstraint(id);
+            });
+            collection_util.each(collection_util.makeArray(constraints), function (constraint, i) {
                 that.addConstraint(constraint);
             });
             that._constraintsUpdating = false;
@@ -281,20 +313,20 @@ var methods = {
         var locationComponents = [],
             location = {};
 
-        $.each(this.type.dataComponents, function () {
+        collection_util.each(this.type.dataComponents, function () {
             if (this.forLocations) locationComponents.push(this.id);
         });
 
-        if ($.isPlainObject(data)) {
+        if (lang_util.isPlainObject(data)) {
             // Copy to location only allowed fields
-            $.each(data, function (key, value) {
+            collection_util.each(data, function (value, key) {
                 if (value && locationComponents.indexOf(key) >= 0) {
                     location[key] = value;
                 }
             });
         }
 
-        if (!$.isEmptyObject(location)) {
+        if (!lang_util.isEmptyObject(location)) {
             return location.kladr_id ? { kladr_id: location.kladr_id } : location;
         }
     },
@@ -333,13 +365,13 @@ var methods = {
             parentData,
             params = {};
 
-        while (constraints instanceof $ && (parentInstance = constraints.suggestions()) &&
-            !(parentData = utils.getDeepValue(parentInstance, 'selection.data'))
+        while (jqapi.isJqObject(constraints) && (parentInstance = constraints.suggestions()) &&
+            !(parentData = object_util.getDeepValue(parentInstance, 'selection.data'))
         ) {
             constraints = parentInstance.constraints;
         }
 
-        if (constraints instanceof $) {
+        if (jqapi.isJqObject(constraints)) {
             parentData = (new ConstraintLocation(parentData, parentInstance))
                 .getFields();
 
@@ -354,7 +386,7 @@ var methods = {
             }
         } else {
             if (constraints) {
-                $.each(constraints, function (id, constraint) {
+                collection_util.each(constraints, function (constraint, id) {
                     locations = locations.concat(constraint.getFields());
                 });
 
@@ -374,7 +406,7 @@ var methods = {
      */
     getFirstConstraintLabel: function() {
         var that = this,
-            constraints_id = $.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
+            constraints_id = lang_util.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
 
         return constraints_id ? that.constraints[constraints_id].label : '';
     },
@@ -388,16 +420,16 @@ var methods = {
                     'suggestions-invalidateselection.' + that.uniqueId,
                     'suggestions-clear.' + that.uniqueId
                 ].join(' '),
-                $.proxy(that.onParentSelectionChanged, that)
+                jqapi.proxy(that.onParentSelectionChanged, that)
             )
-            .on('suggestions-dispose.' + that.uniqueId, $.proxy(that.onParentDispose, that));
+            .on('suggestions-dispose.' + that.uniqueId, jqapi.proxy(that.onParentDispose, that));
     },
 
     unbindFromParent: function  () {
         var that = this,
             $parent = that.constraints;
 
-        if ($parent instanceof $) {
+        if (jqapi.isJqObject($parent)) {
             $parent.off('.' + that.uniqueId);
         }
     },
@@ -414,7 +446,7 @@ var methods = {
     },
 
     getParentInstance: function () {
-        return this.constraints instanceof $ && this.constraints.suggestions();
+        return jqapi.isJqObject(this.constraints) && this.constraints.suggestions();
     },
 
     shareWithParent: function (suggestion) {
@@ -439,8 +471,8 @@ var methods = {
             maxSpecificity = -1;
 
         // Find most specific location that could restrict current data
-        $.each(that.constraints, function (id, constraint) {
-            $.each(constraint.locations, function (i, location) {
+        collection_util.each(that.constraints, function (constraint, id) {
+            collection_util.each(constraint.locations, function (location, i) {
                 if (location.containsData(data) && location.specificity > maxSpecificity) {
                     maxSpecificity = location.specificity;
                 }
@@ -455,12 +487,12 @@ var methods = {
             }
 
             // Collect all fieldnames from all restricted components
-            $.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (i, component) {
+            collection_util.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (component, i) {
                 restrictedKeys.push.apply(restrictedKeys, component.fields);
             });
 
             // Copy skipping restricted fields
-            $.each(data, function (key, value) {
+            collection_util.each(data, function (value, key) {
                 if (restrictedKeys.indexOf(key) === -1) {
                     unrestrictedData[key] = value;
                 }
@@ -474,12 +506,12 @@ var methods = {
 
 };
 
-$.extend(DEFAULT_OPTIONS, optionsUsed);
+jqapi.extend(DEFAULT_OPTIONS, optionsUsed);
 
-$.extend(Suggestions.prototype, methods);
+jqapi.extend(Suggestions.prototype, methods);
 
 // Disable this feature when GET method used. See SUG-202
-if (utils.getDefaultType() != 'GET') {
+if (ajax.getDefaultType() != 'GET') {
     notificator
         .on('initialize', methods.createConstraints)
         .on('setOptions', methods.setupConstraints)

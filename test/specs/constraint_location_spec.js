@@ -64,7 +64,7 @@ describe('Constraint Location', function () {
         expect(location.specificity).toEqual(expectedSpecificity);
     });
 
-    it('should determine specificity of kladr_id', function () {
+    it('should determine specificity of kladr_id #1', function () {
         var location = new $.Suggestions.ConstraintLocation({
                 'kladr_id': '6300000700000'
             }, this.instance),
@@ -72,6 +72,29 @@ describe('Constraint Location', function () {
 
         expect(this.instance.type.dataComponents[expectedSpecificity].id).toEqual('city');
         expect(location.specificity).toEqual(expectedSpecificity);
+        expect(location.significantKladr).toEqual('63000007');
+    });
+
+    it('should determine specificity of kladr_id #2', function () {
+        var location = new $.Suggestions.ConstraintLocation({
+                'kladr_id': '5000004000000'
+            }, this.instance),
+            expectedSpecificity = 11;
+
+        expect(this.instance.type.dataComponents[expectedSpecificity].id).toEqual('city');
+        expect(location.specificity).toEqual(expectedSpecificity);
+        expect(location.significantKladr).toEqual('50000040');
+    });
+
+    it('should determine specificity of kladr_id #3', function () {
+        var location = new $.Suggestions.ConstraintLocation({
+                'kladr_id': '50000040000016000'
+            }, this.instance),
+            expectedSpecificity = 20;
+
+        expect(this.instance.type.dataComponents[expectedSpecificity].id).toEqual('street');
+        expect(location.specificity).toEqual(expectedSpecificity);
+        expect(location.significantKladr).toEqual('500000400000160');
     });
 
     it('should determine suggestion data includes', function () {
