@@ -49,22 +49,21 @@ var haveSameParentAddress = sameParentChecker(function(val) {
  */
 function _matchByWords(stopwords, parentCheckerFn) {
     return function(query, suggestions) {
-        var queryLowerCase = query.toLowerCase();
         var queryTokens;
         var matches = [];
 
         if (parentCheckerFn(suggestions)) {
-            queryTokens = text_util.withSubTokens(text_util.split(queryLowerCase, stopwords));
+            queryTokens = text_util.splitTokens(text_util.split(query, stopwords));
 
             collection_util.each(suggestions, function(suggestion, i) {
-                var suggestedValue = suggestion.value.toLowerCase();
+                var suggestedValue = suggestion.value;
 
-                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
+                if (text_util.stringEncloses(query, suggestedValue)) {
                     return false;
                 }
 
                 // check if query words are a subset of suggested words
-                var suggestionWords = text_util.withSubTokens(text_util.split(suggestedValue, stopwords));
+                var suggestionWords = text_util.splitTokens(text_util.split(suggestedValue, stopwords));
 
                 if (collection_util.minus(queryTokens, suggestionWords).length === 0) {
                     matches.push(i);
@@ -86,15 +85,14 @@ var matchers =  {
      */
     matchByNormalizedQuery: function (stopwords) {
         return function(query, suggestions) {
-            var queryLowerCase = query.toLowerCase();
-            var normalizedQuery = text_util.normalize(queryLowerCase, stopwords);
+            var normalizedQuery = text_util.normalize(query, stopwords);
             var matches = [];
 
             collection_util.each(suggestions, function(suggestion, i) {
                 var suggestedValue = suggestion.value.toLowerCase();
                 // if query encloses suggestion, than it has already been selected
                 // so we should not select it anymore
-                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
+                if (text_util.stringEncloses(query, suggestedValue)) {
                     return false;
                 }
                 // if there is suggestion that contains query as its part
@@ -128,14 +126,15 @@ var matchers =  {
      */
     matchByFields: function (fields) {
         return function(query, suggestions) {
-            var tokens = text_util.withSubTokens(text_util.split(query.toLowerCase()));
+            var tokens = text_util.splitTokens(text_util.split(query));
             var suggestionWords = [];
 
             if (suggestions.length === 1) {
                 if (fields) {
                     collection_util.each(fields, function (stopwords, field) {
-                        var fieldValue = object_util.getDeepValue(suggestions[0], field),
-                            fieldWords = fieldValue && text_util.withSubTokens(text_util.split(fieldValue.toLowerCase(), stopwords));
+                        var fieldValue = object_util.getDeepValue(suggestions[0], field);
+                        var fieldWords = fieldValue 
+                            && text_util.splitTokens(text_util.split(fieldValue, stopwords));
 
                         if (fieldWords && fieldWords.length) {
                             suggestionWords = suggestionWords.concat(fieldWords);

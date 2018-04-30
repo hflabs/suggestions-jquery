@@ -74,6 +74,14 @@ describe('Select on Enter', function () {
                 { value: 'г Москва, ул Енисейская, д 24', data: 0 },
                 { value: 'г Москва, ул Енисейская, д 24 стр 2', data: 1 }
             ],
+            'санкт-петербург пугачева': [
+                { value: 'г Санкт-Петербург, ул Пугачёва', data: 0 },
+                { value: 'г Санкт-Петербург, ул Пугачёва (Мартыновка)', data: 1 },
+                { value: 'г Санкт-Петербург, г Петергоф, ул Пугачёва', data: 2 }
+            ],
+            'санкт петербург пугачёва 15-44': [
+                { value: 'г Санкт-Петербург, ул Пугачёва, д 15, кв 44', data: 0 }
+            ],
             'хф 7707545900': [
                 {
                     value: 'ООО ХФ ЛАБС',
@@ -623,6 +631,46 @@ describe('Select on Enter', function () {
         helpers.hitEnter(this.input);
 
         expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should trigger on E = YO', function () {
+        var options = {
+            onSelect: function () {}
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'санкт-петербург пугачева';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Санкт-Петербург, ул Пугачёва', data: 0 }),
+            true
+        );
+    });
+
+    it('Should trigger on hyphen as a separator', function () {
+        var options = {
+            onSelect: function () {}
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'санкт петербург пугачёва 15-44';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).toHaveBeenCalledWith(
+            helpers.appendUnrestrictedValue({ value: 'г Санкт-Петербург, ул Пугачёва, д 15, кв 44', data: 0 }),
+            true
+        );
     });
 
     it('Should trigger when fields (inn) match single suggestion', function () {
