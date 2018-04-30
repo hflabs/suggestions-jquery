@@ -296,25 +296,24 @@ var ADDRESS_TYPE = {
     }(),
 
     /**
-     * Возвращает список слов в запросе для которых не найдено соответствующего слова в ответе
+     * Возвращает список слов в запросе,
+     * которые не встречаются в подсказке
      */
     findUnusedTokens: function(tokens, value) {
         var tokenIndex,
             token,
             unused = [];
 
-        for(tokenIndex in tokens) {
-            token = tokens[tokenIndex];
-            if (value.indexOf(token) === -1) {
-                unused.push(token);
-            }
-        }
+        unused = tokens.filter(function(token) {
+            return value.indexOf(token) === -1;
+        });
 
         return unused;
     },
 
     /**
-     * Возвращает исторические названия для слов запроса, для которых не найдено совпадения в основном значении
+     * Возвращает исторические названия для слов запроса, 
+     * для которых не найдено совпадения в основном значении подсказки
      */
     getFormattedHistoryValues: function(unusedTokens, historyValues) {
         var tokenIndex,
@@ -324,16 +323,14 @@ var ADDRESS_TYPE = {
             values = [],
             formatted = '';
 
-        for(historyValueIndex in historyValues) {
-            historyValue = historyValues[historyValueIndex];
-            for(tokenIndex in unusedTokens) {
-                token = unusedTokens[tokenIndex];
+        historyValues.forEach(function(historyValue) {
+            collection_util.each(unusedTokens, function(token) {
                 if (historyValue.toLowerCase().indexOf(token) >= 0) {
                     values.push(historyValue);
-                    break;
+                    return false;
                 }
-            }
-        }
+            })
+        });
 
         if (values.length > 0) {
             formatted = ' (бывш. ' + values.join(', ') + ')';
