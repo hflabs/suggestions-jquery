@@ -1,66 +1,100 @@
-import $ from 'jquery';
+import { collection_util } from './utils/collection';
+import { text_util } from './utils/text';
+import { object_util } from './utils/object';
 
-import { utils } from './utils';
+/**
+ * Factory to create same parent checker function
+ * @param preprocessFn called on each value before comparison
+ * @returns {Function} same parent checker function
+ */
+function sameParentChecker (preprocessFn) {
+    return function (suggestions) {
+        if (suggestions.length === 0) {
+            return false;
+        }
+        if (suggestions.length === 1) {
+            return true;
+        }
+
+        var parentValue = preprocessFn(suggestions[0].value),
+            aliens = suggestions.filter(function (suggestion) {
+                return preprocessFn(suggestion.value).indexOf(parentValue) !== 0;
+            });
+
+        return aliens.length === 0;
+    }
+}
+
+/**
+ * Default same parent checker. Compares raw values.
+ * @type {Function}
+ */
+var haveSameParent = sameParentChecker(function(val) { return val; });
+
+/**
+ * Same parent checker for addresses. Strips house and extension before comparison.
+ * @type {Function}
+ */
+var haveSameParentAddress = sameParentChecker(function(val) {
+    return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
+});
+
+/**
+ * Сравнивает запрос c подсказками, по словам.
+ * Срабатывает, только если у всех подсказок общий родитель
+ * (функция сверки передаётся параметром).
+ * Игнорирует стоп-слова.
+ * Возвращает индекс единственной подходящей подсказки
+ * или -1, если подходящих нет или несколько.
+ */
+function _matchByWords(stopwords, parentCheckerFn) {
+    return function(query, suggestions) {
+        var queryLowerCase = query.toLowerCase();
+        var queryTokens;
+        var matches = [];
+
+        if (parentCheckerFn(suggestions)) {
+            queryTokens = text_util.withSubTokens(text_util.split(queryLowerCase, stopwords));
+
+            collection_util.each(suggestions, function(suggestion, i) {
+                var suggestedValue = suggestion.value.toLowerCase();
+
+                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
+                    return false;
+                }
+
+                // check if query words are a subset of suggested words
+                var suggestionWords = text_util.withSubTokens(text_util.split(suggestedValue, stopwords));
+
+                if (collection_util.minus(queryTokens, suggestionWords).length === 0) {
+                    matches.push(i);
+                }
+            });
+        }
+
+        return matches.length === 1 ? matches[0] : -1;
+    }
+}
 
 /**
  * Matchers return index of suitable suggestion
  * Context inside is optionally set in types.js
  */
-var matchers = function() {
-
+var matchers =  {
     /**
-     * Factory to create same parent checker function
-     * @param preprocessFn called on each value before comparison
-     * @returns {Function} same parent checker function
+     * Matches query against suggestions, removing all the stopwords.
      */
-    function sameParentChecker (preprocessFn) {
-        return function (suggestions) {
-            if (suggestions.length === 0) {
-                return false;
-            }
-            if (suggestions.length === 1) {
-                return true;
-            }
+    matchByNormalizedQuery: function (stopwords) {
+        return function(query, suggestions) {
+            var queryLowerCase = query.toLowerCase();
+            var normalizedQuery = text_util.normalize(queryLowerCase, stopwords);
+            var matches = [];
 
-            var parentValue = preprocessFn(suggestions[0].value),
-                aliens = $.grep(suggestions, function (suggestion) {
-                    return preprocessFn(suggestion.value).indexOf(parentValue) === 0;
-                }, true);
-
-            return aliens.length === 0;
-        }
-    }
-
-    /**
-     * Default same parent checker. Compares raw values.
-     * @type {Function}
-     */
-    var haveSameParent = sameParentChecker(function(val) { return val; });
-
-    /**
-     * Same parent checker for addresses. Strips house and extension before comparison.
-     * @type {Function}
-     */
-    var haveSameParentAddress = sameParentChecker(function(val) {
-        return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
-    });
-
-    return {
-
-        /**
-         * Matches query against suggestions, removing all the stopwords.
-         */
-        matchByNormalizedQuery: function (query, suggestions) {
-            var queryLowerCase = query.toLowerCase(),
-                stopwords = this && this.stopwords,
-                normalizedQuery = utils.normalize(queryLowerCase, stopwords),
-                matches = [];
-
-            $.each(suggestions, function(i, suggestion) {
+            collection_util.each(suggestions, function(suggestion, i) {
                 var suggestedValue = suggestion.value.toLowerCase();
                 // if query encloses suggestion, than it has already been selected
                 // so we should not select it anymore
-                if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
                     return false;
                 }
                 // if there is suggestion that contains query as its part
@@ -68,93 +102,40 @@ var matchers = function() {
                 if (suggestedValue.indexOf(normalizedQuery) > 0) {
                     return false;
                 }
-                if (normalizedQuery === utils.normalize(suggestedValue, stopwords)) {
+                if (normalizedQuery === text_util.normalize(suggestedValue, stopwords)) {
                     matches.push(i);
                 }
             });
 
             return matches.length === 1 ? matches[0] : -1;
-        },
+        }
+    },
 
-        /**
-         * Matches query against suggestions word-by-word (with respect to stopwords).
-         * Matches if query words are a subset of suggested words.
-         */
-        matchByWords: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                matches = [];
+    matchByWords: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParent);
+    },
 
-            if (haveSameParent(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+    matchByWordsAddress: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParentAddress);
+    },
 
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        matches.push(i);
-                    }
-                });
-            }
-
-            return matches.length === 1 ? matches[0] : -1;
-        },
-
-        matchByWordsAddress: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                index = -1;
-
-            if (haveSameParentAddress(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
-
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        index = i;
-                        return false;
-                    }
-                });
-            }
-
-            return index;
-        },
-
-        /**
-         * Matches query against values contained in suggestion fields
-         * for cases, when there is only one suggestion
-         * only considers fields specified in fieldsStopwords map
-         * uses partial matching:
-         *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
-         */
-        matchByFields: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                fieldsStopwords = this && this.fieldsStopwords,
-                tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
-                suggestionWords = [];
+    /**
+     * Matches query against values contained in suggestion fields
+     * for cases, when there is only one suggestion
+     * only considers fields specified in fields map
+     * uses partial matching:
+     *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
+     */
+    matchByFields: function (fields) {
+        return function(query, suggestions) {
+            var tokens = text_util.withSubTokens(text_util.split(query.toLowerCase()));
+            var suggestionWords = [];
 
             if (suggestions.length === 1) {
-                if (fieldsStopwords) {
-                    $.each(fieldsStopwords, function (field, stopwords) {
-                        var fieldValue = utils.getDeepValue(suggestions[0], field),
-                            fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
+                if (fields) {
+                    collection_util.each(fields, function (stopwords, field) {
+                        var fieldValue = object_util.getDeepValue(suggestions[0], field),
+                            fieldWords = fieldValue && text_util.withSubTokens(text_util.split(fieldValue.toLowerCase(), stopwords));
 
                         if (fieldWords && fieldWords.length) {
                             suggestionWords = suggestionWords.concat(fieldWords);
@@ -162,16 +143,14 @@ var matchers = function() {
                     });
                 }
 
-                if (utils.arrayMinusWithPartialMatching(tokens, suggestionWords).length === 0) {
+                if (collection_util.minusWithPartialMatching(tokens, suggestionWords).length === 0) {
                     return 0;
                 }
             }
 
             return -1;
         }
-
-    };
-
-}();
+    }
+};
 
 export { matchers };

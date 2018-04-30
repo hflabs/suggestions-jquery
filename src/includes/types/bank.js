@@ -7,14 +7,14 @@ import { ADDRESS_STOPWORDS, ADDRESS_COMPONENTS } from './address';
 var BANK_TYPE = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
-    matchers: [jqapi.proxy(matchers.matchByFields, {
+    matchers: [matchers.matchByFields(
         // These fields of suggestion's `data` used by by-words matcher
-        fieldsStopwords: {
+        {
             'value': null,
             'data.bic': null,
             'data.swift': null
         }
-    })],
+    )],
     dataComponents: ADDRESS_COMPONENTS,
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {

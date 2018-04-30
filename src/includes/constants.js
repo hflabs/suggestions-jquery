@@ -25,7 +25,7 @@ var CLASSES = {
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
-var WORD_PARTS_DELIMITERS = '\\-\\+\\/\\\\\\?!@#$%^&';
+var WORD_PARTS_DELIMITERS = '\\-\\+\\\\\\?!@#$%^&';
 
 export {
     KEYS,

@@ -29,6 +29,12 @@ describe('Select on Enter', function () {
                 { value: 'г Москва, пр-кт Мира ', data: 1 },
                 { value: 'г Москва, ул Мира, д 1', data: 2 }
             ],
+            'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 1': [
+                { value: 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 1Г', data: 0 },
+                { value: 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 4А/1', data: 1 },
+                { value: 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 10', data: 2 },
+                { value: 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 10А', data: 3 }
+            ],
             'Россия, обл Тверская, р-н Оленинский, д Упыри ул': [
                 { value: 'Россия, обл Тверская, р-н Оленинский, д Упыри', data: 0 },
                 { value: 'Россия, обл Тверская, р-н Оленинский, д Упыри, д 1', data: 1 },
@@ -594,6 +600,24 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = -1;
 
         this.input.value = 'москва енисейская24г';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should NOT trigger on slash house partial match', function () {
+        var options = {
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 1';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);

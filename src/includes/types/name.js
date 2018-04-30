@@ -16,7 +16,10 @@ function valueStartsWith (suggestion, field) {
 var NAME_TYPE = {
     urlSuffix: 'fio',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
+    matchers: [
+        matchers.matchByNormalizedQuery(),
+        matchers.matchByWords()
+    ],
     // names for labels, describing which fields are displayed
     fieldNames: {
         surname: 'фамилия',

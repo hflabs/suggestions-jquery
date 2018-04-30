@@ -183,8 +183,8 @@ var ADDRESS_TYPE = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
-        jqapi.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-        jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
+        matchers.matchByNormalizedQuery(ADDRESS_STOPWORDS),
+        matchers.matchByWordsAddress(ADDRESS_STOPWORDS)
     ],
     dataComponents: ADDRESS_COMPONENTS,
     dataComponentsById: object_util.indexObjectsById(ADDRESS_COMPONENTS, 'id', 'index'),

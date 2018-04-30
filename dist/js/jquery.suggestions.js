@@ -331,7 +331,7 @@ var CLASSES = {
 var EVENT_NS = '.suggestions';
 var DATA_ATTR_KEY = 'suggestions';
 var WORD_DELIMITERS = '\\s"\'~\\*\\.,:\\|\\[\\]\\(\\)\\{\\}<>№';
-var WORD_PARTS_DELIMITERS = '\\-\\+\\/\\\\\\?!@#$%^&';
+var WORD_PARTS_DELIMITERS = '\\-\\+\\\\\\?!@#$%^&';
 
 /**
  * Утилиты для работы с текстом.
@@ -665,64 +665,98 @@ var DEFAULT_OPTIONS = {
 };
 
 /**
+ * Factory to create same parent checker function
+ * @param preprocessFn called on each value before comparison
+ * @returns {Function} same parent checker function
+ */
+function sameParentChecker (preprocessFn) {
+    return function (suggestions) {
+        if (suggestions.length === 0) {
+            return false;
+        }
+        if (suggestions.length === 1) {
+            return true;
+        }
+
+        var parentValue = preprocessFn(suggestions[0].value),
+            aliens = suggestions.filter(function (suggestion) {
+                return preprocessFn(suggestion.value).indexOf(parentValue) !== 0;
+            });
+
+        return aliens.length === 0;
+    }
+}
+
+/**
+ * Default same parent checker. Compares raw values.
+ * @type {Function}
+ */
+var haveSameParent = sameParentChecker(function(val) { return val; });
+
+/**
+ * Same parent checker for addresses. Strips house and extension before comparison.
+ * @type {Function}
+ */
+var haveSameParentAddress = sameParentChecker(function(val) {
+    return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
+});
+
+/**
+ * Сравнивает запрос c подсказками, по словам.
+ * Срабатывает, только если у всех подсказок общий родитель
+ * (функция сверки передаётся параметром).
+ * Игнорирует стоп-слова.
+ * Возвращает индекс единственной подходящей подсказки
+ * или -1, если подходящих нет или несколько.
+ */
+function _matchByWords(stopwords, parentCheckerFn) {
+    return function(query, suggestions) {
+        var queryLowerCase = query.toLowerCase();
+        var queryTokens;
+        var matches = [];
+
+        if (parentCheckerFn(suggestions)) {
+            queryTokens = text_util.withSubTokens(text_util.split(queryLowerCase, stopwords));
+
+            collection_util.each(suggestions, function(suggestion, i) {
+                var suggestedValue = suggestion.value.toLowerCase();
+
+                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
+                    return false;
+                }
+
+                // check if query words are a subset of suggested words
+                var suggestionWords = text_util.withSubTokens(text_util.split(suggestedValue, stopwords));
+
+                if (collection_util.minus(queryTokens, suggestionWords).length === 0) {
+                    matches.push(i);
+                }
+            });
+        }
+
+        return matches.length === 1 ? matches[0] : -1;
+    }
+}
+
+/**
  * Matchers return index of suitable suggestion
  * Context inside is optionally set in types.js
  */
-var matchers = function() {
-
+var matchers =  {
     /**
-     * Factory to create same parent checker function
-     * @param preprocessFn called on each value before comparison
-     * @returns {Function} same parent checker function
+     * Matches query against suggestions, removing all the stopwords.
      */
-    function sameParentChecker (preprocessFn) {
-        return function (suggestions) {
-            if (suggestions.length === 0) {
-                return false;
-            }
-            if (suggestions.length === 1) {
-                return true;
-            }
+    matchByNormalizedQuery: function (stopwords) {
+        return function(query, suggestions) {
+            var queryLowerCase = query.toLowerCase();
+            var normalizedQuery = text_util.normalize(queryLowerCase, stopwords);
+            var matches = [];
 
-            var parentValue = preprocessFn(suggestions[0].value),
-                aliens = $.grep(suggestions, function (suggestion) {
-                    return preprocessFn(suggestion.value).indexOf(parentValue) === 0;
-                }, true);
-
-            return aliens.length === 0;
-        }
-    }
-
-    /**
-     * Default same parent checker. Compares raw values.
-     * @type {Function}
-     */
-    var haveSameParent = sameParentChecker(function(val) { return val; });
-
-    /**
-     * Same parent checker for addresses. Strips house and extension before comparison.
-     * @type {Function}
-     */
-    var haveSameParentAddress = sameParentChecker(function(val) {
-        return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
-    });
-
-    return {
-
-        /**
-         * Matches query against suggestions, removing all the stopwords.
-         */
-        matchByNormalizedQuery: function (query, suggestions) {
-            var queryLowerCase = query.toLowerCase(),
-                stopwords = this && this.stopwords,
-                normalizedQuery = utils.normalize(queryLowerCase, stopwords),
-                matches = [];
-
-            $.each(suggestions, function(i, suggestion) {
+            collection_util.each(suggestions, function(suggestion, i) {
                 var suggestedValue = suggestion.value.toLowerCase();
                 // if query encloses suggestion, than it has already been selected
                 // so we should not select it anymore
-                if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
+                if (text_util.stringEncloses(queryLowerCase, suggestedValue)) {
                     return false;
                 }
                 // if there is suggestion that contains query as its part
@@ -730,93 +764,40 @@ var matchers = function() {
                 if (suggestedValue.indexOf(normalizedQuery) > 0) {
                     return false;
                 }
-                if (normalizedQuery === utils.normalize(suggestedValue, stopwords)) {
+                if (normalizedQuery === text_util.normalize(suggestedValue, stopwords)) {
                     matches.push(i);
                 }
             });
 
             return matches.length === 1 ? matches[0] : -1;
-        },
+        }
+    },
 
-        /**
-         * Matches query against suggestions word-by-word (with respect to stopwords).
-         * Matches if query words are a subset of suggested words.
-         */
-        matchByWords: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                matches = [];
+    matchByWords: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParent);
+    },
 
-            if (haveSameParent(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
+    matchByWordsAddress: function (stopwords) {
+        return _matchByWords(stopwords, haveSameParentAddress);
+    },
 
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        matches.push(i);
-                    }
-                });
-            }
-
-            return matches.length === 1 ? matches[0] : -1;
-        },
-
-        matchByWordsAddress: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                queryLowerCase = query.toLowerCase(),
-                queryTokens,
-                index = -1;
-
-            if (haveSameParentAddress(suggestions)) {
-                queryTokens = utils.withSubTokens(utils.getWords(queryLowerCase, stopwords));
-
-                $.each(suggestions, function(i, suggestion) {
-                    var suggestedValue = suggestion.value.toLowerCase();
-
-                    if (utils.stringEncloses(queryLowerCase, suggestedValue)) {
-                        return false;
-                    }
-
-                    // check if query words are a subset of suggested words
-                    var suggestionWords = utils.withSubTokens(utils.getWords(suggestedValue, stopwords));
-
-                    if (utils.arrayMinus(queryTokens, suggestionWords).length === 0) {
-                        index = i;
-                        return false;
-                    }
-                });
-            }
-
-            return index;
-        },
-
-        /**
-         * Matches query against values contained in suggestion fields
-         * for cases, when there is only one suggestion
-         * only considers fields specified in fieldsStopwords map
-         * uses partial matching:
-         *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
-         */
-        matchByFields: function (query, suggestions) {
-            var stopwords = this && this.stopwords,
-                fieldsStopwords = this && this.fieldsStopwords,
-                tokens = utils.withSubTokens(utils.getWords(query.toLowerCase(), stopwords)),
-                suggestionWords = [];
+    /**
+     * Matches query against values contained in suggestion fields
+     * for cases, when there is only one suggestion
+     * only considers fields specified in fields map
+     * uses partial matching:
+     *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
+     */
+    matchByFields: function (fields) {
+        return function(query, suggestions) {
+            var tokens = text_util.withSubTokens(text_util.split(query.toLowerCase()));
+            var suggestionWords = [];
 
             if (suggestions.length === 1) {
-                if (fieldsStopwords) {
-                    $.each(fieldsStopwords, function (field, stopwords) {
-                        var fieldValue = utils.getDeepValue(suggestions[0], field),
-                            fieldWords = fieldValue && utils.withSubTokens(utils.getWords(fieldValue.toLowerCase(), stopwords));
+                if (fields) {
+                    collection_util.each(fields, function (stopwords, field) {
+                        var fieldValue = object_util.getDeepValue(suggestions[0], field),
+                            fieldWords = fieldValue && text_util.withSubTokens(text_util.split(fieldValue.toLowerCase(), stopwords));
 
                         if (fieldWords && fieldWords.length) {
                             suggestionWords = suggestionWords.concat(fieldWords);
@@ -824,17 +805,15 @@ var matchers = function() {
                     });
                 }
 
-                if (utils.arrayMinusWithPartialMatching(tokens, suggestionWords).length === 0) {
+                if (collection_util.minusWithPartialMatching(tokens, suggestionWords).length === 0) {
                     return 0;
                 }
             }
 
             return -1;
         }
-
-    };
-
-}();
+    }
+};
 
 var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
 
@@ -1014,8 +993,8 @@ var ADDRESS_TYPE = {
     urlSuffix: 'address',
     noSuggestionsHint: 'Неизвестный адрес',
     matchers: [
-        jqapi.proxy(matchers.matchByNormalizedQuery, { stopwords: ADDRESS_STOPWORDS }),
-        jqapi.proxy(matchers.matchByWordsAddress, { stopwords: ADDRESS_STOPWORDS })
+        matchers.matchByNormalizedQuery(ADDRESS_STOPWORDS),
+        matchers.matchByWordsAddress(ADDRESS_STOPWORDS)
     ],
     dataComponents: ADDRESS_COMPONENTS,
     dataComponentsById: object_util.indexObjectsById(ADDRESS_COMPONENTS, 'id', 'index'),
@@ -1233,7 +1212,10 @@ function valueStartsWith (suggestion, field) {
 var NAME_TYPE = {
     urlSuffix: 'fio',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery, matchers.matchByWords],
+    matchers: [
+        matchers.matchByNormalizedQuery(),
+        matchers.matchByWords()
+    ],
     // names for labels, describing which fields are displayed
     fieldNames: {
         surname: 'фамилия',
@@ -1292,15 +1274,15 @@ var PARTY_TYPE = {
     urlSuffix: 'party',
     noSuggestionsHint: 'Неизвестная организация',
     matchers: [
-        jqapi.proxy(matchers.matchByFields, {
+        matchers.matchByFields(
             // These fields of suggestion's `data` used by by-words matcher
-            fieldsStopwords: {
+            {
                 'value': null,
                 'data.address.value': ADDRESS_STOPWORDS,
                 'data.inn': null,
                 'data.ogrn': null
             }
-        })
+        )
     ],
     dataComponents: ADDRESS_COMPONENTS,
     enrichmentEnabled: true,
@@ -1384,7 +1366,7 @@ var PARTY_TYPE = {
 var EMAIL_TYPE = {
     urlSuffix: 'email',
     noSuggestionsHint: false,
-    matchers: [matchers.matchByNormalizedQuery],
+    matchers: [ matchers.matchByNormalizedQuery() ],
     isQueryRequestable: function (query) {
         return this.options.suggest_local || query.indexOf('@') >= 0;
     }
@@ -1393,14 +1375,14 @@ var EMAIL_TYPE = {
 var BANK_TYPE = {
     urlSuffix: 'bank',
     noSuggestionsHint: 'Неизвестный банк',
-    matchers: [jqapi.proxy(matchers.matchByFields, {
+    matchers: [matchers.matchByFields(
         // These fields of suggestion's `data` used by by-words matcher
-        fieldsStopwords: {
+        {
             'value': null,
             'data.bic': null,
             'data.swift': null
         }
-    })],
+    )],
     dataComponents: ADDRESS_COMPONENTS,
     geoEnabled: true,
     formatResult: function (value, currentValue, suggestion, options) {
