@@ -5,14 +5,6 @@ import { lang_util } from './lang';
  */
 var collection_util = {
     /**
-     * Функция-обработчик для итератора. Принимает ключ и значение элемента.
-     * 
-     * @callback eachCallback
-     * @param key - ключ
-     * @param value - значение
-     */ 
-
-    /**
      * Возвращает массив без пустых элементов
      */
     compact: function (array) {

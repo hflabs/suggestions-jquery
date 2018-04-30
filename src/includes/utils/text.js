@@ -61,6 +61,31 @@ var text_util = {
     },
 
     /**
+     * Добивает строку указанным символов справа до указанной длины
+     * @param sourceString  исходная строка
+     * @param targetLength  до какой длины добивать
+     * @param padString  каким символом добивать
+     * @returns строка указанной длины
+     */
+    padEnd: function(sourceString, targetLength, padString) {
+        if (String.prototype.padEnd) {
+            return sourceString.padEnd(targetLength, padString);
+        }
+        targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+        padString = String((typeof padString !== 'undefined' ? padString : ' '));
+        if (sourceString.length > targetLength) {
+            return String(sourceString);
+        }
+        else {
+            targetLength = targetLength - sourceString.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return String(sourceString) + padString.slice(0,targetLength);
+        }
+    },
+
+    /**
      * Разбивает строку на слова.
      * Отсеивает стоп-слова из списка.
      */
