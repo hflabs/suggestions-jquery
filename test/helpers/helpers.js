@@ -11,6 +11,10 @@ this.helpers = (function () {
             event.keyCode = event.which = keyCode;
             $(el).trigger(event);
         },
+        click: function(el) {
+            var event = $.Event('click');
+            $(el).trigger(event);
+        },
         responseFor: function (suggestions) {
             return [
                 200,

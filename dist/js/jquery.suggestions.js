@@ -2503,6 +2503,10 @@ var methods = {
         return document.activeElement === this.element;
     },
 
+    isElementDisabled: function() {
+        return Boolean(this.element.getAttribute('disabled') || this.element.getAttribute('readonly'));
+    },
+
     isCursorAtEnd: function () {
         var that = this,
             valLength = that.el.val().length,
@@ -3348,26 +3352,24 @@ var ADDON_TYPES = {
 };
 
 var Addon = function (owner) {
-    var that = this,
-        $el = $('<span class="suggestions-addon"/>');
+    var $el = jqapi.select('<span class="suggestions-addon"/>');
 
-    that.owner = owner;
-    that.$el = $el;
-    that.type = ADDON_TYPES.NONE;
-    that.visible = false;
-    that.initialPadding = null;
+    this.owner = owner;
+    this.$el = $el;
+    this.type = ADDON_TYPES.NONE;
+    this.visible = false;
+    this.initialPadding = null;
 
-    $el.on('click', $.proxy(that, 'onClick'));
+    $el.on('click', jqapi.proxy(this, 'onClick'));
 };
 
 Addon.prototype = {
 
-    checkType: function () {
-        var that = this,
-            type = that.owner.options.addon,
-            isTypeCorrect = false;
+    checkType: function() {
+        var type = this.owner.options.addon;
+        var isTypeCorrect = false;
 
-        $.each(ADDON_TYPES, function (key, value) {
+        collection_util.each(ADDON_TYPES, function (value, key) {
             isTypeCorrect = value == type;
             if (isTypeCorrect) {
                 return false;
@@ -3375,52 +3377,59 @@ Addon.prototype = {
         });
 
         if (!isTypeCorrect) {
-            type = that.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
+            type = this.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
         }
 
-        if (type != that.type) {
-            that.type = type;
-            that.$el.attr('data-addon-type', type);
-            that.toggle(true);
+        if (type != this.type) {
+            this.type = type;
+            this.$el.attr('data-addon-type', type);
+            this.toggle(true);
         }
     },
 
-    toggle: function (immediate) {
-        var that = this,
-            visible;
+    isEnabled: function() {
+        return !this.owner.isElementDisabled();
+    },
 
-        switch (that.type) {
+    toggle: function(immediate) {
+        var visible;
+
+        switch (this.type) {
             case ADDON_TYPES.CLEAR:
-                visible = !!that.owner.currentValue;
+                visible = !!this.owner.currentValue;
                 break;
             case ADDON_TYPES.SPINNER:
-                visible = !!that.owner.currentRequest;
+                visible = !!this.owner.currentRequest;
                 break;
             default:
                 visible = false;
         }
 
-        if (visible != that.visible) {
-            that.visible = visible;
+        if (!this.isEnabled()) {
+            visible = false;
+        }
+
+        if (visible != this.visible) {
+            this.visible = visible;
             if (visible) {
-                that.show(immediate);
+                this.show(immediate);
             } else {
-                that.hide(immediate);
+                this.hide(immediate);
             }
         }
     },
 
-    show: function (immediate) {
-        var that = this,
-            style = {'opacity': 1};
+    show: function(immediate) {
+        var that = this;
+        var style = {'opacity': 1};
 
         if (immediate) {
-            that.$el
+            this.$el
                 .show()
                 .css(style);
-            that.showBackground(true);
+                this.showBackground(true);
         } else {
-            that.$el
+            this.$el
                 .stop(true, true)
                 .delay(BEFORE_SHOW_ADDON)
                 .queue(function () {
@@ -3432,16 +3441,16 @@ Addon.prototype = {
         }
     },
 
-    hide: function (immediate) {
-        var that = this,
-            style = {'opacity': 0};
+    hide: function(immediate) {
+        var that = this;
+        var style = {'opacity': 0};
 
         if (immediate) {
-            that.$el
+            this.$el
                 .hide()
                 .css(style);
         }
-        that.$el
+        this.$el
             .stop(true)
             .animate(style, {
                 duration: 'fast',
@@ -3453,31 +3462,29 @@ Addon.prototype = {
     },
 
     fixPosition: function(origin, elLayout){
-        var that = this,
-            addonSize = elLayout.innerHeight;
+        var addonSize = elLayout.innerHeight;
 
-        that.checkType();
-        that.$el.css({
+        this.checkType();
+        this.$el.css({
             left: origin.left + elLayout.borderLeft + elLayout.innerWidth - addonSize + 'px',
             top: origin.top + elLayout.borderTop + 'px',
             height: addonSize,
             width: addonSize
         });
 
-        that.initialPadding = elLayout.paddingRight;
-        that.width = addonSize;
-        if (that.visible) {
+        this.initialPadding = elLayout.paddingRight;
+        this.width = addonSize;
+        if (this.visible) {
             elLayout.componentsRight += addonSize;
         }
     },
 
-    showBackground: function (immediate) {
-        var that = this,
-            $el = that.owner.el,
-            style = {'paddingRight': that.width};
+    showBackground: function(immediate) {
+        var $el = this.owner.el;
+        var style = {'paddingRight': this.width};
 
-        if (that.width > that.initialPadding) {
-            that.stopBackground();
+        if (this.width > this.initialPadding) {
+            this.stopBackground();
             if (immediate) {
                 $el.css(style);
             } else {
@@ -3488,13 +3495,12 @@ Addon.prototype = {
         }
     },
 
-    hideBackground: function (immediate) {
-        var that = this,
-            $el = that.owner.el,
-            style = {'paddingRight': that.initialPadding};
+    hideBackground: function(immediate) {
+        var $el = this.owner.el;
+        var style = {'paddingRight': this.initialPadding};
 
-        if (that.width > that.initialPadding) {
-            that.stopBackground(true);
+        if (this.width > this.initialPadding) {
+            this.stopBackground(true);
             if (immediate) {
                 $el.css(style);
             } else {
@@ -3506,49 +3512,42 @@ Addon.prototype = {
         }
     },
 
-    stopBackground: function (gotoEnd) {
+    stopBackground: function(gotoEnd) {
         this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
     },
 
-    onClick: function (e) {
-        var that = this;
-
-        if (that.type == ADDON_TYPES.CLEAR) {
-            that.owner.clear();
+    onClick: function(e) {
+        if (this.isEnabled() && this.type == ADDON_TYPES.CLEAR) {
+            this.owner.clear();
         }
     }
-
 };
 
 var methods$5 = {
-
-    createAddon: function () {
-        var that = this,
-            addon = new Addon(that);
-
-        that.$wrapper.append(addon.$el);
-        that.addon = addon;
+    createAddon: function() {
+        var addon = new Addon(this);
+        this.$wrapper.append(addon.$el);
+        this.addon = addon;
     },
 
-    fixAddonPosition: function (origin, elLayout) {
+    fixAddonPosition: function(origin, elLayout) {
         this.addon.fixPosition(origin, elLayout);
     },
 
-    checkAddonType: function () {
+    checkAddonType: function() {
         this.addon.checkType();
     },
 
-    checkAddonVisibility: function () {
+    checkAddonVisibility: function() {
         this.addon.toggle();
     },
 
-    stopBackground: function () {
+    stopBackground: function() {
         this.addon.stopBackground();
     }
-
 };
 
-$.extend(DEFAULT_OPTIONS, optionsUsed$1);
+jqapi.extend(DEFAULT_OPTIONS, optionsUsed$1);
 
 notificator
     .on('initialize', methods$5.createAddon)
