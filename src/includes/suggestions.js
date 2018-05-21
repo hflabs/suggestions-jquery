@@ -263,9 +263,10 @@ Suggestions.prototype = {
 
         $.extend(that.options, suppliedOptions);
 
+        that['type'] = types.get(that.options['type']);
+
         // Check mandatory options
         $.each({
-            'type': types,
             'requestMode': requestModes
         }, function (option, available) {
             that[option] = available[that.options[option]];

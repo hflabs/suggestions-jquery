@@ -1429,6 +1429,15 @@ var BANK_TYPE = {
     }
 };
 
+function Outward(name) {
+    this.urlSuffix = name.toLowerCase();
+    this.noSuggestionsHint = 'Неизвестное значение';
+    this.matchers = [
+        matchers.matchByNormalizedQuery(),
+        matchers.matchByWords()
+    ];
+}
+
 /**
  * Type is a bundle of properties:
  * - urlSuffix Mandatory. String
@@ -1457,6 +1466,14 @@ var types = {
     'PARTY': PARTY_TYPE,
     'EMAIL': EMAIL_TYPE,
     'BANK': BANK_TYPE
+};
+
+types.get = function(type) {
+    if (types.hasOwnProperty(type)) {
+        return types[type];
+    } else {
+        return new Outward(type);
+    }
 };
 
 jqapi.extend(DEFAULT_OPTIONS, {
@@ -1735,9 +1752,10 @@ Suggestions.prototype = {
 
         $.extend(that.options, suppliedOptions);
 
+        that['type'] = types.get(that.options['type']);
+
         // Check mandatory options
         $.each({
-            'type': types,
             'requestMode': requestModes
         }, function (option, available) {
             that[option] = available[that.options[option]];

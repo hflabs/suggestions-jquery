@@ -5,6 +5,7 @@ import { NAME_TYPE } from './types/name';
 import { PARTY_TYPE } from './types/party';
 import { EMAIL_TYPE } from './types/email';
 import { BANK_TYPE } from './types/bank';
+import { Outward } from './types/outward';
 
 
 /**
@@ -36,6 +37,14 @@ var types = {
     'EMAIL': EMAIL_TYPE,
     'BANK': BANK_TYPE
 };
+
+types.get = function(type) {
+    if (types.hasOwnProperty(type)) {
+        return types[type];
+    } else {
+        return new Outward(type);
+    }
+}
 
 jqapi.extend(DEFAULT_OPTIONS, {
     suggest_local: true

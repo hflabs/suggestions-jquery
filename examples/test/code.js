@@ -8,12 +8,13 @@
             $suggestions = $('#suggestions'),
             $name = $('#name'),
             $email = $('#email'),
+            $party = $('#party'),
+            $outward = $('#outward'),
             $fixDataButton = $('#fixData'),
             $region = $('#region'),
             $city = $('#city'),
             $street = $('#street'),
-            $house = $('#house'),
-            $party = $('#party');
+            $house = $('#house');
 
         // просто подсказки
         var suggestionsInstance = $suggestions.suggestions({
@@ -39,6 +40,11 @@
         $email.suggestions({
             token: token,
             type: "EMAIL"
+        });
+
+        $outward.suggestions({
+            token: token,
+            type: "FNS_UNIT"
         });
 
         // регион
