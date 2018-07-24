@@ -15,12 +15,10 @@
   display: none;
 }
 .suggestions-wrapper {
-  display: inline-block;
   position: relative;
   margin: 0;
   padding: 0;
   vertical-align: top;
-  min-height: 1px;
   -webkit-text-size-adjust: 100%;
 }
 /**
@@ -63,7 +61,7 @@
 }
 .suggestions-suggestions strong {
   font-weight: normal;
-  color: #3399FF;
+  color: #3399ff;
 }
 .suggestions-suggestions.suggestions-mobile {
   border-style: none;
@@ -186,7 +184,7 @@
   right: 0;
   top: 50%;
   border-top: 1px solid rgba(0, 0, 0, 0.4);
-  content: '';
+  content: "";
 }
 .suggestions-promo {
   font-size: 85%;
