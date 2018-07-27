@@ -141,6 +141,7 @@
     overflow: hidden;
     color: @subtext-color;
     font-size: 85%;
+    line-height: 20px;
 }
 
 /**
@@ -239,10 +240,15 @@
     }
 }
 
+/**
+ * Промо-блок
+ */
 .suggestions-promo {
     font-size: 85%;
+    display: none;
     color: @subtext-color;
-    padding: 4px 4px 6px 4px;
+    padding: 4px;
+    text-align: center;
     a {
         color: @subtext-color;
         display: block;
@@ -257,4 +263,11 @@
         height: 20px;
         vertical-align: bottom;
     }
+}
+
+.suggestions-promo-desktop {
+    position: absolute;
+    top: 0;
+    right: 0;
+    text-align: left;
 }

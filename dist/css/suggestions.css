@@ -97,6 +97,7 @@
   overflow: hidden;
   color: #777;
   font-size: 85%;
+  line-height: 20px;
 }
 /**
  * Ограничения поиска, показываются в левой части основного INPUT'а
@@ -186,10 +187,15 @@
   border-top: 1px solid rgba(0, 0, 0, 0.4);
   content: "";
 }
+/**
+ * Промо-блок
+ */
 .suggestions-promo {
   font-size: 85%;
+  display: none;
   color: #777;
-  padding: 4px 4px 6px 4px;
+  padding: 4px;
+  text-align: center;
 }
 .suggestions-promo a {
   color: #777;
@@ -204,4 +210,10 @@
 .suggestions-promo svg {
   height: 20px;
   vertical-align: bottom;
+}
+.suggestions-promo-desktop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  text-align: left;
 }

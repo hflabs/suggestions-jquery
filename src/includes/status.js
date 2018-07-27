@@ -1,7 +1,7 @@
-import { jqapi } from './jqapi';
-import { notificator } from './notificator';
-import { utils } from './utils';
-import { Suggestions } from './suggestions';
+import { jqapi } from "./jqapi";
+import { notificator } from "./notificator";
+import { utils } from "./utils";
+import { Suggestions } from "./suggestions";
 
 /**
  * Methods related to plugin's authorization on server
@@ -10,7 +10,7 @@ import { Suggestions } from './suggestions';
 // keys are "[type][token]"
 var statusRequests = {};
 
-function resetTokens () {
+function resetTokens() {
     utils.each(statusRequests, function(req) {
         req.abort();
     });
@@ -20,44 +20,51 @@ function resetTokens () {
 resetTokens();
 
 var methods = {
-
-    checkStatus: function () {
+    checkStatus: function() {
         var that = this,
-            token = that.options.token && that.options.token.trim() || '',
+            token = (that.options.token && that.options.token.trim()) || "",
             requestKey = that.options.type + token,
             request = statusRequests[requestKey];
 
         if (!request) {
-            request = statusRequests[requestKey] = jqapi.ajax(that.getAjaxParams('status'));
+            request = statusRequests[requestKey] = jqapi.ajax(
+                that.getAjaxParams("status")
+            );
         }
 
         request
-            .done(function(status){
+            .done(function(status, textStatus, request) {
                 if (status.search) {
+                    var plan = request.getResponseHeader("X-Plan");
+                    status.plan = plan;
                     jqapi.extend(that.status, status);
                 } else {
-                    triggerError('Service Unavailable');
+                    triggerError("Service Unavailable");
                 }
             })
-            .fail(function(){
+            .fail(function() {
                 triggerError(request.statusText);
             });
 
-        function triggerError(errorThrown){
+        function triggerError(errorThrown) {
             // If unauthorized
             if (utils.isFunction(that.options.onSearchError)) {
-                that.options.onSearchError.call(that.element, null, request, 'error', errorThrown);
+                that.options.onSearchError.call(
+                    that.element,
+                    null,
+                    request,
+                    "error",
+                    errorThrown
+                );
             }
         }
     }
-
 };
 
 Suggestions.resetTokens = resetTokens;
 
 jqapi.extend(Suggestions.prototype, methods);
 
-notificator
-    .on('setOptions', methods.checkStatus);
+notificator.on("setOptions", methods.checkStatus);
 
 //export { methods, resetTokens };

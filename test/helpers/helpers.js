@@ -1,59 +1,71 @@
-this.helpers = (function () {
-
+this.helpers = function() {
     var helpers = {
-        keydown: function (el, keyCode) {
-            var event = $.Event('keydown');
+        isHidden: function(el) {
+            return el.offsetParent === null;
+        },
+        keydown: function(el, keyCode) {
+            var event = $.Event("keydown");
             event.keyCode = event.which = keyCode;
             $(el).trigger(event);
         },
-        keyup: function (el, keyCode) {
-            var event = $.Event('keyup');
+        keyup: function(el, keyCode) {
+            var event = $.Event("keyup");
             event.keyCode = event.which = keyCode;
             $(el).trigger(event);
         },
         click: function(el) {
-            var event = $.Event('click');
+            var event = $.Event("click");
             $(el).trigger(event);
         },
-        responseFor: function (suggestions) {
+        responseFor: function(suggestions) {
             return [
                 200,
-                { 'Content-type': 'application/json' },
+                { "Content-type": "application/json" },
                 JSON.stringify({
                     suggestions: suggestions
                 })
             ];
         },
-        hitEnter: function (el) {
+        hitEnter: function(el) {
             helpers.keydown(el, 13); // code of Enter
         },
-        fireBlur: function (el) {
-            $(el).trigger($.Event('blur'))
+        fireBlur: function(el) {
+            $(el).trigger($.Event("blur"));
         },
-        appendUnrestrictedValue: function (suggestion) {
-            return $.extend({}, suggestion, { 'unrestricted_value': suggestion.value });
+        appendUnrestrictedValue: function(suggestion) {
+            return $.extend({}, suggestion, {
+                unrestricted_value: suggestion.value
+            });
         },
-        wrapFormattedValue: function (value, status) {
-            return '<span class="suggestions-value"' + (status ? ' data-suggestion-status="' + status + '"' : '') + '>' +
+        wrapFormattedValue: function(value, status) {
+            return (
+                '<span class="suggestions-value"' +
+                (status ? ' data-suggestion-status="' + status + '"' : "") +
+                ">" +
                 value +
-                '</span>';
+                "</span>"
+            );
         },
-        returnStatus: function (server, status) {
-            var urlPattern = '\\/status\\/(\\w)';
+        returnStatus: function(server, status) {
+            var urlPattern = "\\/status\\/(\\w)";
 
             if (server.responses) {
-                server.responses = $.grep(server.responses, function (response) {
+                server.responses = $.grep(server.responses, function(response) {
                     return !response.url || response.url.source !== urlPattern;
                 });
             }
-            server.respond('GET', new RegExp(urlPattern), JSON.stringify(status));
+            server.respond(
+                "GET",
+                new RegExp(urlPattern),
+                JSON.stringify(status)
+            );
         },
-        returnGoodStatus: function (server) {
+        returnGoodStatus: function(server) {
             helpers.returnStatus(server, { search: true, enrich: true });
         },
-        returnPoorStatus: function (server) {
+        returnPoorStatus: function(server) {
             helpers.returnStatus(server, { search: true, enrich: false });
         }
     };
     return helpers;
-}.call(typeof window != 'undefined' && window || {}));
+}.call((typeof window != "undefined" && window) || {});

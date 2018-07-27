@@ -1,3 +1,7 @@
+body {
+    font-family: sans-serif;
+}
+
 .info p {
     background: #31b0d5;
     margin: 0;
@@ -5,7 +9,7 @@
 }
 
 .container {
-    width: 30em;
+    max-width: 30em;
 }
 
 input {
