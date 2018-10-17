@@ -1,46 +1,46 @@
 {
-  "name": "suggestions-jquery",
-  "version": "99.9.9",
-  "description": "DaData.ru Suggestions jQuery plugin",
-  "homepage": "https://github.com/hflabs/suggestions-jquery",
-  "author": {
-    "name": "HFLabs",
-    "url": "https://hflabs.ru/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hflabs/suggestions-jquery.git"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "jquery": ">= 1.9"
-  },
-  "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-banner": "^0.1.3",
-    "gulp-clean-css": "^3.0.2",
-    "gulp-if": "^2.0.2",
-    "gulp-less": "^3.3.0",
-    "gulp-line-ending-corrector": "^1.0.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-replace": "^0.5.4",
-    "gulp-rollup": "^2.11.0",
-    "gulp-uglify": "^2.0.0",
-    "jasmine": "^2.5.3",
-    "jasmine-sinon": "^0.4.0",
-    "karma": "^1.4.0",
-    "karma-chrome-launcher": "^2.0.0",
-    "karma-jasmine": "^1.1.0",
-    "karma-jasmine-html-reporter": "^0.2.2",
-    "karma-jasmine-jquery": "^0.1.1",
-    "karma-jasmine-sinon": "^1.0.4",
-    "karma-jquery": "^0.1.0",
-    "karma-phantomjs-launcher": "^1.0.2",
-    "run-sequence": "^1.2.2",
-    "sinon": "^4.1.5"
-  },
-  "main": "dist/js/jquery.suggestions.js",
-  "scripts": {
-    "test": "gulp test"
-  }
+    "name": "suggestions-jquery",
+    "version": "18.10.0",
+    "description": "DaData.ru Suggestions jQuery plugin",
+    "homepage": "https://github.com/hflabs/suggestions-jquery",
+    "author": {
+        "name": "HFLabs",
+        "url": "https://hflabs.ru/"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hflabs/suggestions-jquery.git"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "jquery": ">= 1.9"
+    },
+    "devDependencies": {
+        "gulp": "^3.9.1",
+        "gulp-banner": "^0.1.3",
+        "gulp-clean-css": "^3.0.2",
+        "gulp-if": "^2.0.2",
+        "gulp-less": "^3.3.0",
+        "gulp-line-ending-corrector": "^1.0.1",
+        "gulp-rename": "^1.2.2",
+        "gulp-replace": "^0.5.4",
+        "gulp-rollup": "^2.11.0",
+        "gulp-uglify": "^2.0.0",
+        "jasmine": "^2.5.3",
+        "jasmine-sinon": "^0.4.0",
+        "karma": "^1.4.0",
+        "karma-chrome-launcher": "^2.0.0",
+        "karma-jasmine": "^1.1.0",
+        "karma-jasmine-html-reporter": "^0.2.2",
+        "karma-jasmine-jquery": "^0.1.1",
+        "karma-jasmine-sinon": "^1.0.4",
+        "karma-jquery": "^0.1.0",
+        "karma-phantomjs-launcher": "^1.0.2",
+        "run-sequence": "^1.2.2",
+        "sinon": "^4.1.5"
+    },
+    "main": "dist/js/jquery.suggestions.js",
+    "scripts": {
+        "test": "gulp test"
+    }
 }
