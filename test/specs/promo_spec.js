@@ -15,6 +15,15 @@ describe("Promo block", function() {
             .querySelector(".suggestions-promo");
     }
 
+    function queryNothing(self) {
+        self.input.value = "фф";
+        self.instance.onValueChange();
+        self.server.respond(helpers.responseFor([]));
+        return self.instance.$container
+            .get(0)
+            .querySelector(".suggestions-promo");
+    }
+
     beforeEach(function() {
         $.Suggestions.resetTokens();
         this.server = sinon.fakeServer.create();
@@ -89,5 +98,11 @@ describe("Promo block", function() {
         expect(
             promo.classList.contains("suggestions-promo-desktop")
         ).toBeFalsy();
+    });
+
+    it("Should not show when response is empty", function() {
+        this.server.respond([200, { "X-Plan": "FREE" }, '{ "search": true }']);
+        var promo = queryNothing(this);
+        expect(promo).toBeNull();
     });
 });
