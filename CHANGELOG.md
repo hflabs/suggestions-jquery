@@ -1,5 +1,9 @@
 # Changelog
 
+### 26.11.2018 (18.11.1)
+
+-   UTM-метки в промо-блоке
+
 ### 07.11.2018 (18.11)
 
 -   Ничего нового
@@ -401,8 +405,8 @@
 
 -   добавлена опция `geoLocation`
 -   информация о местонахождении клиента не выводится как ограничение
--   опции по умолчанию доступны через $.Suggestions.defaultOptions
--   опция $.Suggestions.defaultHint перенесена в $.Suggestions.defaultOptions.hint
+-   опции по умолчанию доступны через \$.Suggestions.defaultOptions
+-   опция $.Suggestions.defaultHint перенесена в$.Suggestions.defaultOptions.hint
 
 ### 30.07.2014 (4.6.4)
 
@@ -472,7 +476,7 @@
 
 ### 24.04.2014 (4.3.4)
 
--   добавлена опция $helpers
+-   добавлена опция \$helpers
 -   добавлен метод `setSuggestion`
 
 ### 21.03.2014 (4.3.3)

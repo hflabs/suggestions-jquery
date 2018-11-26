@@ -4551,7 +4551,8 @@ var dom = {
  * Промо-ссылка в списке подсказок.
  */
 var FREE_PLAN = "FREE";
-var LINK = "https://dadata.ru/suggestions";
+var LINK =
+    "https://dadata.ru/suggestions/?utm_source=dadata&utm_medium=module&utm_campaign=suggestions-jquery";
 var PREFIX = "";
 var SUFFIX = "";
 var IMAGE =

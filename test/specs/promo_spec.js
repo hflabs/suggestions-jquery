@@ -58,6 +58,15 @@ describe("Promo block", function() {
         expect(helpers.isHidden(promo)).toBeFalsy();
     });
 
+    it("Promo link should lead to Dadata", function() {
+        this.server.respond([200, { "X-Plan": "FREE" }, '{ "search": true }']);
+        var promo = query(this);
+        var link = promo.querySelector("a");
+        expect(link.href).toEqual(
+            "https://dadata.ru/suggestions/?utm_source=dadata&utm_medium=module&utm_campaign=suggestions-jquery"
+        );
+    });
+
     it("Should NOT show promo block for premium plan", function() {
         this.server.respond([
             200,
