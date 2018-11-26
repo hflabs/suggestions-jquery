@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 18.11.0
+ * DaData.ru Suggestions jQuery plugin, version 18.11.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -4551,7 +4551,8 @@ var dom = {
  * Промо-ссылка в списке подсказок.
  */
 var FREE_PLAN = "FREE";
-var LINK = "https://dadata.ru/suggestions";
+var LINK =
+    "https://dadata.ru/suggestions/?utm_source=dadata&utm_medium=module&utm_campaign=suggestions-jquery";
 var PREFIX = "";
 var SUFFIX = "";
 var IMAGE =
@@ -4601,7 +4602,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = '18.11.0';
+Suggestions.version = '18.11.1';
 
 $.Suggestions = Suggestions;
 
