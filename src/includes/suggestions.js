@@ -15,12 +15,12 @@ var serviceMethods = {
         },
         addTypeInUrl: true
     },
-    'detectAddressByIp': {
+    'iplocate': {
         defaultParams: {
             type: 'GET',
             dataType: 'json'
         },
-        addTypeInUrl: false
+        addTypeInUrl: true
     },
     'status': {
         defaultParams: {

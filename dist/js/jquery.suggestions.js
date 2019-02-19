@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 99.9.9
+ * DaData.ru Suggestions jQuery plugin, version 19.2.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -1505,12 +1505,12 @@ var serviceMethods = {
         },
         addTypeInUrl: true
     },
-    'detectAddressByIp': {
+    'iplocate': {
         defaultParams: {
             type: 'GET',
             dataType: 'json'
         },
-        addTypeInUrl: false
+        addTypeInUrl: true
     },
     'status': {
         defaultParams: {
@@ -2668,7 +2668,7 @@ var methods$2 = {
             that.geoLocation.resolve(providedLocation);
         } else {
             if (!locationRequest) {
-                locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
+                locationRequest = $.ajax(that.getAjaxParams('iplocate'));
             }
 
             locationRequest
@@ -4602,7 +4602,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = '99.9.9';
+Suggestions.version = '19.2.0';
 
 $.Suggestions = Suggestions;
 

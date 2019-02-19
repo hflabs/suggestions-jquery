@@ -28,7 +28,7 @@ var methods = {
             that.geoLocation.resolve(providedLocation);
         } else {
             if (!locationRequest) {
-                locationRequest = $.ajax(that.getAjaxParams('detectAddressByIp'));
+                locationRequest = $.ajax(that.getAjaxParams('iplocate'));
             }
 
             locationRequest

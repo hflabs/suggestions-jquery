@@ -35,15 +35,15 @@ describe('Geolocation', function () {
 
     it('Should send geolocation request if no `geoLocation` option specified', function () {
         expect(this.server.requests.length).toEqual(1);
-        expect(this.server.requests[0].url).toContain('detectAddressByIp');
+        expect(this.server.requests[0].url).toContain('iplocate/address');
     });
 
     it('Should send location with request', function () {
 
-        this.server.respond('GET', /detectAddressByIp/, [200, { 'Content-type': 'application/json' }, JSON.stringify({
+        this.server.respond('GET', /iplocate\/address/, [200, { 'Content-type': 'application/json' }, JSON.stringify({
             location: {
                 data: {
-                    region: 'москва',
+                    region: 'Москва',
                     kladr_id: '7700000000000'
                 },
                 value: '1.2.3.4'
@@ -53,7 +53,7 @@ describe('Geolocation', function () {
         this.input.value = 'A';
         this.instance.onValueChange();
 
-        expect(this.server.requests[1].requestBody).toContain('"locations_boost":[{"region":"москва","kladr_id":"7700000000000"}]');
+        expect(this.server.requests[1].requestBody).toContain('"locations_boost":[{"region":"Москва","kladr_id":"7700000000000"}]');
     });
 
     it('Should not send geolocation request if `geoLocation` set to false', function () {
