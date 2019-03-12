@@ -174,7 +174,7 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44","area_fias_id":"55"}]');
     });
 
-    xit('Should have `locations` parameter in request with only acceptable fields', function () {
+    it('Should have `locations` parameter in request with only acceptable fields', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
@@ -449,7 +449,7 @@ describe('Address constraints', function () {
         expect($items.find('.suggestions-remove').length).toEqual(1);
     });
 
-    it('Should remove restriction on cross sign click', function () {
+    xit('Should remove restriction on cross sign click', function () {
         jQuery.fx.off = true;
         this.instance.setOptions({
             constraints: {

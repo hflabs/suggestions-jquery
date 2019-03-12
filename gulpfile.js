@@ -71,30 +71,21 @@ function testPrepare() {
         .pipe(gulp.dest("test/specs"));
 }
 
-function testPhantomjs(callback) {
+function testFull(callback) {
     new karma(
         {
-            configFile: __dirname + TEST_DIR + "karma.phantomjs.js",
+            configFile: __dirname + TEST_DIR + "karma.full.js",
             singleRun: true
         },
         callback
     ).start();
 }
 
-function testPhantomjsMin(callback) {
+function testMinified(callback) {
     new karma(
         {
-            configFile: __dirname + TEST_DIR + "karma.phantomjs.min.js",
+            configFile: __dirname + TEST_DIR + "karma.minified.js",
             singleRun: true
-        },
-        callback
-    ).start();
-}
-
-function chrome(callback) {
-    new karma(
-        {
-            configFile: __dirname + TEST_DIR + "karma.chrome.js"
         },
         callback
     ).start();
@@ -110,9 +101,8 @@ gulp.task("watch", function() {
     gulp.watch([LESS_SRC_DIR + "**/*"], buildStyle);
 });
 
-exports.chrome = chrome;
 exports.build = gulp.series(buildScript, buildStyle);
-exports.test = gulp.series(testPrepare, testPhantomjs);
-exports.testall = gulp.series(exports.test, testPhantomjsMin);
+exports.test = gulp.series(testPrepare, testFull);
+exports.testall = gulp.series(exports.test, testMinified);
 exports.dev = gulp.series(setDevMode, exports.build, "watch");
 exports.default = gulp.series(exports.build, exports.testall);

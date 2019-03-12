@@ -2,7 +2,7 @@ module.exports = function(config) {
     config.set({
         browsers: ["PhantomJS"],
         frameworks: [
-            "jquery-1.9.1",
+            "jquery-3.3.1",
             "jasmine-jquery",
             "jasmine",
             "jasmine-sinon"
