@@ -11,7 +11,7 @@
 	(factory(global.jQuery));
 }(this, (function ($) { 'use strict';
 
-$ = $ && 'default' in $ ? $['default'] : $;
+$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
 /**
  * Утилиты для работы с типами.
