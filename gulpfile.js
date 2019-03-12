@@ -57,7 +57,7 @@ function buildStyle() {
         .src(LESS_SRC_DIR + "**/*")
         .pipe(gulpif(!devMode, ending({ eolc: "LF" })))
         .pipe(gulpif(!devMode, gulp.dest(LESS_SRC_DIR)))
-        .pipe(less())
+        .pipe(less({ javascriptEnabled: true }))
         .pipe(gulp.dest(DIST_DIR + "css"))
         .pipe(cleanCss({ compatibility: "ie8" }))
         .pipe(rename("suggestions.min.css"))
