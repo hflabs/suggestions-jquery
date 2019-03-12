@@ -13,6 +13,7 @@ module.exports = function(config) {
             "helpers/helpers.js",
             "specs/*.js"
         ],
+        plugins: ["@metahub/karma-jasmine-jquery", "karma-*"],
         reporters: ["spec"]
     });
 };

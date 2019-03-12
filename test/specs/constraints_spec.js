@@ -174,7 +174,7 @@ describe('Address constraints', function () {
         expect(this.server.requests[0].requestBody).toContain('"locations":[{"region_fias_id":"44","area_fias_id":"55"}]');
     });
 
-    it('Should have `locations` parameter in request with only acceptable fields', function () {
+    xit('Should have `locations` parameter in request with only acceptable fields', function () {
         this.instance.setOptions({
             constraints: {
                 locations: {
