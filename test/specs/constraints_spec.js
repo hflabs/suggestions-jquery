@@ -594,7 +594,7 @@ describe('Address constraints', function () {
             }));
         });
 
-        it('Should fill non-empty parent control with territory not including a selected', function () {
+        it('Should fill non-empty parent control with region different from selected', function () {
 
             this.parentInstance.setSuggestion({
                 value: 'Новосибирская обл',
@@ -621,7 +621,7 @@ describe('Address constraints', function () {
             }));
         });
 
-        it('Should not fill non-empty parent control with territory including a selected', function () {
+        it('Should not fill non-empty parent control with region same as selected', function () {
             this.parentInstance.setSuggestion({
                 value: 'Тульская, Узловский',
                 data: {
@@ -668,7 +668,7 @@ describe('Address constraints', function () {
             }));
         });
 
-        it('Should remove city_fias_id from request', function () {
+        it('Should remove city_fias_id from city request', function () {
             var suggestions = [
                 {
                     value: 'г Санкт-Петербург',
@@ -814,7 +814,7 @@ describe('Address constraints', function () {
             expect(value).toEqual('г Сочи');
         });
 
-        describe('set of constraints', function () {
+        describe('multiple constraints', function () {
             beforeEach(function () {
                 this.instance.setOptions({
                     constraints: [

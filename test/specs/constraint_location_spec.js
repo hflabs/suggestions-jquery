@@ -43,7 +43,7 @@ describe('Constraint Location', function () {
     });
 
     // наличие фиас параметров если переданы
-    it('should use fias params if specified', function () {
+    it('should use fias id if specified', function () {
         var location = new $.Suggestions.ConstraintLocation({
             'city': 'Тольятти',
             'kladr_id': '6300000700000',
