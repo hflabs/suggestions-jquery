@@ -82,6 +82,12 @@ describe('Select on Enter', function () {
             'санкт петербург пугачёва 15-44': [
                 { value: 'г Санкт-Петербург, ул Пугачёва, д 15, кв 44', data: 0 }
             ],
+            'г Красноярск, ул Авиаторов, д 5': [
+                { value: 'г Красноярск, ул Авиаторов, д 50', data: 0 },
+                { value: 'г Красноярск, ул Авиаторов, д 50д', data: 1 },
+                { value: 'г Красноярск, ул Авиаторов, д 54', data: 2 },
+                { value: 'г Красноярск, ул Авиаторов, д 1 стр 5', data: 3 }
+            ],
             'хф 7707545900': [
                 {
                     value: 'ООО ХФ ЛАБС',
@@ -458,7 +464,7 @@ describe('Select on Enter', function () {
         );
     });
 
-    it('Should trigger when normalized query byword-matches same parent list #3', function () {
+    it('Should NOT trigger when normalized query byword-matches same parent list, but houses differ', function () {
         var options = {
             onSelect: function () {
             }
@@ -473,13 +479,7 @@ describe('Select on Enter', function () {
         this.server.respond();
         helpers.hitEnter(this.input);
 
-        // expect to select first matching suggestion
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(
-                { value: 'Новосибирская обл, г Новосибирск, ул Ленина, д 2', data: 0 }
-            ),
-            true
-        );
+        expect(options.onSelect).not.toHaveBeenCalled();
     });
 
     it('Should NOT trigger when normalized query byword-matches different parent list #1', function () {
@@ -626,6 +626,24 @@ describe('Select on Enter', function () {
         this.instance.selectedIndex = -1;
 
         this.input.value = 'респ Татарстан, г Набережные Челны, ул Нижняя Боровецкая, д 1';
+        this.instance.onValueChange();
+        this.server.respond();
+        helpers.hitEnter(this.input);
+
+        expect(options.onSelect).not.toHaveBeenCalled();
+    });
+
+    it('Should NOT trigger on conflicting house-building match', function () {
+        var options = {
+            onSelect: function () {
+            }
+        };
+        spyOn(options, 'onSelect');
+
+        this.instance.setOptions(options);
+        this.instance.selectedIndex = -1;
+
+        this.input.value = 'г Красноярск, ул Авиаторов, д 5';
         this.instance.onValueChange();
         this.server.respond();
         helpers.hitEnter(this.input);
