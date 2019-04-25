@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 19.4.0
+ * DaData.ru Suggestions jQuery plugin, version 19.4.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -709,14 +709,6 @@ function sameParentChecker (preprocessFn) {
 var haveSameParent = sameParentChecker(function(val) { return val; });
 
 /**
- * Same parent checker for addresses. Strips house and extension before comparison.
- * @type {Function}
- */
-var haveSameParentAddress = sameParentChecker(function(val) {
-    return val.replace(/, (?:д|вл|двлд|к) .+$/, '');
-});
-
-/**
  * Сравнивает запрос c подсказками, по словам.
  * Срабатывает, только если у всех подсказок общий родитель
  * (функция сверки передаётся параметром).
@@ -791,7 +783,7 @@ var matchers =  {
     },
 
     matchByWordsAddress: function (stopwords) {
-        return _matchByWords(stopwords, haveSameParentAddress);
+        return _matchByWords(stopwords, haveSameParent);
     },
 
     /**
@@ -4602,7 +4594,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = '19.4.0';
+Suggestions.version = '19.4.1';
 
 $.Suggestions = Suggestions;
 
