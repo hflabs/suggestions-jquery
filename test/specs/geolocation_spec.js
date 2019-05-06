@@ -38,8 +38,47 @@ describe('Geolocation', function () {
         expect(this.server.requests[0].url).toContain('iplocate/address');
     });
 
-    it('Should send location with request', function () {
+    it('Should send geolocation request for party', function () {
+        $.Suggestions.resetLocation();
+        this.server.requests.length = 0;
+        this.server.respond('GET', /status\/party/, [
+            200,
+            { 'Content-type': 'application/json' },
+            JSON.stringify({
+                enrich: false,
+                name: "party",
+                search: true,
+                state: "ENABLED"
+            })
+        ]);
+        this.$input.suggestions({
+            serviceUrl: serviceUrl,
+            type: 'PARTY'
+        });
+        expect(this.server.requests[1].url).toContain('iplocate/address');
+    });
 
+    it('Should send geolocation request for bank', function () {
+        $.Suggestions.resetLocation();
+        this.server.requests.length = 0;
+        this.server.respond('GET', /status\/bank/, [
+            200,
+            { 'Content-type': 'application/json' },
+            JSON.stringify({
+                enrich: false,
+                name: "bank",
+                search: true,
+                state: "ENABLED"
+            })
+        ]);
+        this.$input.suggestions({
+            serviceUrl: serviceUrl,
+            type: 'BANK'
+        });
+        expect(this.server.requests[1].url).toContain('iplocate/address');
+    });
+
+    it('Should send location with request', function () {
         this.server.respond('GET', /iplocate\/address/, [200, { 'Content-type': 'application/json' }, JSON.stringify({
             location: {
                 data: {

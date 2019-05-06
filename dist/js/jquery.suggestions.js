@@ -1497,12 +1497,12 @@ var serviceMethods = {
         },
         addTypeInUrl: true
     },
-    'iplocate': {
+    'iplocate/address': {
         defaultParams: {
             type: 'GET',
             dataType: 'json'
         },
-        addTypeInUrl: true
+        addTypeInUrl: false
     },
     'status': {
         defaultParams: {
@@ -2660,7 +2660,7 @@ var methods$2 = {
             that.geoLocation.resolve(providedLocation);
         } else {
             if (!locationRequest) {
-                locationRequest = $.ajax(that.getAjaxParams('iplocate'));
+                locationRequest = $.ajax(that.getAjaxParams('iplocate/address'));
             }
 
             locationRequest
