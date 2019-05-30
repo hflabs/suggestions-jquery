@@ -5,6 +5,17 @@ jQuery-плагин Подсказок DaData.ru
 
 jQuery-плагин для сервиса [подсказок DaData.ru](https://dadata.ru/suggestions/).
 
-[Документация и примеры использования плагина](http://confluence.hflabs.ru/pages/viewpage.action?pageId=204669097).
+Примеры подключения:
 
-npm-пакет: [suggestions-jquery](https://www.npmjs.com/package/suggestions-jquery).
+- Для «[Дадаты](https://dadata.ru/suggestions/usage/address/)»
+- Для «[коробки](https://confluence.hflabs.ru/pages/viewpage.action?pageId=204669104)»
+
+Настройки:
+
+- [параметры](https://confluence.hflabs.ru/pages/viewpage.action?pageId=207454318)
+- [методы и свойства](https://confluence.hflabs.ru/pages/viewpage.action?pageId=207454322)
+- [колбеки](https://confluence.hflabs.ru/pages/viewpage.action?pageId=207454320)
+- [события](https://confluence.hflabs.ru/pages/viewpage.action?pageId=480542795)
+- [cтили](https://confluence.hflabs.ru/pages/viewpage.action?pageId=207454324)
+
+npm-пакет: [suggestions-jquery](https://www.npmjs.com/package/suggestions-jquery)
