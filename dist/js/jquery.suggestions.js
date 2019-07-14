@@ -442,16 +442,18 @@ var text_util = {
      * Расклеивает буквы и цифры, написанные слитно.
      */
     split: function(str, stopwords) {
-        str = str.toLowerCase();
-        str = str
+        var cleanStr = str
+            .toLowerCase()
             .replace("ё", "е")
             .replace(/(\d+)([а-я]{2,})/g, "$1 $2")
             .replace(/([а-я]+)(\d+)/g, "$1 $2");
 
-        var words = collection_util.compact(str.split(WORD_SPLITTER)),
-            lastWord = words.pop(),
-            goodWords = collection_util.minus(words, stopwords);
-
+        var words = collection_util.compact(cleanStr.split(WORD_SPLITTER));
+        if (!words.length) {
+            return [];
+        }
+        var lastWord = words.pop();
+        var goodWords = collection_util.minus(words, stopwords);
         goodWords.push(lastWord);
         return goodWords;
     },
