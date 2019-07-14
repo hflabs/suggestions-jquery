@@ -1,13 +1,12 @@
 var notificator = {
-
     chains: {},
 
-    on: function (name, method) {
+    on: function(name, method) {
         this.get(name).push(method);
         return this;
     },
 
-    get: function (name) {
+    get: function(name) {
         var chains = this.chains;
         return chains[name] || (chains[name] = []);
     }

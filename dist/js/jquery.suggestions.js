@@ -28,9 +28,9 @@ var lang_util = {
      * Проверяет, является ли аргумент функцией.
      */
     isFunction: function(it) {
-        return Object.prototype.toString.call(it) === '[object Function]';
+        return Object.prototype.toString.call(it) === "[object Function]";
     },
-    
+
     /**
      * Проверяет, является ли аргумент пустым объектом ({}).
      */
@@ -43,17 +43,25 @@ var lang_util = {
      * (не undefiend, не null, не DOM-элемент)
      */
     isPlainObject: function(obj) {
-      if (obj === undefined
-          || typeof (obj) !== 'object' 
-          || obj === null
-          || obj.nodeType 
-          || obj === obj.window) {
-        return false;
-      }
-      if (obj.constructor && !Object.prototype.hasOwnProperty.call(obj.constructor.prototype, 'isPrototypeOf')) {
-        return false;
-      }
-      return true;
+        if (
+            obj === undefined ||
+            typeof obj !== "object" ||
+            obj === null ||
+            obj.nodeType ||
+            obj === obj.window
+        ) {
+            return false;
+        }
+        if (
+            obj.constructor &&
+            !Object.prototype.hasOwnProperty.call(
+                obj.constructor.prototype,
+                "isPrototypeOf"
+            )
+        ) {
+            return false;
+        }
+        return true;
     }
 };
 
@@ -64,8 +72,8 @@ var collection_util = {
     /**
      * Возвращает массив без пустых элементов
      */
-    compact: function (array) {
-        return array.filter(function (el) {
+    compact: function(array) {
+        return array.filter(function(el) {
             return !!el;
         });
     },
@@ -102,7 +110,7 @@ var collection_util = {
             return array2.indexOf(el) !== -1;
         });
     },
-    
+
     /**
      * Разность массивов: ([1,2,3,4], [2,4,5,6]) => [1,3]
      * Исходные массивы не меняются.
@@ -140,7 +148,7 @@ var collection_util = {
         return array1.filter(function(el) {
             return !array2.some(function(el2) {
                 return el2.indexOf(el) === 0;
-            })
+            });
         });
     },
 
@@ -152,7 +160,6 @@ var collection_util = {
     slice: function(obj, start) {
         return Array.prototype.slice.call(obj, start);
     }
-    
 };
 
 /**
@@ -164,7 +171,7 @@ var func_util = {
      * @param {Function} handler - функция
      * @param {number} delay - задержка в миллисекундах
      */
-    delay: function (handler, delay) {
+    delay: function(handler, delay) {
         return setTimeout(handler, delay || 0);
     }
 };
@@ -184,9 +191,9 @@ var object_util = {
             return false;
         }
 
-        if (typeof a == 'object' && a != null && b != null) {
-            collection_util.each(a, function (value, i) {
-                return same = self(value, b[i]);
+        if (typeof a == "object" && a != null && b != null) {
+            collection_util.each(a, function(value, i) {
+                return (same = self(value, b[i]));
             });
             return same;
         }
@@ -198,11 +205,12 @@ var object_util = {
      * Копирует свойства и их значения из исходных объектов в целевой
      */
     assign: function(target, varArgs) {
-        if (typeof Object.assign === 'function') {
+        if (typeof Object.assign === "function") {
             return Object.assign.apply(null, arguments);
         }
-        if (target == null) { // TypeError if undefined or null
-            throw new TypeError('Cannot convert undefined or null to object');
+        if (target == null) {
+            // TypeError if undefined or null
+            throw new TypeError("Cannot convert undefined or null to object");
         }
 
         var to = Object(target);
@@ -210,10 +218,16 @@ var object_util = {
         for (var index = 1; index < arguments.length; index++) {
             var nextSource = arguments[index];
 
-            if (nextSource != null) { // Skip over if undefined or null
+            if (nextSource != null) {
+                // Skip over if undefined or null
                 for (var nextKey in nextSource) {
                     // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(
+                            nextSource,
+                            nextKey
+                        )
+                    ) {
                         to[nextKey] = nextSource[nextKey];
                     }
                 }
@@ -237,8 +251,8 @@ var object_util = {
     compact: function(obj) {
         var copy = object_util.clone(obj);
 
-        collection_util.each(copy, function (val, key) {
-            if (val === null || val === undefined || val === '') {
+        collection_util.each(copy, function(val, key) {
+            if (val === null || val === undefined || val === "") {
                 delete copy[key];
             }
         });
@@ -252,13 +266,13 @@ var object_util = {
      * @param {Array} fields - список названий полей, которые надо проверить
      * @returns {boolean}
      */
-    fieldsAreNotEmpty: function(obj, fields){
+    fieldsAreNotEmpty: function(obj, fields) {
         if (!lang_util.isPlainObject(obj)) {
             return false;
         }
         var result = true;
-        collection_util.each(fields, function (field, i) {
-            result = !!(obj[field]);
+        collection_util.each(fields, function(field, i) {
+            result = !!obj[field];
             return result;
         });
         return result;
@@ -269,10 +283,12 @@ var object_util = {
      * например, 'data.address.value'
      */
     getDeepValue: function self(obj, name) {
-        var path = name.split('.'),
+        var path = name.split("."),
             step = path.shift();
 
-        return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
+        return (
+            obj && (path.length ? self(obj[step], path.join(".")) : obj[step])
+        );
     },
 
     /**
@@ -286,10 +302,10 @@ var object_util = {
      * @param {string} indexField - название поля с порядковым номером
      * @return {Object} карта объектов по их идентификаторам
      */
-    indexObjectsById: function (objectsArray, idField, indexField) {
+    indexObjectsById: function(objectsArray, idField, indexField) {
         var result = {};
 
-        collection_util.each(objectsArray, function (obj, idx) {
+        collection_util.each(objectsArray, function(obj, idx) {
             var key = obj[idField];
             var val = {};
 
@@ -338,27 +354,27 @@ var WORD_PARTS_DELIMITERS = "\\-\\+\\\\\\?!@#$%^&";
  * Утилиты для работы с текстом.
  */
 
-var WORD_SPLITTER = new RegExp('[' + WORD_DELIMITERS + ']+', 'g');
-var WORD_PARTS_SPLITTER = new RegExp('[' + WORD_PARTS_DELIMITERS + ']+', 'g');
+var WORD_SPLITTER = new RegExp("[" + WORD_DELIMITERS + "]+", "g");
+var WORD_PARTS_SPLITTER = new RegExp("[" + WORD_PARTS_DELIMITERS + "]+", "g");
 
 var text_util = {
     /**
      * Заменяет амперсанд, угловые скобки и другие подобные символы
      * на HTML-коды
      */
-    escapeHtml: function (str) {
+    escapeHtml: function(str) {
         var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#x27;',
-            '/': '&#x2F;'
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#x27;",
+            "/": "&#x2F;"
         };
 
         if (str) {
-            collection_util.each(map, function(html, ch){
-                str = str.replace(new RegExp(ch, 'g'), html);
+            collection_util.each(map, function(html, ch) {
+                str = str.replace(new RegExp(ch, "g"), html);
             });
         }
         return str;
@@ -368,29 +384,32 @@ var text_util = {
      * Эскейпирует символы RegExp-шаблона обратным слешем
      * (для передачи в конструктор регулярных выражений)
      */
-    escapeRegExChars: function (value) {
+    escapeRegExChars: function(value) {
         return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-    },    
+    },
 
     /**
      * Приводит слово к нижнему регистру и заменяет ё → е
      */
-    formatToken: function (token) {
-        return token && token.toLowerCase().replace(/[ёЁ]/g, 'е');
+    formatToken: function(token) {
+        return token && token.toLowerCase().replace(/[ёЁ]/g, "е");
     },
 
     /**
      * Возвращает регулярное выражение для разбивки строки на слова
      */
-    getWordExtractorRegExp: function () {
-        return new RegExp('([^' + WORD_DELIMITERS + ']*)([' + WORD_DELIMITERS + ']*)', 'g');
+    getWordExtractorRegExp: function() {
+        return new RegExp(
+            "([^" + WORD_DELIMITERS + "]*)([" + WORD_DELIMITERS + "]*)",
+            "g"
+        );
     },
 
     /**
      * Вырезает из строки стоп-слова
      */
     normalize: function(str, stopwords) {
-        return text_util.split(str, stopwords).join(' ');
+        return text_util.split(str, stopwords).join(" ");
     },
 
     /**
@@ -404,17 +423,16 @@ var text_util = {
         if (String.prototype.padEnd) {
             return sourceString.padEnd(targetLength, padString);
         }
-        targetLength = targetLength>>0; //floor if number or convert non-number to 0;
-        padString = String((typeof padString !== 'undefined' ? padString : ' '));
+        targetLength = targetLength >> 0; //floor if number or convert non-number to 0;
+        padString = String(typeof padString !== "undefined" ? padString : " ");
         if (sourceString.length > targetLength) {
             return String(sourceString);
-        }
-        else {
+        } else {
             targetLength = targetLength - sourceString.length;
             if (targetLength > padString.length) {
-                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+                padString += padString.repeat(targetLength / padString.length); //append to original to ensure we are longer than needed
             }
-            return String(sourceString) + padString.slice(0,targetLength);
+            return String(sourceString) + padString.slice(0, targetLength);
         }
     },
 
@@ -425,9 +443,10 @@ var text_util = {
      */
     split: function(str, stopwords) {
         str = str.toLowerCase();
-        str = str.replace('ё', 'е')
-            .replace(/(\d+)([а-я]{2,})/g, '$1 $2')
-            .replace(/([а-я]+)(\d+)/g, '$1 $2');
+        str = str
+            .replace("ё", "е")
+            .replace(/(\d+)([а-я]{2,})/g, "$1 $2")
+            .replace(/([а-я]+)(\d+)/g, "$1 $2");
 
         var words = collection_util.compact(str.split(WORD_SPLITTER)),
             lastWord = words.pop(),
@@ -436,14 +455,14 @@ var text_util = {
         goodWords.push(lastWord);
         return goodWords;
     },
-    
+
     /**
      * Заменяет слова на составные части.
      * В отличие от withSubTokens, не сохраняет исходные слова.
      */
     splitTokens: function(tokens) {
         var result = [];
-        collection_util.each(tokens, function (token, i) {
+        collection_util.each(tokens, function(token, i) {
             var subtokens = token.split(WORD_PARTS_SPLITTER);
             result = result.concat(collection_util.compact(subtokens));
         });
@@ -455,8 +474,10 @@ var text_util = {
      * Если строки равны, возвращает false.
      */
     stringEncloses: function(str1, str2) {
-        return str1.length > str2.length 
-            && str1.toLowerCase().indexOf(str2.toLowerCase()) !== -1;
+        return (
+            str1.length > str2.length &&
+            str1.toLowerCase().indexOf(str2.toLowerCase()) !== -1
+        );
     },
 
     /**
@@ -469,24 +490,29 @@ var text_util = {
      * @return {Array} Массив атомарных слов
      */
     tokenize: function(value, unformattableTokens) {
-        var tokens = collection_util.compact(text_util.formatToken(value).split(WORD_SPLITTER));
+        var tokens = collection_util.compact(
+            text_util.formatToken(value).split(WORD_SPLITTER)
+        );
         // Move unformattableTokens to the end.
         // This will help to apply them only if no other tokens match
-        var preferredTokens = collection_util.minus(tokens, unformattableTokens);
+        var preferredTokens = collection_util.minus(
+            tokens,
+            unformattableTokens
+        );
         var otherTokens = collection_util.minus(tokens, preferredTokens);
         tokens = text_util.withSubTokens(preferredTokens.concat(otherTokens));
         return tokens;
     },
-    
+
     /**
-     * Разбивает составные слова на части 
+     * Разбивает составные слова на части
      * и дописывает их к исходному массиву.
      * @param {Array} tokens - слова
      * @return {Array} Массив атомарных слов
      */
-    withSubTokens: function (tokens) {
+    withSubTokens: function(tokens) {
         var result = [];
-        collection_util.each(tokens, function (token, i) {
+        collection_util.each(tokens, function(token, i) {
             var subtokens = token.split(WORD_PARTS_SPLITTER);
             result.push(token);
             if (subtokens.length > 1) {
@@ -501,7 +527,6 @@ var text_util = {
  * jQuery API.
  */
 var jqapi = {
-
     Deferred: function() {
         return $.Deferred();
     },
@@ -542,29 +567,33 @@ var ajax = {
     /**
      * HTTP-метод, который поддерживает браузер
      */
-    getDefaultType: function () {
-        return (jqapi.supportsCors() ? 'POST' : 'GET');
+    getDefaultType: function() {
+        return jqapi.supportsCors() ? "POST" : "GET";
     },
 
     /**
      * Content-type, который поддерживает браузер
      */
-    getDefaultContentType: function () {
-        return (jqapi.supportsCors() ? 'application/json' : 'application/x-www-form-urlencoded');
+    getDefaultContentType: function() {
+        return jqapi.supportsCors()
+            ? "application/json"
+            : "application/x-www-form-urlencoded";
     },
 
     /**
      * Меняет HTTPS на протокол страницы, если браузер не поддерживает CORS
      */
-    fixURLProtocol: function(url){
-        return jqapi.supportsCors() ? url : url.replace(/^https?:/, location.protocol);
+    fixURLProtocol: function(url) {
+        return jqapi.supportsCors()
+            ? url
+            : url.replace(/^https?:/, location.protocol);
     },
 
     /**
      * Записывает параметры в GET-строку
      */
-    addUrlParams: function (url, params) {
-        return url + (/\?/.test(url) ? '&' : '?') + jqapi.param(params);
+    addUrlParams: function(url, params) {
+        return url + (/\?/.test(url) ? "&" : "?") + jqapi.param(params);
     },
 
     /**
@@ -572,9 +601,9 @@ var ajax = {
      * Либо в JSON-строку (если браузер поддерживает CORS),
      *   либо в GET-строку.
      */
-    serialize: function (data) {
+    serialize: function(data) {
         if (jqapi.supportsCors()) {
-            return JSON.stringify(data, function (key, value) {
+            return JSON.stringify(data, function(key, value) {
                 return value === null ? undefined : value;
             });
         } else {
@@ -588,12 +617,12 @@ var ajax = {
  * Возвращает автоинкрементный идентификатор.
  * @param {string} prefix - префикс для идентификатора
  */
-var generateId = (function () {
+var generateId = (function() {
     var counter = 0;
-    return function (prefix) {
-        return (prefix || '') + ++counter;
-    }
-}());
+    return function(prefix) {
+        return (prefix || "") + ++counter;
+    };
+})();
 
 /**
  * Утилиты на все случаи жизни.
@@ -621,7 +650,7 @@ var utils = {
     slice: collection_util.slice,
 
     delay: func_util.delay,
-    
+
     areSame: object_util.areSame,
     compactObject: object_util.compact,
     getDeepValue: object_util.getDeepValue,
@@ -639,7 +668,7 @@ var utils = {
 var DEFAULT_OPTIONS = {
     autoSelectFirst: false,
     // основной url, может быть переопределен
-    serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
+    serviceUrl: "https://suggestions.dadata.ru/suggestions/api/4_1/rs",
     // url, который заменяет serviceUrl + method + type
     // то есть, если он задан, то для всех запросов будет использоваться именно он
     // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
@@ -656,21 +685,21 @@ var DEFAULT_OPTIONS = {
     deferRequestBy: 100,
     enrichmentEnabled: true,
     params: {},
-    paramName: 'query',
+    paramName: "query",
     timeout: 3000,
     formatResult: null,
     formatSelected: null,
     noCache: false,
-    containerClass: 'suggestions-suggestions',
+    containerClass: "suggestions-suggestions",
     tabDisabled: false,
     triggerSelectOnSpace: false,
     triggerSelectOnEnter: true,
     triggerSelectOnBlur: true,
     preventBadQueries: false,
-    hint: 'Выберите вариант или продолжите ввод',
+    hint: "Выберите вариант или продолжите ввод",
     noSuggestionsHint: null,
     type: null,
-    requestMode: 'suggest',
+    requestMode: "suggest",
     count: 5,
     $helpers: null,
     headers: null,
@@ -684,8 +713,8 @@ var DEFAULT_OPTIONS = {
  * @param preprocessFn called on each value before comparison
  * @returns {Function} same parent checker function
  */
-function sameParentChecker (preprocessFn) {
-    return function (suggestions) {
+function sameParentChecker(preprocessFn) {
+    return function(suggestions) {
         if (suggestions.length === 0) {
             return false;
         }
@@ -694,19 +723,23 @@ function sameParentChecker (preprocessFn) {
         }
 
         var parentValue = preprocessFn(suggestions[0].value),
-            aliens = suggestions.filter(function (suggestion) {
-                return preprocessFn(suggestion.value).indexOf(parentValue) !== 0;
+            aliens = suggestions.filter(function(suggestion) {
+                return (
+                    preprocessFn(suggestion.value).indexOf(parentValue) !== 0
+                );
             });
 
         return aliens.length === 0;
-    }
+    };
 }
 
 /**
  * Default same parent checker. Compares raw values.
  * @type {Function}
  */
-var haveSameParent = sameParentChecker(function(val) { return val; });
+var haveSameParent = sameParentChecker(function(val) {
+    return val;
+});
 
 /**
  * Сравнивает запрос c подсказками, по словам.
@@ -722,7 +755,9 @@ function _matchByWords(stopwords, parentCheckerFn) {
         var matches = [];
 
         if (parentCheckerFn(suggestions)) {
-            queryTokens = text_util.splitTokens(text_util.split(query, stopwords));
+            queryTokens = text_util.splitTokens(
+                text_util.split(query, stopwords)
+            );
 
             collection_util.each(suggestions, function(suggestion, i) {
                 var suggestedValue = suggestion.value;
@@ -732,27 +767,32 @@ function _matchByWords(stopwords, parentCheckerFn) {
                 }
 
                 // check if query words are a subset of suggested words
-                var suggestionWords = text_util.splitTokens(text_util.split(suggestedValue, stopwords));
+                var suggestionWords = text_util.splitTokens(
+                    text_util.split(suggestedValue, stopwords)
+                );
 
-                if (collection_util.minus(queryTokens, suggestionWords).length === 0) {
+                if (
+                    collection_util.minus(queryTokens, suggestionWords)
+                        .length === 0
+                ) {
                     matches.push(i);
                 }
             });
         }
 
         return matches.length === 1 ? matches[0] : -1;
-    }
+    };
 }
 
 /**
  * Matchers return index of suitable suggestion
  * Context inside is optionally set in types.js
  */
-var matchers =  {
+var matchers = {
     /**
      * Matches query against suggestions, removing all the stopwords.
      */
-    matchByNormalizedQuery: function (stopwords) {
+    matchByNormalizedQuery: function(stopwords) {
         return function(query, suggestions) {
             var normalizedQuery = text_util.normalize(query, stopwords);
             var matches = [];
@@ -769,20 +809,23 @@ var matchers =  {
                 if (suggestedValue.indexOf(normalizedQuery) > 0) {
                     return false;
                 }
-                if (normalizedQuery === text_util.normalize(suggestedValue, stopwords)) {
+                if (
+                    normalizedQuery ===
+                    text_util.normalize(suggestedValue, stopwords)
+                ) {
                     matches.push(i);
                 }
             });
 
             return matches.length === 1 ? matches[0] : -1;
-        }
+        };
     },
 
-    matchByWords: function (stopwords) {
+    matchByWords: function(stopwords) {
         return _matchByWords(stopwords, haveSameParent);
     },
 
-    matchByWordsAddress: function (stopwords) {
+    matchByWordsAddress: function(stopwords) {
         return _matchByWords(stopwords, haveSameParent);
     },
 
@@ -793,35 +836,208 @@ var matchers =  {
      * uses partial matching:
      *   "0445" vs { value: "ALFA-BANK", data: { "bic": "044525593" }} is a match
      */
-    matchByFields: function (fields) {
+    matchByFields: function(fields) {
         return function(query, suggestions) {
             var tokens = text_util.splitTokens(text_util.split(query));
             var suggestionWords = [];
 
             if (suggestions.length === 1) {
                 if (fields) {
-                    collection_util.each(fields, function (stopwords, field) {
-                        var fieldValue = object_util.getDeepValue(suggestions[0], field);
-                        var fieldWords = fieldValue 
-                            && text_util.splitTokens(text_util.split(fieldValue, stopwords));
+                    collection_util.each(fields, function(stopwords, field) {
+                        var fieldValue = object_util.getDeepValue(
+                            suggestions[0],
+                            field
+                        );
+                        var fieldWords =
+                            fieldValue &&
+                            text_util.splitTokens(
+                                text_util.split(fieldValue, stopwords)
+                            );
 
                         if (fieldWords && fieldWords.length) {
-                            suggestionWords = suggestionWords.concat(fieldWords);
+                            suggestionWords = suggestionWords.concat(
+                                fieldWords
+                            );
                         }
                     });
                 }
 
-                if (collection_util.minusWithPartialMatching(tokens, suggestionWords).length === 0) {
+                if (
+                    collection_util.minusWithPartialMatching(
+                        tokens,
+                        suggestionWords
+                    ).length === 0
+                ) {
                     return 0;
                 }
             }
 
             return -1;
-        }
+        };
     }
 };
 
-var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'аал', 'автодорога', 'аллея', 'арбан', 'аул', 'б-р', 'берег', 'бугор', 'вал', 'вл', 'волость', 'въезд', 'высел', 'г', 'городок', 'гск', 'д', 'двлд', 'днп', 'дор', 'дп', 'ж/д_будка', 'ж/д_казарм', 'ж/д_оп', 'ж/д_платф', 'ж/д_пост', 'ж/д_рзд', 'ж/д_ст', 'жилзона', 'жилрайон', 'жт', 'заезд', 'заимка', 'зона', 'к', 'казарма', 'канал', 'кв', 'кв-л', 'км', 'кольцо', 'комн', 'кордон', 'коса', 'кп', 'край', 'линия', 'лпх', 'м', 'массив', 'местность', 'мкр', 'мост', 'н/п', 'наб', 'нп', 'обл', 'округ', 'остров', 'оф', 'п', 'п/о', 'п/р', 'п/ст', 'парк', 'пгт', 'пер', 'переезд', 'пл', 'пл-ка', 'платф', 'погост', 'полустанок', 'починок', 'пр-кт', 'проезд', 'промзона', 'просек', 'просека', 'проселок', 'проток', 'протока', 'проулок', 'р-н', 'рзд', 'россия', 'рп', 'ряды', 'с', 'с/а', 'с/мо', 'с/о', 'с/п', 'с/с', 'сад', 'сквер', 'сл', 'снт', 'спуск', 'ст', 'ст-ца', 'стр', 'тер', 'тракт', 'туп', 'у', 'ул', 'уч-к', 'ф/х', 'ферма', 'х', 'ш', 'бульвар', 'владение', 'выселки', 'гаражно-строительный', 'город', 'деревня', 'домовладение', 'дорога', 'квартал', 'километр', 'комната', 'корпус', 'литер', 'леспромхоз', 'местечко', 'микрорайон', 'набережная', 'область', 'переулок', 'платформа', 'площадка', 'площадь', 'поселение', 'поселок', 'проспект', 'разъезд', 'район', 'республика', 'село', 'сельсовет', 'слобода', 'сооружение', 'станица', 'станция', 'строение', 'территория', 'тупик', 'улица', 'улус', 'участок', 'хутор', 'шоссе'];
+var ADDRESS_STOPWORDS = [
+    "ао",
+    "аобл",
+    "дом",
+    "респ",
+    "а/я",
+    "аал",
+    "автодорога",
+    "аллея",
+    "арбан",
+    "аул",
+    "б-р",
+    "берег",
+    "бугор",
+    "вал",
+    "вл",
+    "волость",
+    "въезд",
+    "высел",
+    "г",
+    "городок",
+    "гск",
+    "д",
+    "двлд",
+    "днп",
+    "дор",
+    "дп",
+    "ж/д_будка",
+    "ж/д_казарм",
+    "ж/д_оп",
+    "ж/д_платф",
+    "ж/д_пост",
+    "ж/д_рзд",
+    "ж/д_ст",
+    "жилзона",
+    "жилрайон",
+    "жт",
+    "заезд",
+    "заимка",
+    "зона",
+    "к",
+    "казарма",
+    "канал",
+    "кв",
+    "кв-л",
+    "км",
+    "кольцо",
+    "комн",
+    "кордон",
+    "коса",
+    "кп",
+    "край",
+    "линия",
+    "лпх",
+    "м",
+    "массив",
+    "местность",
+    "мкр",
+    "мост",
+    "н/п",
+    "наб",
+    "нп",
+    "обл",
+    "округ",
+    "остров",
+    "оф",
+    "п",
+    "п/о",
+    "п/р",
+    "п/ст",
+    "парк",
+    "пгт",
+    "пер",
+    "переезд",
+    "пл",
+    "пл-ка",
+    "платф",
+    "погост",
+    "полустанок",
+    "починок",
+    "пр-кт",
+    "проезд",
+    "промзона",
+    "просек",
+    "просека",
+    "проселок",
+    "проток",
+    "протока",
+    "проулок",
+    "р-н",
+    "рзд",
+    "россия",
+    "рп",
+    "ряды",
+    "с",
+    "с/а",
+    "с/мо",
+    "с/о",
+    "с/п",
+    "с/с",
+    "сад",
+    "сквер",
+    "сл",
+    "снт",
+    "спуск",
+    "ст",
+    "ст-ца",
+    "стр",
+    "тер",
+    "тракт",
+    "туп",
+    "у",
+    "ул",
+    "уч-к",
+    "ф/х",
+    "ферма",
+    "х",
+    "ш",
+    "бульвар",
+    "владение",
+    "выселки",
+    "гаражно-строительный",
+    "город",
+    "деревня",
+    "домовладение",
+    "дорога",
+    "квартал",
+    "километр",
+    "комната",
+    "корпус",
+    "литер",
+    "леспромхоз",
+    "местечко",
+    "микрорайон",
+    "набережная",
+    "область",
+    "переулок",
+    "платформа",
+    "площадка",
+    "площадь",
+    "поселение",
+    "поселок",
+    "проспект",
+    "разъезд",
+    "район",
+    "республика",
+    "село",
+    "сельсовет",
+    "слобода",
+    "сооружение",
+    "станица",
+    "станция",
+    "строение",
+    "территория",
+    "тупик",
+    "улица",
+    "улус",
+    "участок",
+    "хутор",
+    "шоссе"
+];
 
 /**
  * Компоненты адреса
@@ -835,178 +1051,206 @@ var ADDRESS_STOPWORDS = ['ао', 'аобл', 'дом', 'респ', 'а/я', 'а�
  */
 var ADDRESS_COMPONENTS = [
     {
-        id: 'kladr_id',
-        fields: ['kladr_id'],
+        id: "kladr_id",
+        fields: ["kladr_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'postal_code',
-        fields: ['postal_code'],
+        id: "postal_code",
+        fields: ["postal_code"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'country',
-        fields: ['country'],
+        id: "country",
+        fields: ["country"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'region_fias_id',
-        fields: ['region_fias_id'],
+        id: "region_fias_id",
+        fields: ["region_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'region_type_full',
-        fields: ['region_type_full'],
+        id: "region_type_full",
+        fields: ["region_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 2, zeros: 11 },
-        fiasType: 'region_fias_id'
+        fiasType: "region_fias_id"
     },
     {
-        id: 'region',
-        fields: ['region', 'region_type', 'region_type_full', 'region_with_type'],
+        id: "region",
+        fields: [
+            "region",
+            "region_type",
+            "region_type_full",
+            "region_with_type"
+        ],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 2, zeros: 11 },
-        fiasType: 'region_fias_id'
+        fiasType: "region_fias_id"
     },
     {
-        id: 'area_fias_id',
-        fields: ['area_fias_id'],
+        id: "area_fias_id",
+        fields: ["area_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'area_type_full',
-        fields: ['area_type_full'],
+        id: "area_type_full",
+        fields: ["area_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 5, zeros: 8 },
-        fiasType: 'area_fias_id'
+        fiasType: "area_fias_id"
     },
     {
-        id: 'area',
-        fields: ['area', 'area_type', 'area_type_full', 'area_with_type'],
+        id: "area",
+        fields: ["area", "area_type", "area_type_full", "area_with_type"],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 5, zeros: 8 },
-        fiasType: 'area_fias_id'
+        fiasType: "area_fias_id"
     },
     {
-        id: 'city_fias_id',
-        fields: ['city_fias_id'],
+        id: "city_fias_id",
+        fields: ["city_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'city_type_full',
-        fields: ['city_type_full'],
+        id: "city_type_full",
+        fields: ["city_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 8, zeros: 5 },
-        fiasType: 'city_fias_id'
+        fiasType: "city_fias_id"
     },
     {
-        id: 'city',
-        fields: ['city', 'city_type', 'city_type_full', 'city_with_type'],
+        id: "city",
+        fields: ["city", "city_type", "city_type_full", "city_with_type"],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 8, zeros: 5 },
-        fiasType: 'city_fias_id'
+        fiasType: "city_fias_id"
     },
     {
-        id: 'city_district_fias_id',
-        fields: ['city_district_fias_id'],
+        id: "city_district_fias_id",
+        fields: ["city_district_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'city_district_type_full',
-        fields: ['city_district_type_full'],
+        id: "city_district_type_full",
+        fields: ["city_district_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 11, zeros: 2 },
-        fiasType: 'city_district_fias_id'
+        fiasType: "city_district_fias_id"
     },
     {
-        id: 'city_district',
-        fields: ['city_district', 'city_district_type', 'city_district_type_full', 'city_district_with_type'],
+        id: "city_district",
+        fields: [
+            "city_district",
+            "city_district_type",
+            "city_district_type_full",
+            "city_district_with_type"
+        ],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 11, zeros: 2 },
-        fiasType: 'city_district_fias_id'
+        fiasType: "city_district_fias_id"
     },
     {
-        id: 'settlement_fias_id',
-        fields: ['settlement_fias_id'],
+        id: "settlement_fias_id",
+        fields: ["settlement_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'settlement_type_full',
-        fields: ['settlement_type_full'],
+        id: "settlement_type_full",
+        fields: ["settlement_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 11, zeros: 2 },
-        fiasType: 'settlement_fias_id'
+        fiasType: "settlement_fias_id"
     },
     {
-        id: 'settlement',
-        fields: ['settlement', 'settlement_type', 'settlement_type_full', 'settlement_with_type'],
+        id: "settlement",
+        fields: [
+            "settlement",
+            "settlement_type",
+            "settlement_type_full",
+            "settlement_with_type"
+        ],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 11, zeros: 2 },
-        fiasType: 'settlement_fias_id'
+        fiasType: "settlement_fias_id"
     },
     {
-        id: 'street_fias_id',
-        fields: ['street_fias_id'],
+        id: "street_fias_id",
+        fields: ["street_fias_id"],
         forBounds: false,
         forLocations: true
     },
     {
-        id: 'street_type_full',
-        fields: ['street_type_full'],
+        id: "street_type_full",
+        fields: ["street_type_full"],
         forBounds: false,
         forLocations: true,
         kladrFormat: { digits: 15, zeros: 2 },
-        fiasType: 'street_fias_id'
+        fiasType: "street_fias_id"
     },
     {
-        id: 'street',
-        fields: ['street', 'street_type', 'street_type_full', 'street_with_type'],
+        id: "street",
+        fields: [
+            "street",
+            "street_type",
+            "street_type_full",
+            "street_with_type"
+        ],
         forBounds: true,
         forLocations: true,
         kladrFormat: { digits: 15, zeros: 2 },
-        fiasType: 'street_fias_id'
+        fiasType: "street_fias_id"
     },
     {
-        id: 'house',
-        fields: ['house', 'house_type', 'house_type_full',
-            'block', 'block_type'],
+        id: "house",
+        fields: [
+            "house",
+            "house_type",
+            "house_type_full",
+            "block",
+            "block_type"
+        ],
         forBounds: true,
         forLocations: false,
         kladrFormat: { digits: 19 }
     }
-
 ];
 
 var ADDRESS_TYPE = {
-    urlSuffix: 'address',
-    noSuggestionsHint: 'Неизвестный адрес',
+    urlSuffix: "address",
+    noSuggestionsHint: "Неизвестный адрес",
     matchers: [
         matchers.matchByNormalizedQuery(ADDRESS_STOPWORDS),
         matchers.matchByWordsAddress(ADDRESS_STOPWORDS)
     ],
     dataComponents: ADDRESS_COMPONENTS,
-    dataComponentsById: object_util.indexObjectsById(ADDRESS_COMPONENTS, 'id', 'index'),
+    dataComponentsById: object_util.indexObjectsById(
+        ADDRESS_COMPONENTS,
+        "id",
+        "index"
+    ),
     unformattableTokens: ADDRESS_STOPWORDS,
     enrichmentEnabled: true,
-    enrichmentMethod: 'suggest',
+    enrichmentMethod: "suggest",
     enrichmentParams: {
         count: 1,
         locations: null,
@@ -1018,70 +1262,117 @@ var ADDRESS_TYPE = {
         return suggestion.unrestricted_value;
     },
     geoEnabled: true,
-    isDataComplete: function (suggestion) {
-        var fields = [this.bounds.to || 'flat'],
+    isDataComplete: function(suggestion) {
+        var fields = [this.bounds.to || "flat"],
             data = suggestion.data;
 
-        return !lang_util.isPlainObject(data) || object_util.fieldsAreNotEmpty(data, fields);
+        return (
+            !lang_util.isPlainObject(data) ||
+            object_util.fieldsAreNotEmpty(data, fields)
+        );
     },
-    composeValue: function (data, options) {
-        var region = data.region_with_type || collection_util.compact([data.region, data.region_type]).join(' ') || data.region_type_full,
-            area = data.area_with_type || collection_util.compact([data.area_type, data.area]).join(' ') || data.area_type_full,
-            city = data.city_with_type || collection_util.compact([data.city_type, data.city]).join(' ') || data.city_type_full,
-            settelement = data.settlement_with_type || collection_util.compact([data.settlement_type, data.settlement]).join(' ') || data.settlement_type_full,
-            cityDistrict = data.city_district_with_type || collection_util.compact([data.city_district_type, data.city_district]).join(' ') || data.city_district_type_full,
-            street = data.street_with_type || collection_util.compact([data.street_type, data.street]).join(' ') || data.street_type_full,
-            house = collection_util.compact([data.house_type, data.house, data.block_type, data.block]).join(' '),
-            flat = collection_util.compact([data.flat_type, data.flat]).join(' '),
-            postal_box = data.postal_box && ('а/я ' + data.postal_box),
+    composeValue: function(data, options) {
+        var region =
+                data.region_with_type ||
+                collection_util
+                    .compact([data.region, data.region_type])
+                    .join(" ") ||
+                data.region_type_full,
+            area =
+                data.area_with_type ||
+                collection_util
+                    .compact([data.area_type, data.area])
+                    .join(" ") ||
+                data.area_type_full,
+            city =
+                data.city_with_type ||
+                collection_util
+                    .compact([data.city_type, data.city])
+                    .join(" ") ||
+                data.city_type_full,
+            settelement =
+                data.settlement_with_type ||
+                collection_util
+                    .compact([data.settlement_type, data.settlement])
+                    .join(" ") ||
+                data.settlement_type_full,
+            cityDistrict =
+                data.city_district_with_type ||
+                collection_util
+                    .compact([data.city_district_type, data.city_district])
+                    .join(" ") ||
+                data.city_district_type_full,
+            street =
+                data.street_with_type ||
+                collection_util
+                    .compact([data.street_type, data.street])
+                    .join(" ") ||
+                data.street_type_full,
+            house = collection_util
+                .compact([
+                    data.house_type,
+                    data.house,
+                    data.block_type,
+                    data.block
+                ])
+                .join(" "),
+            flat = collection_util
+                .compact([data.flat_type, data.flat])
+                .join(" "),
+            postal_box = data.postal_box && "а/я " + data.postal_box,
             result;
 
         // если регион совпадает с городом
         // например г Москва, г Москва
         // то не показываем регион
         if (region === city) {
-            region = '';
+            region = "";
         }
 
         // иногда не показываем район
         if (!(options && options.saveCityDistrict)) {
             if (options && options.excludeCityDistrict) {
                 // если район явно запрещен
-                cityDistrict = '';
+                cityDistrict = "";
             } else if (cityDistrict && !data.city_district_fias_id) {
                 // если район взят из ОКАТО (у него пустой city_district_fias_id)
-                cityDistrict = '';
+                cityDistrict = "";
             }
         }
 
-        result = collection_util.compact([
-            region,
-            area,
-            city,
-            cityDistrict,
-            settelement,
-            street,
-            house,
-            flat,
-            postal_box
-        ]).join(', ');
+        result = collection_util
+            .compact([
+                region,
+                area,
+                city,
+                cityDistrict,
+                settelement,
+                street,
+                house,
+                flat,
+                postal_box
+            ])
+            .join(", ");
 
         return result;
     },
-    formatResult: function() {
+    formatResult: (function() {
         var componentsUnderCityDistrict = [],
             _underCityDistrict = false;
 
-        ADDRESS_COMPONENTS.forEach(function (component) {
-            if (_underCityDistrict) componentsUnderCityDistrict.push(component.id);
-            if (component.id === 'city_district') _underCityDistrict = true;
+        ADDRESS_COMPONENTS.forEach(function(component) {
+            if (_underCityDistrict)
+                componentsUnderCityDistrict.push(component.id);
+            if (component.id === "city_district") _underCityDistrict = true;
         });
 
-        return function (value, currentValue, suggestion, options) {
+        return function(value, currentValue, suggestion, options) {
             var that = this,
-                district = suggestion.data && suggestion.data.city_district_with_type,
+                district =
+                    suggestion.data && suggestion.data.city_district_with_type,
                 unformattableTokens = options && options.unformattableTokens,
-                historyValues = suggestion.data && suggestion.data.history_values,
+                historyValues =
+                    suggestion.data && suggestion.data.history_values,
                 tokens,
                 unusedTokens,
                 formattedHistoryValues;
@@ -1090,26 +1381,45 @@ var ADDRESS_TYPE = {
             if (historyValues && historyValues.length > 0) {
                 tokens = text_util.tokenize(currentValue, unformattableTokens);
                 unusedTokens = this.type.findUnusedTokens(tokens, value);
-                formattedHistoryValues = this.type.getFormattedHistoryValues(unusedTokens, historyValues);
+                formattedHistoryValues = this.type.getFormattedHistoryValues(
+                    unusedTokens,
+                    historyValues
+                );
                 if (formattedHistoryValues) {
                     value += formattedHistoryValues;
                 }
             }
 
-            value = that.highlightMatches(value, currentValue, suggestion, options);
+            value = that.highlightMatches(
+                value,
+                currentValue,
+                suggestion,
+                options
+            );
             value = that.wrapFormattedValue(value, suggestion);
 
-            if (district && (!that.bounds.own.length || that.bounds.own.indexOf('street') >= 0)
-                && !lang_util.isEmptyObject(that.copyDataComponents(suggestion.data, componentsUnderCityDistrict))) {
+            if (
+                district &&
+                (!that.bounds.own.length ||
+                    that.bounds.own.indexOf("street") >= 0) &&
+                !lang_util.isEmptyObject(
+                    that.copyDataComponents(
+                        suggestion.data,
+                        componentsUnderCityDistrict
+                    )
+                )
+            ) {
                 value +=
-                    '<div class="' + that.classes.subtext + '">' +
+                    '<div class="' +
+                    that.classes.subtext +
+                    '">' +
                     that.highlightMatches(district, currentValue, suggestion) +
-                    '</div>';
+                    "</div>";
             }
 
             return value;
         };
-    }(),
+    })(),
 
     /**
      * Возвращает список слов в запросе,
@@ -1128,7 +1438,7 @@ var ADDRESS_TYPE = {
     },
 
     /**
-     * Возвращает исторические названия для слов запроса, 
+     * Возвращает исторические названия для слов запроса,
      * для которых не найдено совпадения в основном значении подсказки
      */
     getFormattedHistoryValues: function(unusedTokens, historyValues) {
@@ -1137,7 +1447,7 @@ var ADDRESS_TYPE = {
             historyValueIndex,
             historyValue,
             values = [],
-            formatted = '';
+            formatted = "";
 
         historyValues.forEach(function(historyValue) {
             collection_util.each(unusedTokens, function(token) {
@@ -1149,7 +1459,7 @@ var ADDRESS_TYPE = {
         });
 
         if (values.length > 0) {
-            formatted = ' (бывш. ' + values.join(', ') + ')';
+            formatted = " (бывш. " + values.join(", ") + ")";
         }
 
         return formatted;
@@ -1169,18 +1479,28 @@ var ADDRESS_TYPE = {
             if (instance.options.restrict_value) {
                 // Can not use unrestricted address,
                 // because some components (from constraints) must be omitted
-                formattedValue = this.getValueWithinConstraints(instance, options.suggestion);
+                formattedValue = this.getValueWithinConstraints(
+                    instance,
+                    options.suggestion
+                );
             } else if (instance.bounds.own.length) {
                 // Can not use unrestricted address,
                 // because only components from bounds must be included
-                formattedValue = this.getValueWithinBounds(instance, options.suggestion);
+                formattedValue = this.getValueWithinBounds(
+                    instance,
+                    options.suggestion
+                );
             } else {
                 // Can use full unrestricted address
                 formattedValue = options.suggestion.unrestricted_value;
             }
         } else if (options.hasBeenEnriched) {
             if (instance.options.restrict_value) {
-                formattedValue = this.getValueWithinConstraints(instance, options.suggestion, { excludeCityDistrict: true });
+                formattedValue = this.getValueWithinConstraints(
+                    instance,
+                    options.suggestion,
+                    { excludeCityDistrict: true }
+                );
             }
         }
 
@@ -1189,43 +1509,53 @@ var ADDRESS_TYPE = {
     /*
      * Compose suggestion value with respect to constraints
      */
-    getValueWithinConstraints: function (instance, suggestion, options) {
-        return this.composeValue(instance.getUnrestrictedData(suggestion.data), options);
+    getValueWithinConstraints: function(instance, suggestion, options) {
+        return this.composeValue(
+            instance.getUnrestrictedData(suggestion.data),
+            options
+        );
     },
     /*
      * Compose suggestion value with respect to bounds
      */
-    getValueWithinBounds: function (instance, suggestion, options) {
+    getValueWithinBounds: function(instance, suggestion, options) {
         // для корректного составления адреса нужен city_district_fias_id
-        var data = instance.copyDataComponents(suggestion.data, instance.bounds.own.concat(['city_district_fias_id']));
+        var data = instance.copyDataComponents(
+            suggestion.data,
+            instance.bounds.own.concat(["city_district_fias_id"])
+        );
 
         return this.composeValue(data, options);
     }
-
 };
 
-function valueStartsWith (suggestion, field) {
+function valueStartsWith(suggestion, field) {
     var fieldValue = suggestion.data && suggestion.data[field];
 
-    return fieldValue &&
-        new RegExp('^' + text_util.escapeRegExChars(fieldValue) + '([' + WORD_DELIMITERS + ']|$)','i')
-            .test(suggestion.value);
+    return (
+        fieldValue &&
+        new RegExp(
+            "^" +
+                text_util.escapeRegExChars(fieldValue) +
+                "([" +
+                WORD_DELIMITERS +
+                "]|$)",
+            "i"
+        ).test(suggestion.value)
+    );
 }
 
 var NAME_TYPE = {
-    urlSuffix: 'fio',
+    urlSuffix: "fio",
     noSuggestionsHint: false,
-    matchers: [
-        matchers.matchByNormalizedQuery(),
-        matchers.matchByWords()
-    ],
+    matchers: [matchers.matchByNormalizedQuery(), matchers.matchByWords()],
     // names for labels, describing which fields are displayed
     fieldNames: {
-        surname: 'фамилия',
-        name: 'имя',
-        patronymic: 'отчество'
+        surname: "фамилия",
+        name: "имя",
+        patronymic: "отчество"
     },
-    isDataComplete: function (suggestion) {
+    isDataComplete: function(suggestion) {
         var that = this,
             params = that.options.params,
             data = suggestion.data,
@@ -1235,61 +1565,73 @@ var NAME_TYPE = {
             params = params.call(that.element, suggestion.value);
         }
         if (params && params.parts) {
-            fields = params.parts.map(function (part) {
+            fields = params.parts.map(function(part) {
                 return part.toLowerCase();
             });
         } else {
             // when NAME is first, patronymic is mot mandatory
-            fields = ['surname', 'name'];
+            fields = ["surname", "name"];
             // when SURNAME is first, it is
-            if (valueStartsWith(suggestion, 'surname')) {
-                fields.push('patronymic');
+            if (valueStartsWith(suggestion, "surname")) {
+                fields.push("patronymic");
             }
         }
         return object_util.fieldsAreNotEmpty(data, fields);
     },
-    composeValue: function (data) {
-        return collection_util.compact([data.surname, data.name, data.patronymic]).join(' ');
+    composeValue: function(data) {
+        return collection_util
+            .compact([data.surname, data.name, data.patronymic])
+            .join(" ");
     }
 };
 
 var innPartsLengths = {
-    'LEGAL': [2, 2, 5, 1],
-    'INDIVIDUAL': [2, 2, 6, 2]
+    LEGAL: [2, 2, 5, 1],
+    INDIVIDUAL: [2, 2, 6, 2]
 };
 
-function chooseFormattedField (formattedMain, formattedAlt) {
+function chooseFormattedField(formattedMain, formattedAlt) {
     var rHasMatch = /<strong>/;
     return rHasMatch.test(formattedAlt) && !rHasMatch.test(formattedMain)
         ? formattedAlt
         : formattedMain;
 }
 
-function formattedField (main, alt, currentValue, suggestion, options) {
+function formattedField(main, alt, currentValue, suggestion, options) {
     var that = this,
-        formattedMain = that.highlightMatches(main, currentValue, suggestion, options),
-        formattedAlt = that.highlightMatches(alt, currentValue, suggestion, options);
+        formattedMain = that.highlightMatches(
+            main,
+            currentValue,
+            suggestion,
+            options
+        ),
+        formattedAlt = that.highlightMatches(
+            alt,
+            currentValue,
+            suggestion,
+            options
+        );
 
     return chooseFormattedField(formattedMain, formattedAlt);
 }
 
 var PARTY_TYPE = {
-    urlSuffix: 'party',
-    noSuggestionsHint: 'Неизвестная организация',
+    urlSuffix: "party",
+    noSuggestionsHint: "Неизвестная организация",
     matchers: [
         matchers.matchByFields(
             // These fields of suggestion's `data` used by by-words matcher
             {
-                'value': null,
-                'data.address.value': ADDRESS_STOPWORDS,
-                'data.inn': null,
-                'data.ogrn': null
+                value: null,
+                "data.address.value": ADDRESS_STOPWORDS,
+                "data.inn": null,
+                "data.ogrn": null
             }
         )
     ],
     dataComponents: ADDRESS_COMPONENTS,
     enrichmentEnabled: true,
-    enrichmentMethod: 'findById',
+    enrichmentMethod: "findById",
     enrichmentParams: {
         count: 1,
         locations_boost: null
@@ -1298,46 +1640,93 @@ var PARTY_TYPE = {
         return suggestion.data.hid;
     },
     geoEnabled: true,
-    formatResult: function (value, currentValue, suggestion, options) {
+    formatResult: function(value, currentValue, suggestion, options) {
         var that = this,
-            formattedInn = that.type.formatResultInn.call(that, suggestion, currentValue),
-            formatterOGRN = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'ogrn'), currentValue, suggestion),
-            formattedInnOGRN = chooseFormattedField(formattedInn, formatterOGRN),
-            formattedFIO = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'management.name'), currentValue, suggestion),
-            address = object_util.getDeepValue(suggestion.data, 'address.value') || '';
+            formattedInn = that.type.formatResultInn.call(
+                that,
+                suggestion,
+                currentValue
+            ),
+            formatterOGRN = that.highlightMatches(
+                object_util.getDeepValue(suggestion.data, "ogrn"),
+                currentValue,
+                suggestion
+            ),
+            formattedInnOGRN = chooseFormattedField(
+                formattedInn,
+                formatterOGRN
+            ),
+            formattedFIO = that.highlightMatches(
+                object_util.getDeepValue(suggestion.data, "management.name"),
+                currentValue,
+                suggestion
+            ),
+            address =
+                object_util.getDeepValue(suggestion.data, "address.value") ||
+                "";
 
         if (that.isMobile) {
             (options || (options = {})).maxLength = 50;
         }
 
-        value = formattedField.call(that, value, object_util.getDeepValue(suggestion.data, 'name.latin'), currentValue, suggestion, options);
+        value = formattedField.call(
+            that,
+            value,
+            object_util.getDeepValue(suggestion.data, "name.latin"),
+            currentValue,
+            suggestion,
+            options
+        );
         value = that.wrapFormattedValue(value, suggestion);
 
         if (address) {
-            address = address.replace(/^(\d{6}?\s+|Россия,\s+)/i, '');
+            address = address.replace(/^(\d{6}?\s+|Россия,\s+)/i, "");
             if (that.isMobile) {
                 // keep only two first words
-                address = address.replace(new RegExp('^([^' + WORD_DELIMITERS + ']+[' + WORD_DELIMITERS + ']+[^' + WORD_DELIMITERS + ']+).*'), '$1');
+                address = address.replace(
+                    new RegExp(
+                        "^([^" +
+                            WORD_DELIMITERS +
+                            "]+[" +
+                            WORD_DELIMITERS +
+                            "]+[^" +
+                            WORD_DELIMITERS +
+                            "]+).*"
+                    ),
+                    "$1"
+                );
             } else {
-                address = that.highlightMatches(address, currentValue, suggestion, {
-                    unformattableTokens: ADDRESS_STOPWORDS
-                });
+                address = that.highlightMatches(
+                    address,
+                    currentValue,
+                    suggestion,
+                    {
+                        unformattableTokens: ADDRESS_STOPWORDS
+                    }
+                );
             }
         }
 
         if (formattedInnOGRN || address || formattedFIO) {
             value +=
-                '<div class="' + that.classes.subtext + '">' +
-                '<span class="' + that.classes.subtext_inline + '">' + (formattedInnOGRN || '') + '</span>' +
-                (chooseFormattedField(address, formattedFIO) || '') +
-                '</div>';
+                '<div class="' +
+                that.classes.subtext +
+                '">' +
+                '<span class="' +
+                that.classes.subtext_inline +
+                '">' +
+                (formattedInnOGRN || "") +
+                "</span>" +
+                (chooseFormattedField(address, formattedFIO) || "") +
+                "</div>";
         }
         return value;
     },
     formatResultInn: function(suggestion, currentValue) {
         var that = this,
             inn = suggestion.data && suggestion.data.inn,
-            innPartsLength = innPartsLengths[suggestion.data && suggestion.data.type],
+            innPartsLength =
+                innPartsLengths[suggestion.data && suggestion.data.type],
             innParts,
             formattedInn,
             rDigit = /\d/;
@@ -1345,9 +1734,9 @@ var PARTY_TYPE = {
         if (inn) {
             formattedInn = that.highlightMatches(inn, currentValue, suggestion);
             if (innPartsLength) {
-                formattedInn = formattedInn.split('');
-                innParts = innPartsLength.map(function (partLength) {
-                    var formattedPart = '',
+                formattedInn = formattedInn.split("");
+                innParts = innPartsLength.map(function(partLength) {
+                    var formattedPart = "",
                         ch;
 
                     while (partLength && (ch = formattedInn.shift())) {
@@ -1357,8 +1746,12 @@ var PARTY_TYPE = {
 
                     return formattedPart;
                 });
-                formattedInn = innParts.join('<span class="' + that.classes.subtext_delimiter + '"></span>') +
-                    formattedInn.join('');
+                formattedInn =
+                    innParts.join(
+                        '<span class="' +
+                            that.classes.subtext_delimiter +
+                            '"></span>'
+                    ) + formattedInn.join("");
             }
 
             return formattedInn;
@@ -1367,64 +1760,96 @@ var PARTY_TYPE = {
 };
 
 var EMAIL_TYPE = {
-    urlSuffix: 'email',
+    urlSuffix: "email",
     noSuggestionsHint: false,
-    matchers: [ matchers.matchByNormalizedQuery() ],
-    isQueryRequestable: function (query) {
-        return this.options.suggest_local || query.indexOf('@') >= 0;
+    matchers: [matchers.matchByNormalizedQuery()],
+    isQueryRequestable: function(query) {
+        return this.options.suggest_local || query.indexOf("@") >= 0;
     }
 };
 
 var BANK_TYPE = {
-    urlSuffix: 'bank',
-    noSuggestionsHint: 'Неизвестный банк',
-    matchers: [matchers.matchByFields(
-        // These fields of suggestion's `data` used by by-words matcher
-        {
-            'value': null,
-            'data.bic': null,
-            'data.swift': null
-        }
-    )],
+    urlSuffix: "bank",
+    noSuggestionsHint: "Неизвестный банк",
+    matchers: [
+        matchers.matchByFields(
+            // These fields of suggestion's `data` used by by-words matcher
+            {
+                value: null,
+                "data.bic": null,
+                "data.swift": null
+            }
+        )
+    ],
     dataComponents: ADDRESS_COMPONENTS,
     geoEnabled: true,
-    formatResult: function (value, currentValue, suggestion, options) {
+    formatResult: function(value, currentValue, suggestion, options) {
         var that = this,
-            formattedBIC = that.highlightMatches(object_util.getDeepValue(suggestion.data, 'bic'), currentValue, suggestion),
-            address = object_util.getDeepValue(suggestion.data, 'address.value') || '';
+            formattedBIC = that.highlightMatches(
+                object_util.getDeepValue(suggestion.data, "bic"),
+                currentValue,
+                suggestion
+            ),
+            address =
+                object_util.getDeepValue(suggestion.data, "address.value") ||
+                "";
 
         value = that.highlightMatches(value, currentValue, suggestion, options);
         value = that.wrapFormattedValue(value, suggestion);
 
         if (address) {
-            address = address.replace(/^\d{6}( РОССИЯ)?, /i, '');
+            address = address.replace(/^\d{6}( РОССИЯ)?, /i, "");
             if (that.isMobile) {
                 // keep only two first words
-                address = address.replace(new RegExp('^([^' + WORD_DELIMITERS + ']+[' + WORD_DELIMITERS + ']+[^' + WORD_DELIMITERS + ']+).*'), '$1');
+                address = address.replace(
+                    new RegExp(
+                        "^([^" +
+                            WORD_DELIMITERS +
+                            "]+[" +
+                            WORD_DELIMITERS +
+                            "]+[^" +
+                            WORD_DELIMITERS +
+                            "]+).*"
+                    ),
+                    "$1"
+                );
             } else {
-                address = that.highlightMatches(address, currentValue, suggestion, {
-                    unformattableTokens: ADDRESS_STOPWORDS
-                });
+                address = that.highlightMatches(
+                    address,
+                    currentValue,
+                    suggestion,
+                    {
+                        unformattableTokens: ADDRESS_STOPWORDS
+                    }
+                );
             }
         }
 
         if (formattedBIC || address) {
             value +=
-                '<div class="' + that.classes.subtext + '">' +
-                '<span class="' + that.classes.subtext_inline + '">' + formattedBIC + '</span>' +
+                '<div class="' +
+                that.classes.subtext +
+                '">' +
+                '<span class="' +
+                that.classes.subtext_inline +
+                '">' +
+                formattedBIC +
+                "</span>" +
                 address +
-                '</div>';
+                "</div>";
         }
         return value;
     },
-    formatSelected: function (suggestion) {
-        return object_util.getDeepValue(suggestion, 'data.name.payment') || null;
+    formatSelected: function(suggestion) {
+        return (
+            object_util.getDeepValue(suggestion, "data.name.payment") || null
+        );
     }
 };
 
 function Outward(name) {
     this.urlSuffix = name.toLowerCase();
-    this.noSuggestionsHint = 'Неизвестное значение';
+    this.noSuggestionsHint = "Неизвестное значение";
     this.matchers = [
         matchers.matchByNormalizedQuery(),
         matchers.matchByWords()
@@ -1454,11 +1879,11 @@ function Outward(name) {
  */
 
 var types = {
-    'NAME': NAME_TYPE,
-    'ADDRESS': ADDRESS_TYPE,
-    'PARTY': PARTY_TYPE,
-    'EMAIL': EMAIL_TYPE,
-    'BANK': BANK_TYPE
+    NAME: NAME_TYPE,
+    ADDRESS: ADDRESS_TYPE,
+    PARTY: PARTY_TYPE,
+    EMAIL: EMAIL_TYPE,
+    BANK: BANK_TYPE
 };
 
 types.get = function(type) {
@@ -1474,47 +1899,46 @@ jqapi.extend(DEFAULT_OPTIONS, {
 });
 
 var notificator = {
-
     chains: {},
 
-    on: function (name, method) {
+    on: function(name, method) {
         this.get(name).push(method);
         return this;
     },
 
-    get: function (name) {
+    get: function(name) {
         var chains = this.chains;
         return chains[name] || (chains[name] = []);
     }
 };
 
 var serviceMethods = {
-    'suggest': {
+    suggest: {
         defaultParams: {
             type: utils.getDefaultType(),
-            dataType: 'json',
+            dataType: "json",
             contentType: utils.getDefaultContentType()
         },
         addTypeInUrl: true
     },
-    'iplocate/address': {
+    "iplocate/address": {
         defaultParams: {
-            type: 'GET',
-            dataType: 'json'
+            type: "GET",
+            dataType: "json"
         },
         addTypeInUrl: false
     },
-    'status': {
+    status: {
         defaultParams: {
-            type: 'GET',
-            dataType: 'json'
+            type: "GET",
+            dataType: "json"
         },
         addTypeInUrl: true
     },
-    'findById': {
+    findById: {
         defaultParams: {
             type: utils.getDefaultType(),
-            dataType: 'json',
+            dataType: "json",
             contentType: utils.getDefaultContentType()
         },
         addTypeInUrl: true
@@ -1522,14 +1946,14 @@ var serviceMethods = {
 };
 
 var requestModes = {
-    'suggest': {
-        method: 'suggest',
+    suggest: {
+        method: "suggest",
         userSelect: true,
         updateValue: true,
         enrichmentEnabled: true
     },
-    'findById': {
-        method: 'findById',
+    findById: {
+        method: "findById",
         userSelect: false,
         updateValue: false,
         enrichmentEnabled: false
@@ -1569,7 +1993,7 @@ function Suggestions(el, options) {
 
     that.initializer = $.Deferred();
 
-    if (that.el.is(':visible')) {
+    if (that.el.is(":visible")) {
         that.initializer.resolve();
     } else {
         that.deferInitialization();
@@ -1579,16 +2003,15 @@ function Suggestions(el, options) {
 }
 
 Suggestions.prototype = {
-
     // Creation and destruction
 
-    initialize: function () {
+    initialize: function() {
         var that = this;
 
-        that.uniqueId = utils.uniqueId('i');
+        that.uniqueId = utils.uniqueId("i");
 
         that.createWrapper();
-        that.notify('initialize');
+        that.notify("initialize");
 
         that.bindWindowEvents();
 
@@ -1599,64 +2022,66 @@ Suggestions.prototype = {
     /**
      * Initialize when element is firstly interacted
      */
-    deferInitialization: function () {
+    deferInitialization: function() {
         var that = this,
-            events = 'mouseover focus keydown',
+            events = "mouseover focus keydown",
             timer,
-            callback = function () {
+            callback = function() {
                 that.initializer.resolve();
                 that.enable();
             };
 
-        that.initializer.always(function(){
+        that.initializer.always(function() {
             that.el.off(events, callback);
             clearInterval(timer);
         });
 
         that.disabled = true;
         that.el.on(events, callback);
-        timer = setInterval(function(){
-            if (that.el.is(':visible')) {
+        timer = setInterval(function() {
+            if (that.el.is(":visible")) {
                 callback();
             }
         }, that.options.initializeInterval);
     },
 
-    isInitialized: function () {
-        return this.initializer.state() === 'resolved';
+    isInitialized: function() {
+        return this.initializer.state() === "resolved";
     },
 
-    dispose: function () {
+    dispose: function() {
         var that = this;
 
         that.initializer.reject();
-        that.notify('dispose');
-        that.el.removeData(DATA_ATTR_KEY)
-            .removeClass('suggestions-input');
+        that.notify("dispose");
+        that.el.removeData(DATA_ATTR_KEY).removeClass("suggestions-input");
         that.unbindWindowEvents();
         that.removeWrapper();
-        that.el.trigger('suggestions-dispose');
+        that.el.trigger("suggestions-dispose");
     },
 
-    notify: function (chainName) {
+    notify: function(chainName) {
         var that = this,
             args = utils.slice(arguments, 1);
 
-        return $.map(notificator.get(chainName), function (method) {
+        return $.map(notificator.get(chainName), function(method) {
             return method.apply(that, args);
         });
     },
 
-    createWrapper: function () {
+    createWrapper: function() {
         var that = this;
 
         that.$wrapper = $('<div class="suggestions-wrapper"/>');
         that.el.after(that.$wrapper);
 
-        that.$wrapper.on('mousedown' + EVENT_NS, $.proxy(that.onMousedown, that));
+        that.$wrapper.on(
+            "mousedown" + EVENT_NS,
+            $.proxy(that.onMousedown, that)
+        );
     },
 
-    removeWrapper: function () {
+    removeWrapper: function() {
         var that = this;
 
         if (that.$wrapper) {
@@ -1669,7 +2094,7 @@ Suggestions.prototype = {
      * when suggestion is clicked (blur leads to suggestions hide, so we need to prevent it).
      * See https://github.com/jquery/jquery-ui/blob/master/ui/autocomplete.js for details
      */
-    onMousedown: function (e) {
+    onMousedown: function(e) {
         var that = this;
 
         // prevent moving focus out of the text field
@@ -1678,7 +2103,7 @@ Suggestions.prototype = {
         // IE doesn't prevent moving focus even with e.preventDefault()
         // so we set a flag to know when we should ignore the blur event
         that.cancelBlur = true;
-        utils.delay(function () {
+        utils.delay(function() {
             delete that.cancelBlur;
         });
 
@@ -1687,8 +2112,8 @@ Suggestions.prototype = {
         // so we have to track the next mousedown and close the menu if
         // the user clicks somewhere outside of the autocomplete
         if ($(e.target).closest(".ui-menu-item").length == 0) {
-            utils.delay(function () {
-                $(document).one("mousedown", function (e) {
+            utils.delay(function() {
+                $(document).one("mousedown", function(e) {
                     var $elements = that.el
                         .add(that.$wrapper)
                         .add(that.options.$helpers);
@@ -1697,7 +2122,7 @@ Suggestions.prototype = {
                         $elements = $elements.add(that.$container);
                     }
 
-                    $elements = $elements.filter(function () {
+                    $elements = $elements.filter(function() {
                         return this === e.target || $.contains(this, e.target);
                     });
 
@@ -1709,22 +2134,22 @@ Suggestions.prototype = {
         }
     },
 
-    bindWindowEvents: function () {
+    bindWindowEvents: function() {
         var that = this,
             handler = $.proxy(that.fixPosition, that);
 
         that.$viewport
-            .on('resize' + EVENT_NS + that.uniqueId, handler)
-            .on('scroll' + EVENT_NS + that.uniqueId, handler);
+            .on("resize" + EVENT_NS + that.uniqueId, handler)
+            .on("scroll" + EVENT_NS + that.uniqueId, handler);
     },
 
-    unbindWindowEvents: function () {
+    unbindWindowEvents: function() {
         this.$viewport
-            .off('resize' + EVENT_NS + this.uniqueId)
-            .off('scroll' + EVENT_NS + this.uniqueId);
+            .off("resize" + EVENT_NS + this.uniqueId)
+            .off("scroll" + EVENT_NS + this.uniqueId);
     },
 
-    scrollToTop: function () {
+    scrollToTop: function() {
         var that = this,
             scrollTarget = that.options.scrollOnFocus;
 
@@ -1732,46 +2157,55 @@ Suggestions.prototype = {
             scrollTarget = that.el;
         }
         if (scrollTarget instanceof $ && scrollTarget.length > 0) {
-            $('body,html').animate({
-                scrollTop: scrollTarget.offset().top
-            }, 'fast');
+            $("body,html").animate(
+                {
+                    scrollTop: scrollTarget.offset().top
+                },
+                "fast"
+            );
         }
     },
 
     // Configuration methods
 
-    setOptions: function (suppliedOptions) {
+    setOptions: function(suppliedOptions) {
         var that = this;
 
         $.extend(that.options, suppliedOptions);
 
-        that['type'] = types.get(that.options['type']);
+        that["type"] = types.get(that.options["type"]);
 
         // Check mandatory options
-        $.each({
-            'requestMode': requestModes
-        }, function (option, available) {
-            that[option] = available[that.options[option]];
-            if (!that[option]) {
-                that.disable();
-                throw '`' + option + '` option is incorrect! Must be one of: ' + $.map(available, function (value, name) {
-                    return '"' + name + '"';
-                }).join(', ');
+        $.each(
+            {
+                requestMode: requestModes
+            },
+            function(option, available) {
+                that[option] = available[that.options[option]];
+                if (!that[option]) {
+                    that.disable();
+                    throw "`" +
+                        option +
+                        "` option is incorrect! Must be one of: " +
+                        $.map(available, function(value, name) {
+                            return '"' + name + '"';
+                        }).join(", ");
+                }
             }
-        });
+        );
 
         $(that.options.$helpers)
             .off(EVENT_NS)
-            .on('mousedown' + EVENT_NS, $.proxy(that.onMousedown, that));
+            .on("mousedown" + EVENT_NS, $.proxy(that.onMousedown, that));
 
         if (that.isInitialized()) {
-            that.notify('setOptions');
+            that.notify("setOptions");
         }
     },
 
     // Common public methods
 
-    fixPosition: function (e) {
+    fixPosition: function(e) {
         var that = this,
             elLayout = {},
             wrapperOffset,
@@ -1779,19 +2213,33 @@ Suggestions.prototype = {
 
         that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
 
-        if (!that.isInitialized() || (e && e.type == 'scroll' && !(that.options.floating || that.isMobile))) return;
-        that.$container.appendTo(that.options.floating ? that.$body : that.$wrapper);
+        if (
+            !that.isInitialized() ||
+            (e &&
+                e.type == "scroll" &&
+                !(that.options.floating || that.isMobile))
+        )
+            return;
+        that.$container.appendTo(
+            that.options.floating ? that.$body : that.$wrapper
+        );
 
-        that.notify('resetPosition');
+        that.notify("resetPosition");
         // reset input's padding to default, determined by css
-        that.el.css('paddingLeft', '');
-        that.el.css('paddingRight', '');
-        elLayout.paddingLeft = parseFloat(that.el.css('paddingLeft'));
-        elLayout.paddingRight = parseFloat(that.el.css('paddingRight'));
+        that.el.css("paddingLeft", "");
+        that.el.css("paddingRight", "");
+        elLayout.paddingLeft = parseFloat(that.el.css("paddingLeft"));
+        elLayout.paddingRight = parseFloat(that.el.css("paddingRight"));
 
         $.extend(elLayout, that.el.offset());
-        elLayout.borderTop = that.el.css('border-top-style') == 'none' ? 0 : parseFloat(that.el.css('border-top-width'));
-        elLayout.borderLeft = that.el.css('border-left-style') == 'none' ? 0 : parseFloat(that.el.css('border-left-width'));
+        elLayout.borderTop =
+            that.el.css("border-top-style") == "none"
+                ? 0
+                : parseFloat(that.el.css("border-top-width"));
+        elLayout.borderLeft =
+            that.el.css("border-left-style") == "none"
+                ? 0
+                : parseFloat(that.el.css("border-left-width"));
         elLayout.innerHeight = that.el.innerHeight();
         elLayout.innerWidth = that.el.innerWidth();
         elLayout.outerHeight = that.el.outerHeight();
@@ -1804,40 +2252,40 @@ Suggestions.prototype = {
             left: elLayout.left - wrapperOffset.left
         };
 
-        that.notify('fixPosition', origin, elLayout);
+        that.notify("fixPosition", origin, elLayout);
 
         if (elLayout.componentsLeft > elLayout.paddingLeft) {
-            that.el.css('paddingLeft', elLayout.componentsLeft + 'px');
+            that.el.css("paddingLeft", elLayout.componentsLeft + "px");
         }
         if (elLayout.componentsRight > elLayout.paddingRight) {
-            that.el.css('paddingRight', elLayout.componentsRight + 'px');
+            that.el.css("paddingRight", elLayout.componentsRight + "px");
         }
     },
 
-    clearCache: function () {
+    clearCache: function() {
         this.cachedResponse = {};
         this.enrichmentCache = {};
         this.badQueries = [];
     },
 
-    clear: function () {
+    clear: function() {
         var that = this,
             currentSelection = that.selection;
 
         if (that.isInitialized()) {
             that.clearCache();
-            that.currentValue = '';
+            that.currentValue = "";
             that.selection = null;
             that.hide();
             that.suggestions = [];
-            that.el.val('');
-            that.el.trigger('suggestions-clear');
-            that.notify('clear');
-            that.trigger('InvalidateSelection', currentSelection);
+            that.el.val("");
+            that.el.trigger("suggestions-clear");
+            that.notify("clear");
+            that.trigger("InvalidateSelection", currentSelection);
         }
     },
 
-    disable: function () {
+    disable: function() {
         var that = this;
 
         that.disabled = true;
@@ -1847,15 +2295,15 @@ Suggestions.prototype = {
         }
     },
 
-    enable: function () {
+    enable: function() {
         this.disabled = false;
     },
 
-    isUnavailable: function () {
+    isUnavailable: function() {
         return this.disabled;
     },
 
-    update: function () {
+    update: function() {
         var that = this,
             query = that.el.val();
 
@@ -1869,7 +2317,7 @@ Suggestions.prototype = {
         }
     },
 
-    setSuggestion: function (suggestion) {
+    setSuggestion: function(suggestion) {
         var that = this,
             data,
             value;
@@ -1877,16 +2325,26 @@ Suggestions.prototype = {
         if ($.isPlainObject(suggestion) && $.isPlainObject(suggestion.data)) {
             suggestion = $.extend(true, {}, suggestion);
 
-            if (that.isUnavailable() && that.initializer && that.initializer.state() === 'pending') {
+            if (
+                that.isUnavailable() &&
+                that.initializer &&
+                that.initializer.state() === "pending"
+            ) {
                 that.initializer.resolve();
                 that.enable();
             }
 
             if (that.bounds.own.length) {
                 that.checkValueBounds(suggestion);
-                data = that.copyDataComponents(suggestion.data, that.bounds.all);
+                data = that.copyDataComponents(
+                    suggestion.data,
+                    that.bounds.all
+                );
                 if (suggestion.data.kladr_id) {
-                    data.kladr_id = that.getBoundedKladrId(suggestion.data.kladr_id, that.bounds.all);
+                    data.kladr_id = that.getBoundedKladrId(
+                        suggestion.data.kladr_id,
+                        that.bounds.all
+                    );
                 }
                 suggestion.data = data;
             }
@@ -1895,11 +2353,11 @@ Suggestions.prototype = {
 
             // `that.suggestions` required by `that.getSuggestionValue` and must be set before
             that.suggestions = [suggestion];
-            value = that.getSuggestionValue(suggestion) || '';
+            value = that.getSuggestionValue(suggestion) || "";
             that.currentValue = value;
             that.el.val(value);
             that.abortRequest();
-            that.el.trigger('suggestions-set');
+            that.el.trigger("suggestions-set");
         }
     },
 
@@ -1907,26 +2365,32 @@ Suggestions.prototype = {
      * Fetch full object for current INPUT's value
      * if no suitable object found, clean input element
      */
-    fixData: function () {
+    fixData: function() {
         var that = this,
             fullQuery = that.extendedCurrentValue(),
             currentValue = that.el.val(),
             resolver = $.Deferred();
 
         resolver
-            .done(function (suggestion) {
-                that.selectSuggestion(suggestion, 0, currentValue, { hasBeenEnriched: true });
-                that.el.trigger('suggestions-fixdata', suggestion);
+            .done(function(suggestion) {
+                that.selectSuggestion(suggestion, 0, currentValue, {
+                    hasBeenEnriched: true
+                });
+                that.el.trigger("suggestions-fixdata", suggestion);
             })
-            .fail(function () {
+            .fail(function() {
                 that.selection = null;
-                that.el.trigger('suggestions-fixdata');
+                that.el.trigger("suggestions-fixdata");
             });
 
         if (that.isQueryRequestable(fullQuery)) {
             that.currentValue = fullQuery;
-            that.getSuggestions(fullQuery, { count: 1, from_bound: null, to_bound: null })
-                .done(function (suggestions) {
+            that.getSuggestions(fullQuery, {
+                count: 1,
+                from_bound: null,
+                to_bound: null
+            })
+                .done(function(suggestions) {
                     // data fetched
                     var suggestion = suggestions[0];
                     if (suggestion) {
@@ -1935,7 +2399,7 @@ Suggestions.prototype = {
                         resolver.reject();
                     }
                 })
-                .fail(function () {
+                .fail(function() {
                     // no data fetched
                     resolver.reject();
                 });
@@ -1950,36 +2414,40 @@ Suggestions.prototype = {
      * Looks up parent instances
      * @returns {String} current value prepended by parents' values
      */
-    extendedCurrentValue: function () {
+    extendedCurrentValue: function() {
         var that = this,
             parentInstance = that.getParentInstance(),
-            parentValue = parentInstance && parentInstance.extendedCurrentValue(),
+            parentValue =
+                parentInstance && parentInstance.extendedCurrentValue(),
             currentValue = $.trim(that.el.val());
 
-        return utils.compact([parentValue, currentValue]).join(' ');
+        return utils.compact([parentValue, currentValue]).join(" ");
     },
 
-    getAjaxParams: function (method, custom) {
+    getAjaxParams: function(method, custom) {
         var that = this,
             token = $.trim(that.options.token),
             partner = $.trim(that.options.partner),
             serviceUrl = that.options.serviceUrl,
             url = that.options.url,
             serviceMethod = serviceMethods[method],
-            params = $.extend({
-                timeout: that.options.timeout
-            }, serviceMethod.defaultParams),
+            params = $.extend(
+                {
+                    timeout: that.options.timeout
+                },
+                serviceMethod.defaultParams
+            ),
             headers = {};
 
         if (url) {
             serviceUrl = url;
         } else {
             if (!/\/$/.test(serviceUrl)) {
-                serviceUrl += '/';
+                serviceUrl += "/";
             }
             serviceUrl += method;
             if (serviceMethod.addTypeInUrl) {
-                serviceUrl += '/' + that.type.urlSuffix;
+                serviceUrl += "/" + that.type.urlSuffix;
             }
         }
 
@@ -1988,12 +2456,12 @@ Suggestions.prototype = {
         if ($.support.cors) {
             // for XMLHttpRequest put token in header
             if (token) {
-                headers['Authorization'] = 'Token ' + token;
+                headers["Authorization"] = "Token " + token;
             }
             if (partner) {
-                headers['X-Partner'] = partner;
+                headers["X-Partner"] = partner;
             }
-            headers['X-Version'] = Suggestions.version;
+            headers["X-Version"] = Suggestions.version;
             if (!params.headers) {
                 params.headers = {};
             }
@@ -2004,16 +2472,15 @@ Suggestions.prototype = {
             // server sets Access-Control-Allow-Origin: *
             // which requires no credentials
             params.xhrFields.withCredentials = false;
-
         } else {
             // for XDomainRequest put token into URL
             if (token) {
-                headers['token'] = token;
+                headers["token"] = token;
             }
             if (partner) {
-                headers['partner'] = partner;
+                headers["partner"] = partner;
             }
-            headers['version'] = Suggestions.version;
+            headers["version"] = Suggestions.version;
             serviceUrl = utils.addUrlParams(serviceUrl, headers);
         }
 
@@ -2022,7 +2489,7 @@ Suggestions.prototype = {
         return $.extend(params, custom);
     },
 
-    isQueryRequestable: function (query) {
+    isQueryRequestable: function(query) {
         var that = this,
             result;
 
@@ -2035,7 +2502,7 @@ Suggestions.prototype = {
         return result;
     },
 
-    constructRequestParams: function (query, customParams) {
+    constructRequestParams: function(query, customParams) {
         var that = this,
             options = that.options,
             params = $.isFunction(options.params)
@@ -2045,7 +2512,7 @@ Suggestions.prototype = {
         if (that.type.constructRequestParams) {
             $.extend(params, that.type.constructRequestParams.call(that));
         }
-        $.each(that.notify('requestParams'), function (i, hookParams) {
+        $.each(that.notify("requestParams"), function(i, hookParams) {
             $.extend(params, hookParams);
         });
         params[options.paramName] = query;
@@ -2056,11 +2523,12 @@ Suggestions.prototype = {
         return $.extend(params, customParams);
     },
 
-    updateSuggestions: function (query) {
+    updateSuggestions: function(query) {
         var that = this;
 
-        that.fetchPhase = that.getSuggestions(query)
-            .done(function (suggestions) {
+        that.fetchPhase = that
+            .getSuggestions(query)
+            .done(function(suggestions) {
                 that.assignSuggestions(suggestions, query);
             });
     },
@@ -2074,13 +2542,16 @@ Suggestions.prototype = {
      * @param {Boolean} [requestOptions.useEnrichmentCache]
      * @return {$.Deferred} waiter which is to be resolved with suggestions as argument
      */
-    getSuggestions: function (query, customParams, requestOptions) {
+    getSuggestions: function(query, customParams, requestOptions) {
         var response,
             that = this,
             options = that.options,
             noCallbacks = requestOptions && requestOptions.noCallbacks,
-            useEnrichmentCache = requestOptions && requestOptions.useEnrichmentCache,
-            method = requestOptions && requestOptions.method || that.requestMode.method,
+            useEnrichmentCache =
+                requestOptions && requestOptions.useEnrichmentCache,
+            method =
+                (requestOptions && requestOptions.method) ||
+                that.requestMode.method,
             params = that.constructRequestParams(query, customParams),
             cacheKey = $.param(params || {}),
             resolver = $.Deferred();
@@ -2092,22 +2563,33 @@ Suggestions.prototype = {
             if (that.isBadQuery(query)) {
                 resolver.reject();
             } else {
-                if (!noCallbacks && options.onSearchStart.call(that.element, params) === false) {
+                if (
+                    !noCallbacks &&
+                    options.onSearchStart.call(that.element, params) === false
+                ) {
                     resolver.reject();
                 } else {
                     that.doGetSuggestions(params, method)
-                        .done(function (response) {
+                        .done(function(response) {
                             // if response is correct and current value has not been changed
-                            if (that.processResponse(response) && query == that.currentValue) {
-
+                            if (
+                                that.processResponse(response) &&
+                                query == that.currentValue
+                            ) {
                                 // Cache results if cache is not disabled:
                                 if (!options.noCache) {
                                     if (useEnrichmentCache) {
-                                        that.enrichmentCache[query] = response.suggestions[0];
+                                        that.enrichmentCache[query] =
+                                            response.suggestions[0];
                                     } else {
                                         that.enrichResponse(response, query);
-                                        that.cachedResponse[cacheKey] = response;
-                                        if (options.preventBadQueries && response.suggestions.length === 0) {
+                                        that.cachedResponse[
+                                            cacheKey
+                                        ] = response;
+                                        if (
+                                            options.preventBadQueries &&
+                                            response.suggestions.length === 0
+                                        ) {
                                             that.badQueries.push(query);
                                         }
                                     }
@@ -2118,14 +2600,25 @@ Suggestions.prototype = {
                                 resolver.reject();
                             }
                             if (!noCallbacks) {
-                                options.onSearchComplete.call(that.element, query, response.suggestions);
+                                options.onSearchComplete.call(
+                                    that.element,
+                                    query,
+                                    response.suggestions
+                                );
                             }
-                        }).fail(function (jqXHR, textStatus, errorThrown) {
-                        resolver.reject();
-                        if (!noCallbacks && textStatus !== 'abort') {
-                            options.onSearchError.call(that.element, query, jqXHR, textStatus, errorThrown);
-                        }
-                    });
+                        })
+                        .fail(function(jqXHR, textStatus, errorThrown) {
+                            resolver.reject();
+                            if (!noCallbacks && textStatus !== "abort") {
+                                options.onSearchError.call(
+                                    that.element,
+                                    query,
+                                    jqXHR,
+                                    textStatus,
+                                    errorThrown
+                                );
+                            }
+                        });
                 }
             }
         }
@@ -2137,7 +2630,7 @@ Suggestions.prototype = {
      * @param {Object} params request params
      * @returns {$.Deferred} response promise
      */
-    doGetSuggestions: function (params, method) {
+    doGetSuggestions: function(params, method) {
         var that = this,
             request = $.ajax(
                 that.getAjaxParams(method, { data: utils.serialize(params) })
@@ -2145,29 +2638,29 @@ Suggestions.prototype = {
 
         that.abortRequest();
         that.currentRequest = request;
-        that.notify('request');
+        that.notify("request");
 
-        request.always(function () {
+        request.always(function() {
             that.currentRequest = null;
-            that.notify('request');
+            that.notify("request");
         });
 
         return request;
     },
 
-    isBadQuery: function (q) {
+    isBadQuery: function(q) {
         if (!this.options.preventBadQueries) {
             return false;
         }
 
         var result = false;
-        $.each(this.badQueries, function (i, query) {
+        $.each(this.badQueries, function(i, query) {
             return !(result = q.indexOf(query) === 0);
         });
         return result;
     },
 
-    abortRequest: function () {
+    abortRequest: function() {
         var that = this;
 
         if (that.currentRequest) {
@@ -2179,7 +2672,7 @@ Suggestions.prototype = {
      * Checks response format and data
      * @return {Boolean} response contains acceptable data
      */
-    processResponse: function (response) {
+    processResponse: function(response) {
         var that = this,
             suggestions;
 
@@ -2191,7 +2684,10 @@ Suggestions.prototype = {
         that.setUnrestrictedValues(response.suggestions);
 
         if ($.isFunction(that.options.onSuggestionsFetch)) {
-            suggestions = that.options.onSuggestionsFetch.call(that.element, response.suggestions);
+            suggestions = that.options.onSuggestionsFetch.call(
+                that.element,
+                response.suggestions
+            );
             if ($.isArray(suggestions)) {
                 response.suggestions = suggestions;
             }
@@ -2200,9 +2696,9 @@ Suggestions.prototype = {
         return true;
     },
 
-    verifySuggestionsFormat: function (suggestions) {
-        if (typeof suggestions[0] === 'string') {
-            $.each(suggestions, function (i, value) {
+    verifySuggestionsFormat: function(suggestions) {
+        if (typeof suggestions[0] === "string") {
+            $.each(suggestions, function(i, value) {
                 suggestions[i] = { value: value, data: null };
             });
         }
@@ -2217,27 +2713,28 @@ Suggestions.prototype = {
      * @param {boolean} selectionOptions.hasSameValues
      * @return {string}
      */
-    getSuggestionValue: function (suggestion, selectionOptions) {
+    getSuggestionValue: function(suggestion, selectionOptions) {
         var that = this,
-            formatSelected = that.options.formatSelected || that.type.formatSelected,
+            formatSelected =
+                that.options.formatSelected || that.type.formatSelected,
             hasSameValues = selectionOptions && selectionOptions.hasSameValues,
-            hasBeenEnriched = selectionOptions && selectionOptions.hasBeenEnriched,
+            hasBeenEnriched =
+                selectionOptions && selectionOptions.hasBeenEnriched,
             formattedValue,
             typeFormattedValue = null;
-
 
         if ($.isFunction(formatSelected)) {
             formattedValue = formatSelected.call(that, suggestion);
         }
 
-        if (typeof formattedValue !== 'string') {
+        if (typeof formattedValue !== "string") {
             formattedValue = suggestion.value;
 
             if (that.type.getSuggestionValue) {
                 typeFormattedValue = that.type.getSuggestionValue(that, {
                     suggestion: suggestion,
                     hasSameValues: hasSameValues,
-                    hasBeenEnriched: hasBeenEnriched,
+                    hasBeenEnriched: hasBeenEnriched
                 });
 
                 if (typeFormattedValue !== null) {
@@ -2249,11 +2746,14 @@ Suggestions.prototype = {
         return formattedValue;
     },
 
-    hasSameValues: function(suggestion){
+    hasSameValues: function(suggestion) {
         var hasSame = false;
 
-        $.each(this.suggestions, function(i, anotherSuggestion){
-            if (anotherSuggestion.value === suggestion.value && anotherSuggestion !== suggestion) {
+        $.each(this.suggestions, function(i, anotherSuggestion) {
+            if (
+                anotherSuggestion.value === suggestion.value &&
+                anotherSuggestion !== suggestion
+            ) {
                 hasSame = true;
                 return false;
             }
@@ -2262,50 +2762,51 @@ Suggestions.prototype = {
         return hasSame;
     },
 
-    assignSuggestions: function (suggestions, query) {
+    assignSuggestions: function(suggestions, query) {
         var that = this;
         that.suggestions = suggestions;
-        that.notify('assignSuggestions', query);
+        that.notify("assignSuggestions", query);
     },
 
-    shouldRestrictValues: function () {
+    shouldRestrictValues: function() {
         var that = this;
         // treat suggestions value as restricted only if there is one constraint
         // and restrict_value is true
-        return that.options.restrict_value
-            && that.constraints
-            && Object.keys(that.constraints).length == 1;
+        return (
+            that.options.restrict_value &&
+            that.constraints &&
+            Object.keys(that.constraints).length == 1
+        );
     },
 
     /**
      * Fills suggestion.unrestricted_value property
      */
-    setUnrestrictedValues: function (suggestions) {
+    setUnrestrictedValues: function(suggestions) {
         var that = this,
             shouldRestrict = that.shouldRestrictValues(),
             label = that.getFirstConstraintLabel();
 
-        $.each(suggestions, function (i, suggestion) {
+        $.each(suggestions, function(i, suggestion) {
             if (!suggestion.unrestricted_value) {
-                suggestion.unrestricted_value = shouldRestrict ? label + ', ' + suggestion.value : suggestion.value;
+                suggestion.unrestricted_value = shouldRestrict
+                    ? label + ", " + suggestion.value
+                    : suggestion.value;
             }
         });
     },
 
-    areSuggestionsSame: function (a, b) {
-        return a && b &&
-            a.value === b.value &&
-            utils.areSame(a.data, b.data);
+    areSuggestionsSame: function(a, b) {
+        return a && b && a.value === b.value && utils.areSame(a.data, b.data);
     },
 
-    getNoSuggestionsHint: function () {
+    getNoSuggestionsHint: function() {
         var that = this;
         if (that.options.noSuggestionsHint === false) {
             return false;
         }
         return that.options.noSuggestionsHint || that.type.noSuggestionsHint;
     }
-
 };
 
 /**
@@ -2313,33 +2814,40 @@ Suggestions.prototype = {
  */
 
 var methods = {
-
-    setupElement: function () {
+    setupElement: function() {
         // Remove autocomplete attribute to prevent native suggestions:
         this.el
-            .attr('autocomplete', 'off')
-            .attr('autocorrect', 'off')
-            .attr('autocapitalize', 'off')
-            .attr('spellcheck', 'false')
-            .addClass('suggestions-input')
-            .css('box-sizing', 'border-box');
+            .attr("autocomplete", "off")
+            .attr("autocorrect", "off")
+            .attr("autocapitalize", "off")
+            .attr("spellcheck", "false")
+            .addClass("suggestions-input")
+            .css("box-sizing", "border-box");
     },
 
-    bindElementEvents: function () {
+    bindElementEvents: function() {
         var that = this;
 
-        that.el.on('keydown' + EVENT_NS, $.proxy(that.onElementKeyDown, that));
+        that.el.on("keydown" + EVENT_NS, $.proxy(that.onElementKeyDown, that));
         // IE is buggy, it doesn't trigger `input` on text deletion, so use following events
-        that.el.on(['keyup' + EVENT_NS, 'cut' + EVENT_NS, 'paste' + EVENT_NS, 'input' + EVENT_NS].join(' '), $.proxy(that.onElementKeyUp, that));
-        that.el.on('blur' + EVENT_NS, $.proxy(that.onElementBlur, that));
-        that.el.on('focus' + EVENT_NS, $.proxy(that.onElementFocus, that));
+        that.el.on(
+            [
+                "keyup" + EVENT_NS,
+                "cut" + EVENT_NS,
+                "paste" + EVENT_NS,
+                "input" + EVENT_NS
+            ].join(" "),
+            $.proxy(that.onElementKeyUp, that)
+        );
+        that.el.on("blur" + EVENT_NS, $.proxy(that.onElementBlur, that));
+        that.el.on("focus" + EVENT_NS, $.proxy(that.onElementFocus, that));
     },
 
-    unbindElementEvents: function () {
+    unbindElementEvents: function() {
         this.el.off(EVENT_NS);
     },
 
-    onElementBlur: function () {
+    onElementBlur: function() {
         var that = this;
 
         // suggestion was clicked, blur should be ignored
@@ -2351,11 +2859,10 @@ var methods = {
 
         if (that.options.triggerSelectOnBlur) {
             if (!that.isUnavailable()) {
-                that.selectCurrentValue({ noSpace: true })
-                    .always(function () {
-                        // For NAMEs selecting keeps suggestions list visible, so hide it
-                        that.hide();
-                    });
+                that.selectCurrentValue({ noSpace: true }).always(function() {
+                    // For NAMEs selecting keeps suggestions list visible, so hide it
+                    that.hide();
+                });
             }
         } else {
             that.hide();
@@ -2366,7 +2873,7 @@ var methods = {
         }
     },
 
-    onElementFocus: function () {
+    onElementFocus: function() {
         var that = this;
 
         if (!that.cancelFocus) {
@@ -2376,7 +2883,7 @@ var methods = {
         that.cancelFocus = false;
     },
 
-    onElementKeyDown: function (e) {
+    onElementKeyDown: function(e) {
         var that = this;
 
         if (that.isUnavailable()) {
@@ -2421,13 +2928,15 @@ var methods = {
             case KEYS.SPACE:
                 if (that.options.triggerSelectOnSpace && that.isCursorAtEnd()) {
                     e.preventDefault();
-                    that.selectCurrentValue({ continueSelecting: true, dontEnrich: true })
-                        .fail(function () {
-                            // If all data fetched but nothing selected
-                            that.currentValue += ' ';
-                            that.el.val(that.currentValue);
-                            that.proceedChangedValue();
-                        });
+                    that.selectCurrentValue({
+                        continueSelecting: true,
+                        dontEnrich: true
+                    }).fail(function() {
+                        // If all data fetched but nothing selected
+                        that.currentValue += " ";
+                        that.el.val(that.currentValue);
+                        that.proceedChangedValue();
+                    });
                 }
                 return;
             case KEYS.UP:
@@ -2445,7 +2954,7 @@ var methods = {
         e.preventDefault();
     },
 
-    onElementKeyUp: function (e) {
+    onElementKeyUp: function(e) {
         var that = this;
 
         if (that.isUnavailable()) {
@@ -2468,18 +2977,17 @@ var methods = {
         }
     },
 
-    proceedChangedValue: function () {
+    proceedChangedValue: function() {
         var that = this;
 
         // Cancel fetching, because it became obsolete
         that.abortRequest();
 
-        that.inputPhase = $.Deferred()
-            .done($.proxy(that.onValueChange, that));
+        that.inputPhase = $.Deferred().done($.proxy(that.onValueChange, that));
 
         if (that.options.deferRequestBy > 0) {
             // Defer lookup in case when value changes very quickly:
-            that.onChangeTimeout = utils.delay(function () {
+            that.onChangeTimeout = utils.delay(function() {
                 that.inputPhase.resolve();
             }, that.options.deferRequestBy);
         } else {
@@ -2487,23 +2995,23 @@ var methods = {
         }
     },
 
-    onValueChange: function () {
+    onValueChange: function() {
         var that = this,
             currentSelection;
 
         if (that.selection) {
             currentSelection = that.selection;
             that.selection = null;
-            that.trigger('InvalidateSelection', currentSelection);
+            that.trigger("InvalidateSelection", currentSelection);
         }
 
         that.selectedIndex = -1;
 
         that.update();
-        that.notify('valueChange');
+        that.notify("valueChange");
     },
 
-    completeOnFocus: function () {
+    completeOnFocus: function() {
         var that = this;
 
         if (that.isUnavailable()) {
@@ -2520,15 +3028,18 @@ var methods = {
         }
     },
 
-    isElementFocused: function () {
+    isElementFocused: function() {
         return document.activeElement === this.element;
     },
 
     isElementDisabled: function() {
-        return Boolean(this.element.getAttribute('disabled') || this.element.getAttribute('readonly'));
+        return Boolean(
+            this.element.getAttribute("disabled") ||
+                this.element.getAttribute("readonly")
+        );
     },
 
-    isCursorAtEnd: function () {
+    isCursorAtEnd: function() {
         var that = this,
             valLength = that.el.val().length,
             selectionStart,
@@ -2537,39 +3048,38 @@ var methods = {
         // `selectionStart` and `selectionEnd` are not supported by some input types
         try {
             selectionStart = that.element.selectionStart;
-            if (typeof selectionStart === 'number') {
+            if (typeof selectionStart === "number") {
                 return selectionStart === valLength;
             }
-        } catch (ex) {
-        }
+        } catch (ex) {}
 
         if (document.selection) {
             range = document.selection.createRange();
-            range.moveStart('character', -valLength);
+            range.moveStart("character", -valLength);
             return valLength === range.text.length;
         }
         return true;
     },
 
-    setCursorAtEnd: function () {
+    setCursorAtEnd: function() {
         var element = this.element;
 
         // `selectionStart` and `selectionEnd` are not supported by some input types
         try {
-            element.selectionEnd = element.selectionStart = element.value.length;
+            element.selectionEnd = element.selectionStart =
+                element.value.length;
             element.scrollLeft = element.scrollWidth;
         } catch (ex) {
             element.value = element.value;
         }
     }
-
 };
 
 $.extend(Suggestions.prototype, methods);
 
 notificator
-    .on('initialize', methods.bindElementEvents)
-    .on('dispose', methods.unbindElementEvents);
+    .on("initialize", methods.bindElementEvents)
+    .on("dispose", methods.unbindElementEvents);
 
 /**
  * Methods related to plugin's authorization on server
@@ -2640,14 +3150,13 @@ notificator.on("setOptions", methods$1.checkStatus);
 var locationRequest;
 var defaultGeoLocation = true;
 
-function resetLocation () {
+function resetLocation() {
     locationRequest = null;
     DEFAULT_OPTIONS.geoLocation = defaultGeoLocation;
 }
 
 var methods$2 = {
-
-    checkLocation: function () {
+    checkLocation: function() {
         var that = this,
             providedLocation = that.options.geoLocation;
 
@@ -2660,19 +3169,22 @@ var methods$2 = {
             that.geoLocation.resolve(providedLocation);
         } else {
             if (!locationRequest) {
-                locationRequest = $.ajax(that.getAjaxParams('iplocate/address'));
+                locationRequest = $.ajax(
+                    that.getAjaxParams("iplocate/address")
+                );
             }
 
             locationRequest
-                .done(function (resp) {
-                    var locationData = resp && resp.location && resp.location.data;
+                .done(function(resp) {
+                    var locationData =
+                        resp && resp.location && resp.location.data;
                     if (locationData && locationData.kladr_id) {
                         that.geoLocation.resolve(locationData);
                     } else {
                         that.geoLocation.reject();
                     }
                 })
-                .fail(function(){
+                .fail(function() {
                     that.geoLocation.reject();
                 });
         }
@@ -2682,28 +3194,30 @@ var methods$2 = {
      * Public method to get `geoLocation` promise
      * @returns {$.Deferred}
      */
-    getGeoLocation: function () {
+    getGeoLocation: function() {
         return this.geoLocation;
     },
 
-    constructParams: function () {
+    constructParams: function() {
         var that = this,
             params = {};
 
-        if (that.geoLocation && $.isFunction(that.geoLocation.promise) && that.geoLocation.state() == 'resolved') {
-            that.geoLocation.done(function (locationData) {
-                params['locations_boost'] = $.makeArray(locationData);
+        if (
+            that.geoLocation &&
+            $.isFunction(that.geoLocation.promise) &&
+            that.geoLocation.state() == "resolved"
+        ) {
+            that.geoLocation.done(function(locationData) {
+                params["locations_boost"] = $.makeArray(locationData);
             });
         }
 
         return params;
     }
-
 };
 
-
 // Disable this feature when GET method used. See SUG-202
-if (utils.getDefaultType() != 'GET') {
+if (utils.getDefaultType() != "GET") {
     $.extend(DEFAULT_OPTIONS, {
         geoLocation: defaultGeoLocation
     });
@@ -2717,20 +3231,21 @@ if (utils.getDefaultType() != 'GET') {
     });
 
     notificator
-        .on('setOptions', methods$2.checkLocation)
-        .on('requestParams', methods$2.constructParams);
+        .on("setOptions", methods$2.checkLocation)
+        .on("requestParams", methods$2.constructParams);
 }
 
 var methods$3 = {
-
-    enrichSuggestion: function (suggestion, selectionOptions) {
+    enrichSuggestion: function(suggestion, selectionOptions) {
         var that = this,
             resolver = $.Deferred();
 
-        if (!that.options.enrichmentEnabled 
-            || !that.type.enrichmentEnabled 
-            || !that.requestMode.enrichmentEnabled 
-            || selectionOptions && selectionOptions.dontEnrich) {
+        if (
+            !that.options.enrichmentEnabled ||
+            !that.type.enrichmentEnabled ||
+            !that.requestMode.enrichmentEnabled ||
+            (selectionOptions && selectionOptions.dontEnrich)
+        ) {
             return resolver.resolve(suggestion);
         }
 
@@ -2740,7 +3255,7 @@ var methods$3 = {
         }
 
         that.disableDropdown();
- 
+
         var query = that.type.getEnrichmentQuery(suggestion);
         var customParams = that.type.enrichmentParams;
         var requestOptions = {
@@ -2748,25 +3263,25 @@ var methods$3 = {
             useEnrichmentCache: true,
             method: that.type.enrichmentMethod
         };
-        
+
         // Set `currentValue` to make `processResponse` to consider enrichment response valid
         that.currentValue = query;
 
         // prevent request abortion during onBlur
-        that.enrichPhase = that.getSuggestions(
-            query,
-            customParams,
-            requestOptions
-        )
-            .always(function () {
+        that.enrichPhase = that
+            .getSuggestions(query, customParams, requestOptions)
+            .always(function() {
                 that.enableDropdown();
             })
-            .done(function (suggestions) {
+            .done(function(suggestions) {
                 var enrichedSuggestion = suggestions && suggestions[0];
 
-                resolver.resolve(enrichedSuggestion || suggestion, !!enrichedSuggestion);
+                resolver.resolve(
+                    enrichedSuggestion || suggestion,
+                    !!enrichedSuggestion
+                );
             })
-            .fail(function () {
+            .fail(function() {
                 resolver.resolve(suggestion);
             });
 
@@ -2778,12 +3293,12 @@ var methods$3 = {
      * @param response
      * @param query
      */
-    enrichResponse: function (response, query) {
+    enrichResponse: function(response, query) {
         var that = this,
             enrichedSuggestion = that.enrichmentCache[query];
 
         if (enrichedSuggestion) {
-            $.each(response.suggestions, function(i, suggestion){
+            $.each(response.suggestions, function(i, suggestion) {
                 if (suggestion.value === query) {
                     response.suggestions[i] = enrichedSuggestion;
                     return false;
@@ -2791,7 +3306,6 @@ var methods$3 = {
             });
         }
     }
-
 };
 
 $.extend(Suggestions.prototype, methods$3);
@@ -2801,32 +3315,32 @@ $.extend(Suggestions.prototype, methods$3);
  */
 
 function highlightMatches(chunks) {
-    return $.map(chunks, function (chunk) {
+    return $.map(chunks, function(chunk) {
         var text = utils.escapeHtml(chunk.text);
 
         if (text && chunk.matched) {
-            text = '<strong>' + text + '</strong>';
+            text = "<strong>" + text + "</strong>";
         }
         return text;
-    }).join('');
+    }).join("");
 }
 
 function nowrapLinkedParts(formattedStr, nowrapClass) {
-    var delimitedParts = formattedStr.split(', ');
+    var delimitedParts = formattedStr.split(", ");
     // string has no delimiters, should not wrap
     if (delimitedParts.length === 1) {
         return formattedStr;
     }
     // disable word-wrap inside delimited parts
-    return $.map(delimitedParts, function (part) {
-        return '<span class="' + nowrapClass + '">' + part + '</span>'
-    }).join(', ');
+    return $.map(delimitedParts, function(part) {
+        return '<span class="' + nowrapClass + '">' + part + "</span>";
+    }).join(", ");
 }
 
-function hasAnotherSuggestion (suggestions, suggestion) {
+function hasAnotherSuggestion(suggestions, suggestion) {
     var result = false;
 
-    $.each(suggestions, function (i, s) {
+    $.each(suggestions, function(i, s) {
         result = s.value == suggestion.value && s != suggestion;
         if (result) {
             return false;
@@ -2837,33 +3351,36 @@ function hasAnotherSuggestion (suggestions, suggestion) {
 }
 
 var optionsUsed = {
-    width: 'auto',
+    width: "auto",
     floating: false
 };
 
 var methods$4 = {
-
-    createContainer: function () {
+    createContainer: function() {
         var that = this,
-            suggestionSelector = '.' + that.classes.suggestion,
+            suggestionSelector = "." + that.classes.suggestion,
             options = that.options,
-            $container = $('<div/>')
+            $container = $("<div/>")
                 .addClass(options.containerClass)
                 .css({
-                    position: 'absolute',
-                    display: 'none'
+                    position: "absolute",
+                    display: "none"
                 });
 
         that.$container = $container;
 
-        $container.on('click' + EVENT_NS, suggestionSelector, $.proxy(that.onSuggestionClick, that));
+        $container.on(
+            "click" + EVENT_NS,
+            suggestionSelector,
+            $.proxy(that.onSuggestionClick, that)
+        );
     },
 
     getContainer: function() {
         return this.$container.get(0);
     },
 
-    removeContainer: function () {
+    removeContainer: function() {
         var that = this;
 
         if (that.options.floating) {
@@ -2871,9 +3388,9 @@ var methods$4 = {
         }
     },
 
-    setContainerOptions: function () {
+    setContainerOptions: function() {
         var that = this,
-            mousedownEvent = 'mousedown' + EVENT_NS;
+            mousedownEvent = "mousedown" + EVENT_NS;
 
         that.$container.off(mousedownEvent);
         if (that.options.floating) {
@@ -2884,7 +3401,7 @@ var methods$4 = {
     /**
      * Listen for click event on suggestions list:
      */
-    onSuggestionClick: function (e) {
+    onSuggestionClick: function(e) {
         var that = this,
             $el = $(e.target),
             index;
@@ -2893,8 +3410,8 @@ var methods$4 = {
             that.cancelFocus = true;
             that.el.focus();
 
-            while ($el.length && !(index = $el.attr('data-index'))) {
-                $el = $el.closest('.' + that.classes.suggestion);
+            while ($el.length && !(index = $el.attr("data-index"))) {
+                $el = $el.closest("." + that.classes.suggestion);
             }
 
             if (index && !isNaN(index)) {
@@ -2905,34 +3422,46 @@ var methods$4 = {
 
     // Dropdown UI methods
 
-    setDropdownPosition: function (origin, elLayout) {
+    setDropdownPosition: function(origin, elLayout) {
         var that = this,
             scrollLeft = that.$viewport.scrollLeft(),
             style;
 
         if (that.isMobile) {
-            style = that.options.floating ? {
-                left: scrollLeft + 'px',
-                top: elLayout.top + elLayout.outerHeight + 'px'
-            } : {
-                left: origin.left - elLayout.left + scrollLeft + 'px',
-                top: origin.top + elLayout.outerHeight + 'px'
-            };
-            style.width = that.$viewport.width() + 'px';
+            style = that.options.floating
+                ? {
+                      left: scrollLeft + "px",
+                      top: elLayout.top + elLayout.outerHeight + "px"
+                  }
+                : {
+                      left: origin.left - elLayout.left + scrollLeft + "px",
+                      top: origin.top + elLayout.outerHeight + "px"
+                  };
+            style.width = that.$viewport.width() + "px";
         } else {
-            style = that.options.floating ? {
-                left: elLayout.left + 'px',
-                top: elLayout.top + elLayout.borderTop + elLayout.innerHeight + 'px'
-            } : {
-                left: origin.left + 'px',
-                top: origin.top + elLayout.borderTop + elLayout.innerHeight + 'px'
-            };
+            style = that.options.floating
+                ? {
+                      left: elLayout.left + "px",
+                      top:
+                          elLayout.top +
+                          elLayout.borderTop +
+                          elLayout.innerHeight +
+                          "px"
+                  }
+                : {
+                      left: origin.left + "px",
+                      top:
+                          origin.top +
+                          elLayout.borderTop +
+                          elLayout.innerHeight +
+                          "px"
+                  };
 
             // Defer to let body show scrollbars
-            utils.delay(function () {
+            utils.delay(function() {
                 var width = that.options.width;
 
-                if (width === 'auto') {
+                if (width === "auto") {
                     width = that.el.outerWidth();
                 }
                 that.$container.outerWidth(width);
@@ -2943,30 +3472,37 @@ var methods$4 = {
             .toggleClass(that.classes.mobile, that.isMobile)
             .css(style);
 
-        that.containerItemsPadding = elLayout.left + elLayout.borderLeft + elLayout.paddingLeft - scrollLeft;
+        that.containerItemsPadding =
+            elLayout.left +
+            elLayout.borderLeft +
+            elLayout.paddingLeft -
+            scrollLeft;
     },
 
-    setItemsPositions: function () {
+    setItemsPositions: function() {
         var that = this,
             $items = that.getSuggestionsItems();
 
-        $items.css('paddingLeft', that.isMobile ? that.containerItemsPadding + 'px' : '');
+        $items.css(
+            "paddingLeft",
+            that.isMobile ? that.containerItemsPadding + "px" : ""
+        );
     },
 
-    getSuggestionsItems: function () {
-        return this.$container.children('.' + this.classes.suggestion);
+    getSuggestionsItems: function() {
+        return this.$container.children("." + this.classes.suggestion);
     },
 
-    toggleDropdownEnabling: function (enable) {
+    toggleDropdownEnabling: function(enable) {
         this.dropdownDisabled = !enable;
-        this.$container.attr('disabled', !enable);
+        this.$container.attr("disabled", !enable);
     },
 
-    disableDropdown: function () {
+    disableDropdown: function() {
         this.toggleDropdownEnabling(false);
     },
 
-    enableDropdown: function () {
+    enableDropdown: function() {
         this.toggleDropdownEnabling(true);
     },
 
@@ -2974,47 +3510,58 @@ var methods$4 = {
      * Shows if there are any suggestions besides currently selected
      * @returns {boolean}
      */
-    hasSuggestionsToChoose: function () {
+    hasSuggestionsToChoose: function() {
         var that = this;
 
-        return that.suggestions.length > 1 ||
+        return (
+            that.suggestions.length > 1 ||
             (that.suggestions.length === 1 &&
-                (!that.selection || $.trim(that.suggestions[0].value) !== $.trim(that.selection.value))
-            );
+                (!that.selection ||
+                    $.trim(that.suggestions[0].value) !==
+                        $.trim(that.selection.value)))
+        );
     },
 
-    suggest: function () {
+    suggest: function() {
         var that = this,
             options = that.options,
             formatResult,
             html = [];
 
         if (!that.requestMode.userSelect) {
-            return ;
+            return;
         }
 
         // если нечего показывать, то сообщаем об этом
         if (!that.hasSuggestionsToChoose()) {
-
             if (that.suggestions.length) {
                 that.hide();
                 return;
             } else {
                 var noSuggestionsHint = that.getNoSuggestionsHint();
                 if (noSuggestionsHint) {
-                    html.push('<div class="' + that.classes.hint + '">'
-                        + noSuggestionsHint + '</div>');
+                    html.push(
+                        '<div class="' +
+                            that.classes.hint +
+                            '">' +
+                            noSuggestionsHint +
+                            "</div>"
+                    );
                 } else {
                     that.hide();
                     return;
                 }
             }
-
         } else {
-
             // Build hint html
             if (!that.isMobile && options.hint && that.suggestions.length) {
-                html.push('<div class="' + that.classes.hint + '">' + options.hint + '</div>');
+                html.push(
+                    '<div class="' +
+                        that.classes.hint +
+                        '">' +
+                        options.hint +
+                        "</div>"
+                );
             }
             that.selectedIndex = -1;
             // Build suggestions inner HTML:
@@ -3027,16 +3574,18 @@ var methods$4 = {
         }
 
         html.push('<div class="' + CLASSES.promo + '"></div>');
-        html.push('</div>');
+        html.push("</div>");
 
-        that.$container.html(html.join(''));
+        that.$container.html(html.join(""));
 
         // Select first value by default:
         if (options.autoSelectFirst && that.selectedIndex === -1) {
             that.selectedIndex = 0;
         }
         if (that.selectedIndex !== -1) {
-            that.getSuggestionsItems().eq(that.selectedIndex).addClass(that.classes.selected);
+            that.getSuggestionsItems()
+                .eq(that.selectedIndex)
+                .addClass(that.classes.selected);
         }
 
         if ($.isFunction(options.beforeRender)) {
@@ -3050,32 +3599,59 @@ var methods$4 = {
     },
 
     buildSuggestionHtml: function(suggestion, ordinal, html) {
-        html.push('<div class="' + this.classes.suggestion + '" data-index="' + ordinal + '">');
-        
-        var formatResult = this.options.formatResult 
-            || this.type.formatResult 
-            || this.formatResult;
-        html.push(formatResult.call(this, suggestion.value, this.currentValue, suggestion, {
-            unformattableTokens: this.type.unformattableTokens
-        }));
+        html.push(
+            '<div class="' +
+                this.classes.suggestion +
+                '" data-index="' +
+                ordinal +
+                '">'
+        );
+
+        var formatResult =
+            this.options.formatResult ||
+            this.type.formatResult ||
+            this.formatResult;
+        html.push(
+            formatResult.call(
+                this,
+                suggestion.value,
+                this.currentValue,
+                suggestion,
+                {
+                    unformattableTokens: this.type.unformattableTokens
+                }
+            )
+        );
 
         var labels = this.makeSuggestionLabel(this.suggestions, suggestion);
         if (labels) {
-            html.push('<span class="' + this.classes.subtext_label + '">' + utils.escapeHtml(labels) + '</span>');
+            html.push(
+                '<span class="' +
+                    this.classes.subtext_label +
+                    '">' +
+                    utils.escapeHtml(labels) +
+                    "</span>"
+            );
         }
-        html.push('</div>');
+        html.push("</div>");
     },
 
-    wrapFormattedValue: function (value, suggestion) {
+    wrapFormattedValue: function(value, suggestion) {
         var that = this,
-            status = utils.getDeepValue(suggestion.data, 'state.status');
+            status = utils.getDeepValue(suggestion.data, "state.status");
 
-        return '<span class="' + that.classes.value + '"' + (status ? ' data-suggestion-status="' + status + '"' : '') + '>' +
+        return (
+            '<span class="' +
+            that.classes.value +
+            '"' +
+            (status ? ' data-suggestion-status="' + status + '"' : "") +
+            ">" +
             value +
-            '</span>';
+            "</span>"
+        );
     },
 
-    formatResult: function (value, currentValue, suggestion, options) {
+    formatResult: function(value, currentValue, suggestion, options) {
         var that = this;
 
         value = that.highlightMatches(value, currentValue, suggestion, options);
@@ -3093,24 +3669,40 @@ var methods$4 = {
      *          `maxLength` - if set, `value` is limited by this length
      * @returns {String} HTML to be inserted in the list
      */
-    highlightMatches: function (value, currentValue, suggestion, options) {
-
+    highlightMatches: function(value, currentValue, suggestion, options) {
         var that = this,
             chunks = [],
             unformattableTokens = options && options.unformattableTokens,
             maxLength = options && options.maxLength,
-            tokens, tokenMatchers, preferredTokens,
+            tokens,
+            tokenMatchers,
+            preferredTokens,
             rWords = utils.reWordExtractor(),
-            match, word, i, chunk, formattedStr;
+            match,
+            word,
+            i,
+            chunk,
+            formattedStr;
 
-        if (!value) return '';
+        if (!value) return "";
 
         tokens = text_util.tokenize(currentValue, unformattableTokens);
 
-        tokenMatchers = $.map(tokens, function (token) {
-            return new RegExp('^((.*)([' + WORD_PARTS_DELIMITERS + ']+))?' +
-                '(' + utils.escapeRegExChars(token) + ')' +
-                '([^' + WORD_PARTS_DELIMITERS + ']*[' + WORD_PARTS_DELIMITERS + ']*)', 'i');
+        tokenMatchers = $.map(tokens, function(token) {
+            return new RegExp(
+                "^((.*)([" +
+                    WORD_PARTS_DELIMITERS +
+                    "]+))?" +
+                    "(" +
+                    utils.escapeRegExChars(token) +
+                    ")" +
+                    "([^" +
+                    WORD_PARTS_DELIMITERS +
+                    "]*[" +
+                    WORD_PARTS_DELIMITERS +
+                    "]*)",
+                "i"
+            );
         });
 
         // parse string by words
@@ -3134,29 +3726,43 @@ var methods$4 = {
         // use simple loop because length can change
         for (i = 0; i < chunks.length; i++) {
             chunk = chunks[i];
-            if (chunk.matchable && !chunk.matched && ($.inArray(chunk.formatted, unformattableTokens) === -1 || chunk.hasUpperCase)) {
-                $.each(tokenMatchers, function (j, matcher) {
+            if (
+                chunk.matchable &&
+                !chunk.matched &&
+                ($.inArray(chunk.formatted, unformattableTokens) === -1 ||
+                    chunk.hasUpperCase)
+            ) {
+                $.each(tokenMatchers, function(j, matcher) {
                     var tokenMatch = matcher.exec(chunk.formatted),
-                        length, nextIndex = i + 1;
+                        length,
+                        nextIndex = i + 1;
 
                     if (tokenMatch) {
                         tokenMatch = {
-                            before: tokenMatch[1] || '',
-                            beforeText: tokenMatch[2] || '',
-                            beforeDelimiter: tokenMatch[3] || '',
-                            text: tokenMatch[4] || '',
-                            after: tokenMatch[5] || ''
+                            before: tokenMatch[1] || "",
+                            beforeText: tokenMatch[2] || "",
+                            beforeDelimiter: tokenMatch[3] || "",
+                            text: tokenMatch[4] || "",
+                            after: tokenMatch[5] || ""
                         };
 
                         if (tokenMatch.before) {
                             // insert chunk before current
-                            chunks.splice(i, 0, {
-                                text: chunk.text.substr(0, tokenMatch.beforeText.length),
-                                formatted: tokenMatch.beforeText,
-                                matchable: true
-                            }, {
-                                text: tokenMatch.beforeDelimiter
-                            });
+                            chunks.splice(
+                                i,
+                                0,
+                                {
+                                    text: chunk.text.substr(
+                                        0,
+                                        tokenMatch.beforeText.length
+                                    ),
+                                    formatted: tokenMatch.beforeText,
+                                    matchable: true
+                                },
+                                {
+                                    text: tokenMatch.beforeDelimiter
+                                }
+                            );
                             nextIndex += 2;
 
                             length = tokenMatch.before.length;
@@ -3165,7 +3771,8 @@ var methods$4 = {
                             i--;
                         }
 
-                        length = tokenMatch.text.length + tokenMatch.after.length;
+                        length =
+                            tokenMatch.text.length + tokenMatch.after.length;
                         if (chunk.formatted.length > length) {
                             chunks.splice(nextIndex, 0, {
                                 text: chunk.text.substr(length),
@@ -3197,7 +3804,9 @@ var methods$4 = {
                 chunk = chunks[i];
                 maxLength -= chunk.text.length;
                 if (maxLength < 0) {
-                    chunk.text = chunk.text.substr(0, chunk.text.length + maxLength) + '...';
+                    chunk.text =
+                        chunk.text.substr(0, chunk.text.length + maxLength) +
+                        "...";
                 }
             }
             chunks.length = i;
@@ -3207,17 +3816,21 @@ var methods$4 = {
         return nowrapLinkedParts(formattedStr, that.classes.nowrap);
     },
 
-    makeSuggestionLabel: function (suggestions, suggestion) {
+    makeSuggestionLabel: function(suggestions, suggestion) {
         var that = this,
             fieldNames = that.type.fieldNames,
             nameData = {},
             rWords = utils.reWordExtractor(),
-            match, word,
+            match,
+            word,
             labels = [];
 
-        if (fieldNames && hasAnotherSuggestion(suggestions, suggestion) && suggestion.data) {
-
-            $.each(fieldNames, function (field) {
+        if (
+            fieldNames &&
+            hasAnotherSuggestion(suggestions, suggestion) &&
+            suggestion.data
+        ) {
+            $.each(fieldNames, function(field) {
                 var value = suggestion.data[field];
                 if (value) {
                     nameData[field] = utils.formatToken(value);
@@ -3225,8 +3838,13 @@ var methods$4 = {
             });
 
             if (!$.isEmptyObject(nameData)) {
-                while ((match = rWords.exec(utils.formatToken(suggestion.value))) && (word = match[1])) {
-                    $.each(nameData, function (i, value) {
+                while (
+                    (match = rWords.exec(
+                        utils.formatToken(suggestion.value)
+                    )) &&
+                    (word = match[1])
+                ) {
+                    $.each(nameData, function(i, value) {
                         if (value == word) {
                             labels.push(fieldNames[i]);
                             delete nameData[i];
@@ -3236,22 +3854,20 @@ var methods$4 = {
                 }
 
                 if (labels.length) {
-                    return labels.join(', ');
+                    return labels.join(", ");
                 }
             }
         }
     },
 
-    hide: function () {
+    hide: function() {
         var that = this;
         that.visible = false;
         that.selectedIndex = -1;
-        that.$container
-            .hide()
-            .empty();
+        that.$container.hide().empty();
     },
 
-    activate: function (index) {
+    activate: function(index) {
         var that = this,
             $activeItem,
             selected = that.classes.selected,
@@ -3264,7 +3880,10 @@ var methods$4 = {
 
             that.selectedIndex = index;
 
-            if (that.selectedIndex !== -1 && $children.length > that.selectedIndex) {
+            if (
+                that.selectedIndex !== -1 &&
+                $children.length > that.selectedIndex
+            ) {
                 $activeItem = $children.eq(that.selectedIndex);
                 $activeItem.addClass(selected);
                 return $activeItem;
@@ -3274,7 +3893,7 @@ var methods$4 = {
         return null;
     },
 
-    deactivate: function (restoreValue) {
+    deactivate: function(restoreValue) {
         var that = this;
 
         if (!that.dropdownDisabled) {
@@ -3286,7 +3905,7 @@ var methods$4 = {
         }
     },
 
-    moveUp: function () {
+    moveUp: function() {
         var that = this;
 
         if (that.dropdownDisabled) {
@@ -3307,13 +3926,13 @@ var methods$4 = {
         that.adjustScroll(that.selectedIndex - 1);
     },
 
-    moveDown: function () {
+    moveDown: function() {
         var that = this;
 
         if (that.dropdownDisabled) {
             return;
         }
-        if (that.selectedIndex === (that.suggestions.length - 1)) {
+        if (that.selectedIndex === that.suggestions.length - 1) {
             that.deactivate(true);
             return;
         }
@@ -3321,7 +3940,7 @@ var methods$4 = {
         that.adjustScroll(that.selectedIndex + 1);
     },
 
-    adjustScroll: function (index) {
+    adjustScroll: function(index) {
         var that = this,
             $activeItem = that.activate(index),
             itemTop,
@@ -3334,19 +3953,20 @@ var methods$4 = {
         }
 
         itemTop = $activeItem.position().top;
-        if (itemTop < 0 ) {
+        if (itemTop < 0) {
             that.$container.scrollTop(scrollTop + itemTop);
         } else {
             itemBottom = itemTop + $activeItem.outerHeight();
             containerHeight = that.$container.innerHeight();
             if (itemBottom > containerHeight) {
-                that.$container.scrollTop(scrollTop - containerHeight + itemBottom);
+                that.$container.scrollTop(
+                    scrollTop - containerHeight + itemBottom
+                );
             }
         }
 
         that.el.val(that.suggestions[index].value);
     }
-
 };
 
 $.extend(DEFAULT_OPTIONS, optionsUsed);
@@ -3354,18 +3974,18 @@ $.extend(DEFAULT_OPTIONS, optionsUsed);
 $.extend(Suggestions.prototype, methods$4);
 
 notificator
-    .on('initialize', methods$4.createContainer)
-    .on('dispose', methods$4.removeContainer)
-    .on('setOptions', methods$4.setContainerOptions)
-    .on('fixPosition', methods$4.setDropdownPosition)
-    .on('fixPosition', methods$4.setItemsPositions)
-    .on('assignSuggestions', methods$4.suggest);
+    .on("initialize", methods$4.createContainer)
+    .on("dispose", methods$4.removeContainer)
+    .on("setOptions", methods$4.setContainerOptions)
+    .on("fixPosition", methods$4.setDropdownPosition)
+    .on("fixPosition", methods$4.setItemsPositions)
+    .on("assignSuggestions", methods$4.suggest);
 
 /**
  * Methods related to right-sided component
  */
 
-var QUEUE_NAME = 'addon';
+var QUEUE_NAME = "addon";
 var BEFORE_SHOW_ADDON = 50;
 var BEFORE_RESTORE_PADDING = 1000;
 
@@ -3374,12 +3994,12 @@ var optionsUsed$1 = {
 };
 
 var ADDON_TYPES = {
-    'NONE': 'none',
-    'SPINNER': 'spinner',
-    'CLEAR': 'clear'
+    NONE: "none",
+    SPINNER: "spinner",
+    CLEAR: "clear"
 };
 
-var Addon = function (owner) {
+var Addon = function(owner) {
     var $el = jqapi.select('<span class="suggestions-addon"/>');
 
     this.owner = owner;
@@ -3388,16 +4008,15 @@ var Addon = function (owner) {
     this.visible = false;
     this.initialPadding = null;
 
-    $el.on('click', jqapi.proxy(this, 'onClick'));
+    $el.on("click", jqapi.proxy(this, "onClick"));
 };
 
 Addon.prototype = {
-
     checkType: function() {
         var type = this.owner.options.addon;
         var isTypeCorrect = false;
 
-        collection_util.each(ADDON_TYPES, function (value, key) {
+        collection_util.each(ADDON_TYPES, function(value, key) {
             isTypeCorrect = value == type;
             if (isTypeCorrect) {
                 return false;
@@ -3405,12 +4024,14 @@ Addon.prototype = {
         });
 
         if (!isTypeCorrect) {
-            type = this.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
+            type = this.owner.isMobile
+                ? ADDON_TYPES.CLEAR
+                : ADDON_TYPES.SPINNER;
         }
 
         if (type != this.type) {
             this.type = type;
-            this.$el.attr('data-addon-type', type);
+            this.$el.attr("data-addon-type", type);
             this.toggle(true);
         }
     },
@@ -3449,53 +4070,52 @@ Addon.prototype = {
 
     show: function(immediate) {
         var that = this;
-        var style = {'opacity': 1};
+        var style = { opacity: 1 };
 
         if (immediate) {
-            this.$el
-                .show()
-                .css(style);
-                this.showBackground(true);
+            this.$el.show().css(style);
+            this.showBackground(true);
         } else {
             this.$el
                 .stop(true, true)
                 .delay(BEFORE_SHOW_ADDON)
-                .queue(function () {
+                .queue(function() {
                     that.$el.show();
                     that.showBackground();
                     that.$el.dequeue();
                 })
-                .animate(style, 'fast');
+                .animate(style, "fast");
         }
     },
 
     hide: function(immediate) {
         var that = this;
-        var style = {'opacity': 0};
+        var style = { opacity: 0 };
 
         if (immediate) {
-            this.$el
-                .hide()
-                .css(style);
+            this.$el.hide().css(style);
         }
-        this.$el
-            .stop(true)
-            .animate(style, {
-                duration: 'fast',
-                complete: function () {
-                    that.$el.hide();
-                    that.hideBackground();
-                }
-            });
+        this.$el.stop(true).animate(style, {
+            duration: "fast",
+            complete: function() {
+                that.$el.hide();
+                that.hideBackground();
+            }
+        });
     },
 
-    fixPosition: function(origin, elLayout){
+    fixPosition: function(origin, elLayout) {
         var addonSize = elLayout.innerHeight;
 
         this.checkType();
         this.$el.css({
-            left: origin.left + elLayout.borderLeft + elLayout.innerWidth - addonSize + 'px',
-            top: origin.top + elLayout.borderTop + 'px',
+            left:
+                origin.left +
+                elLayout.borderLeft +
+                elLayout.innerWidth -
+                addonSize +
+                "px",
+            top: origin.top + elLayout.borderTop + "px",
             height: addonSize,
             width: addonSize
         });
@@ -3509,32 +4129,32 @@ Addon.prototype = {
 
     showBackground: function(immediate) {
         var $el = this.owner.el;
-        var style = {'paddingRight': this.width};
+        var style = { paddingRight: this.width };
 
         if (this.width > this.initialPadding) {
             this.stopBackground();
             if (immediate) {
                 $el.css(style);
             } else {
-                $el
-                    .animate(style, { duration: 'fast', queue: QUEUE_NAME })
-                    .dequeue(QUEUE_NAME);
+                $el.animate(style, {
+                    duration: "fast",
+                    queue: QUEUE_NAME
+                }).dequeue(QUEUE_NAME);
             }
         }
     },
 
     hideBackground: function(immediate) {
         var $el = this.owner.el;
-        var style = {'paddingRight': this.initialPadding};
+        var style = { paddingRight: this.initialPadding };
 
         if (this.width > this.initialPadding) {
             this.stopBackground(true);
             if (immediate) {
                 $el.css(style);
             } else {
-                $el
-                    .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
-                    .animate(style, { duration: 'fast', queue: QUEUE_NAME })
+                $el.delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                    .animate(style, { duration: "fast", queue: QUEUE_NAME })
                     .dequeue(QUEUE_NAME);
             }
         }
@@ -3578,13 +4198,13 @@ var methods$5 = {
 jqapi.extend(DEFAULT_OPTIONS, optionsUsed$1);
 
 notificator
-    .on('initialize', methods$5.createAddon)
-    .on('setOptions', methods$5.checkAddonType)
-    .on('fixPosition', methods$5.fixAddonPosition)
-    .on('clear', methods$5.checkAddonVisibility)
-    .on('valueChange', methods$5.checkAddonVisibility)
-    .on('request', methods$5.checkAddonVisibility)
-    .on('resetPosition', methods$5.stopBackground);
+    .on("initialize", methods$5.createAddon)
+    .on("setOptions", methods$5.checkAddonType)
+    .on("fixPosition", methods$5.fixAddonPosition)
+    .on("clear", methods$5.checkAddonVisibility)
+    .on("valueChange", methods$5.checkAddonVisibility)
+    .on("request", methods$5.checkAddonVisibility)
+    .on("resetPosition", methods$5.stopBackground);
 
 /**
  * Methods related to CONSTRAINTS component
@@ -3595,12 +4215,12 @@ var optionsUsed$2 = {
 };
 
 var fiasParamNames = [
-  'region_fias_id',
-  'area_fias_id',
-  'city_fias_id',
-  'city_district_fias_id',
-  'settlement_fias_id',
-  'street_fias_id'
+    "region_fias_id",
+    "area_fias_id",
+    "city_fias_id",
+    "city_district_fias_id",
+    "settlement_fias_id",
+    "street_fias_id"
 ];
 
 /**
@@ -3608,13 +4228,14 @@ var fiasParamNames = [
  * @param suggestion
  * @param instance other Suggestions instance
  */
-function belongsToArea(suggestion, instance){
+function belongsToArea(suggestion, instance) {
     var parentSuggestion = instance.selection,
         result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
     if (result) {
-        collection_util.each(instance.bounds.all, function (bound, i) {
-            return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
+        collection_util.each(instance.bounds.all, function(bound, i) {
+            return (result =
+                parentSuggestion.data[bound] === suggestion.data[bound]);
         });
     }
     return result;
@@ -3627,7 +4248,7 @@ function belongsToArea(suggestion, instance){
  * @returns {string}
  */
 function getSignificantKladrId(kladr_id) {
-    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, "$1$2");
     var length = significantKladrId.length;
     var significantLength = -1;
     if (length <= 2) {
@@ -3651,7 +4272,7 @@ function getSignificantKladrId(kladr_id) {
  * @param {Suggestions} instance
  * @constructor
  */
-var ConstraintLocation = function(data, instance){
+var ConstraintLocation = function(data, instance) {
     var that = this,
         fieldNames,
         fiasFieldNames,
@@ -3662,7 +4283,10 @@ var ConstraintLocation = function(data, instance){
     that.specificity = -1;
 
     if (lang_util.isPlainObject(data) && instance.type.dataComponents) {
-        collection_util.each(instance.type.dataComponents, function (component, i) {
+        collection_util.each(instance.type.dataComponents, function(
+            component,
+            i
+        ) {
             var fieldName = component.id;
 
             if (component.forLocations && data[fieldName]) {
@@ -3688,15 +4312,17 @@ var ConstraintLocation = function(data, instance){
 };
 
 jqapi.extend(ConstraintLocation.prototype, {
-    getLabel: function(){
-        return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
+    getLabel: function() {
+        return this.instance.type.composeValue(this.fields, {
+            saveCityDistrict: true
+        });
     },
 
-    getFields: function () {
+    getFields: function() {
         return this.fields;
     },
 
-    isValid: function(){
+    isValid: function() {
         return !lang_util.isEmptyObject(this.fields);
     },
 
@@ -3710,8 +4336,14 @@ jqapi.extend(ConstraintLocation.prototype, {
         var specificity = -1;
         var kladrLength = kladr_id.length;
 
-        collection_util.each(this.instance.type.dataComponents, function (component, i) {
-            if (component.kladrFormat && kladrLength === component.kladrFormat.digits) {
+        collection_util.each(this.instance.type.dataComponents, function(
+            component,
+            i
+        ) {
+            if (
+                component.kladrFormat &&
+                kladrLength === component.kladrFormat.digits
+            ) {
                 specificity = i;
             }
         });
@@ -3732,11 +4364,18 @@ jqapi.extend(ConstraintLocation.prototype, {
      * @param fiasFieldNames
      * @returns {number}
      */
-    getFiasSpecificity: function (fiasFieldNames) {
+    getFiasSpecificity: function(fiasFieldNames) {
         var specificity = -1;
 
-        collection_util.each(this.instance.type.dataComponents, function (component, i) {
-            if (component.fiasType && (fiasFieldNames.indexOf(component.fiasType) > -1) && specificity < i) {
+        collection_util.each(this.instance.type.dataComponents, function(
+            component,
+            i
+        ) {
+            if (
+                component.fiasType &&
+                fiasFieldNames.indexOf(component.fiasType) > -1 &&
+                specificity < i
+            ) {
                 specificity = i;
             }
         });
@@ -3744,14 +4383,19 @@ jqapi.extend(ConstraintLocation.prototype, {
         return specificity;
     },
 
-    containsData: function (data){
+    containsData: function(data) {
         var result = true;
 
         if (this.fields.kladr_id) {
-            return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
+            return (
+                !!data.kladr_id &&
+                data.kladr_id.indexOf(this.significantKladr) === 0
+            );
         } else {
-            collection_util.each(this.fields, function(value, fieldName){
-                return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
+            collection_util.each(this.fields, function(value, fieldName) {
+                return (result =
+                    !!data[fieldName] &&
+                    data[fieldName].toLowerCase() === value.toLowerCase());
             });
 
             return result;
@@ -3770,12 +4414,14 @@ Suggestions.ConstraintLocation = ConstraintLocation;
  * @constructor
  */
 var Constraint = function(data, instance) {
-    this.id = generateId('c');
+    this.id = generateId("c");
     this.deletable = !!data.deletable;
     this.instance = instance;
 
-    var locationsArray = collection_util.makeArray(data && (data.locations || data.restrictions));
-    this.locations = locationsArray.map(function (data) {
+    var locationsArray = collection_util.makeArray(
+        data && (data.locations || data.restrictions)
+    );
+    this.locations = locationsArray.map(function(data) {
         return new ConstraintLocation(data, instance);
     });
 
@@ -3785,19 +4431,25 @@ var Constraint = function(data, instance) {
 
     this.label = data.label;
     if (this.label == null && instance.type.composeValue) {
-        this.label = this.locations.map(function (location) {
-            return location.getLabel();
-        }).join(', ');
+        this.label = this.locations
+            .map(function(location) {
+                return location.getLabel();
+            })
+            .join(", ");
     }
 
     if (this.label && this.isValid()) {
-        this.$el = jqapi.select(document.createElement('li'))
-            .append(jqapi.select(document.createElement('span')).text(this.label))
-            .attr('data-constraint-id', this.id);
+        this.$el = jqapi
+            .select(document.createElement("li"))
+            .append(
+                jqapi.select(document.createElement("span")).text(this.label)
+            )
+            .attr("data-constraint-id", this.id);
 
         if (this.deletable) {
             this.$el.append(
-                jqapi.select(document.createElement('span'))
+                jqapi
+                    .select(document.createElement("span"))
                     .addClass(instance.classes.removeConstraint)
             );
         }
@@ -3805,56 +4457,68 @@ var Constraint = function(data, instance) {
 };
 
 jqapi.extend(Constraint.prototype, {
-    isValid: function () {
+    isValid: function() {
         return this.locations.length > 0;
     },
-    getFields: function(){
-        return this.locations.map(function(location){
+    getFields: function() {
+        return this.locations.map(function(location) {
             return location.getFields();
         });
     }
 });
 
 var methods$6 = {
-
-    createConstraints: function () {
+    createConstraints: function() {
         var that = this;
 
         that.constraints = {};
 
-        that.$constraints = jqapi.select('<ul class="suggestions-constraints"/>');
+        that.$constraints = jqapi.select(
+            '<ul class="suggestions-constraints"/>'
+        );
         that.$wrapper.append(that.$constraints);
-        that.$constraints.on('click', '.' + that.classes.removeConstraint, 
-            jqapi.proxy(that.onConstraintRemoveClick, that));
+        that.$constraints.on(
+            "click",
+            "." + that.classes.removeConstraint,
+            jqapi.proxy(that.onConstraintRemoveClick, that)
+        );
     },
 
-    setConstraintsPosition: function(origin, elLayout){
+    setConstraintsPosition: function(origin, elLayout) {
         var that = this;
 
         that.$constraints.css({
-            left: origin.left + elLayout.borderLeft + elLayout.paddingLeft + 'px',
-            top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
+            left:
+                origin.left + elLayout.borderLeft + elLayout.paddingLeft + "px",
+            top:
+                origin.top +
+                elLayout.borderTop +
+                Math.round(
+                    (elLayout.innerHeight - that.$constraints.height()) / 2
+                ) +
+                "px"
         });
 
-        elLayout.componentsLeft += that.$constraints.outerWidth(true) + elLayout.paddingLeft;
+        elLayout.componentsLeft +=
+            that.$constraints.outerWidth(true) + elLayout.paddingLeft;
     },
 
-    onConstraintRemoveClick: function (e) {
+    onConstraintRemoveClick: function(e) {
         var that = this,
-            $item = jqapi.select(e.target).closest('li'),
-            id = $item.attr('data-constraint-id');
+            $item = jqapi.select(e.target).closest("li"),
+            id = $item.attr("data-constraint-id");
 
         // Delete constraint data before animation to let correct requests to be sent while fading
         delete that.constraints[id];
         // Request for new suggestions
         that.update();
 
-        $item.fadeOut('fast', function () {
+        $item.fadeOut("fast", function() {
             that.removeConstraint(id);
         });
     },
 
-    setupConstraints: function () {
+    setupConstraints: function() {
         var that = this,
             constraints = that.options.constraints,
             $parent;
@@ -3864,7 +4528,11 @@ var methods$6 = {
             return;
         }
 
-        if (jqapi.isJqObject(constraints) || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
+        if (
+            jqapi.isJqObject(constraints) ||
+            typeof constraints === "string" ||
+            typeof constraints.nodeType === "number"
+        ) {
             $parent = jqapi.select(constraints);
             if (!$parent.is(that.constraints)) {
                 that.unbindFromParent();
@@ -3878,25 +4546,28 @@ var methods$6 = {
             collection_util.each(that.constraints, function(_, id) {
                 that.removeConstraint(id);
             });
-            collection_util.each(collection_util.makeArray(constraints), function (constraint, i) {
-                that.addConstraint(constraint);
-            });
+            collection_util.each(
+                collection_util.makeArray(constraints),
+                function(constraint, i) {
+                    that.addConstraint(constraint);
+                }
+            );
             that._constraintsUpdating = false;
             that.fixPosition();
         }
     },
 
-    filteredLocation: function (data) {
+    filteredLocation: function(data) {
         var locationComponents = [],
             location = {};
 
-        collection_util.each(this.type.dataComponents, function () {
+        collection_util.each(this.type.dataComponents, function() {
             if (this.forLocations) locationComponents.push(this.id);
         });
 
         if (lang_util.isPlainObject(data)) {
             // Copy to location only allowed fields
-            collection_util.each(data, function (value, key) {
+            collection_util.each(data, function(value, key) {
                 if (value && locationComponents.indexOf(key) >= 0) {
                     location[key] = value;
                 }
@@ -3904,11 +4575,13 @@ var methods$6 = {
         }
 
         if (!lang_util.isEmptyObject(location)) {
-            return location.kladr_id ? { kladr_id: location.kladr_id } : location;
+            return location.kladr_id
+                ? { kladr_id: location.kladr_id }
+                : location;
         }
     },
 
-    addConstraint: function (constraint) {
+    addConstraint: function(constraint) {
         var that = this;
 
         constraint = new Constraint(constraint, that);
@@ -3925,16 +4598,18 @@ var methods$6 = {
         }
     },
 
-    removeConstraint: function (id) {
+    removeConstraint: function(id) {
         var that = this;
         delete that.constraints[id];
-        that.$constraints.children('[data-constraint-id="' + id + '"]').remove();
+        that.$constraints
+            .children('[data-constraint-id="' + id + '"]')
+            .remove();
         if (!that._constraintsUpdating) {
             that.fixPosition();
         }
     },
 
-    constructConstraintsParams: function () {
+    constructConstraintsParams: function() {
         var that = this,
             locations = [],
             constraints = that.constraints,
@@ -3942,28 +4617,35 @@ var methods$6 = {
             parentData,
             params = {};
 
-        while (jqapi.isJqObject(constraints) && (parentInstance = constraints.suggestions()) &&
-            !(parentData = object_util.getDeepValue(parentInstance, 'selection.data'))
+        while (
+            jqapi.isJqObject(constraints) &&
+            (parentInstance = constraints.suggestions()) &&
+            !(parentData = object_util.getDeepValue(
+                parentInstance,
+                "selection.data"
+            ))
         ) {
             constraints = parentInstance.constraints;
         }
 
         if (jqapi.isJqObject(constraints)) {
-            parentData = (new ConstraintLocation(parentData, parentInstance))
-                .getFields();
+            parentData = new ConstraintLocation(
+                parentData,
+                parentInstance
+            ).getFields();
 
             if (parentData) {
                 // if send city_fias_id for city request
                 // then no cities will responded
-                if (that.bounds.own.indexOf('city') > -1) {
+                if (that.bounds.own.indexOf("city") > -1) {
                     delete parentData.city_fias_id;
                 }
-                params.locations = [ parentData ];
+                params.locations = [parentData];
                 params.restrict_value = true;
             }
         } else {
             if (constraints) {
-                collection_util.each(constraints, function (constraint, id) {
+                collection_util.each(constraints, function(constraint, id) {
                     locations = locations.concat(constraint.getFields());
                 });
 
@@ -3983,54 +4665,66 @@ var methods$6 = {
      */
     getFirstConstraintLabel: function() {
         var that = this,
-            constraints_id = lang_util.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
+            constraints_id =
+                lang_util.isPlainObject(that.constraints) &&
+                Object.keys(that.constraints)[0];
 
-        return constraints_id ? that.constraints[constraints_id].label : '';
+        return constraints_id ? that.constraints[constraints_id].label : "";
     },
 
-    bindToParent: function () {
+    bindToParent: function() {
         var that = this;
 
         that.constraints
-            .on([
-                    'suggestions-select.' + that.uniqueId,
-                    'suggestions-invalidateselection.' + that.uniqueId,
-                    'suggestions-clear.' + that.uniqueId
-                ].join(' '),
+            .on(
+                [
+                    "suggestions-select." + that.uniqueId,
+                    "suggestions-invalidateselection." + that.uniqueId,
+                    "suggestions-clear." + that.uniqueId
+                ].join(" "),
                 jqapi.proxy(that.onParentSelectionChanged, that)
             )
-            .on('suggestions-dispose.' + that.uniqueId, jqapi.proxy(that.onParentDispose, that));
+            .on(
+                "suggestions-dispose." + that.uniqueId,
+                jqapi.proxy(that.onParentDispose, that)
+            );
     },
 
-    unbindFromParent: function  () {
+    unbindFromParent: function() {
         var that = this,
             $parent = that.constraints;
 
         if (jqapi.isJqObject($parent)) {
-            $parent.off('.' + that.uniqueId);
+            $parent.off("." + that.uniqueId);
         }
     },
 
-    onParentSelectionChanged: function (e, suggestion, valueChanged) {
+    onParentSelectionChanged: function(e, suggestion, valueChanged) {
         // Don't clear if parent has been just enriched
-        if (e.type !== 'suggestions-select' || valueChanged) {
+        if (e.type !== "suggestions-select" || valueChanged) {
             this.clear();
         }
     },
 
-    onParentDispose: function (e) {
+    onParentDispose: function(e) {
         this.unbindFromParent();
     },
 
-    getParentInstance: function () {
-        return jqapi.isJqObject(this.constraints) && this.constraints.suggestions();
+    getParentInstance: function() {
+        return (
+            jqapi.isJqObject(this.constraints) && this.constraints.suggestions()
+        );
     },
 
-    shareWithParent: function (suggestion) {
+    shareWithParent: function(suggestion) {
         // that is the parent control's instance
         var that = this.getParentInstance();
 
-        if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
+        if (
+            !that ||
+            that.type !== this.type ||
+            belongsToArea(suggestion, that)
+        ) {
             return;
         }
 
@@ -4041,35 +4735,46 @@ var methods$6 = {
     /**
      * Pick only fields that absent in restriction
      */
-    getUnrestrictedData: function (data) {
+    getUnrestrictedData: function(data) {
         var that = this,
             restrictedKeys = [],
             unrestrictedData = {},
             maxSpecificity = -1;
 
         // Find most specific location that could restrict current data
-        collection_util.each(that.constraints, function (constraint, id) {
-            collection_util.each(constraint.locations, function (location, i) {
-                if (location.containsData(data) && location.specificity > maxSpecificity) {
+        collection_util.each(that.constraints, function(constraint, id) {
+            collection_util.each(constraint.locations, function(location, i) {
+                if (
+                    location.containsData(data) &&
+                    location.specificity > maxSpecificity
+                ) {
                     maxSpecificity = location.specificity;
                 }
             });
         });
 
         if (maxSpecificity >= 0) {
-
             // Для городов-регионов нужно также отсечь и город
-            if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                restrictedKeys.push.apply(restrictedKeys, that.type.dataComponentsById['city'].fields);
+            if (
+                data.region_kladr_id &&
+                data.region_kladr_id === data.city_kladr_id
+            ) {
+                restrictedKeys.push.apply(
+                    restrictedKeys,
+                    that.type.dataComponentsById["city"].fields
+                );
             }
 
             // Collect all fieldnames from all restricted components
-            collection_util.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (component, i) {
-                restrictedKeys.push.apply(restrictedKeys, component.fields);
-            });
+            collection_util.each(
+                that.type.dataComponents.slice(0, maxSpecificity + 1),
+                function(component, i) {
+                    restrictedKeys.push.apply(restrictedKeys, component.fields);
+                }
+            );
 
             // Copy skipping restricted fields
-            collection_util.each(data, function (value, key) {
+            collection_util.each(data, function(value, key) {
                 if (restrictedKeys.indexOf(key) === -1) {
                     unrestrictedData[key] = value;
                 }
@@ -4080,7 +4785,6 @@ var methods$6 = {
 
         return unrestrictedData;
     }
-
 };
 
 jqapi.extend(DEFAULT_OPTIONS, optionsUsed$2);
@@ -4088,13 +4792,13 @@ jqapi.extend(DEFAULT_OPTIONS, optionsUsed$2);
 jqapi.extend(Suggestions.prototype, methods$6);
 
 // Disable this feature when GET method used. See SUG-202
-if (ajax.getDefaultType() != 'GET') {
+if (ajax.getDefaultType() != "GET") {
     notificator
-        .on('initialize', methods$6.createConstraints)
-        .on('setOptions', methods$6.setupConstraints)
-        .on('fixPosition', methods$6.setConstraintsPosition)
-        .on('requestParams', methods$6.constructConstraintsParams)
-        .on('dispose', methods$6.unbindFromParent);
+        .on("initialize", methods$6.createConstraints)
+        .on("setOptions", methods$6.setupConstraints)
+        .on("fixPosition", methods$6.setConstraintsPosition)
+        .on("requestParams", methods$6.constructConstraintsParams)
+        .on("dispose", methods$6.unbindFromParent);
 }
 
 /**
@@ -4102,8 +4806,7 @@ if (ajax.getDefaultType() != 'GET') {
  */
 
 var methods$7 = {
-
-    proceedQuery: function (query) {
+    proceedQuery: function(query) {
         var that = this;
 
         if (query.length >= that.options.minChars) {
@@ -4118,7 +4821,7 @@ var methods$7 = {
      * @param selectionOptions
      * @returns {$.Deferred} promise, resolved with index of selected suggestion or rejected if nothing matched
      */
-    selectCurrentValue: function (selectionOptions) {
+    selectCurrentValue: function(selectionOptions) {
         var that = this,
             result = jqapi.Deferred();
 
@@ -4126,7 +4829,7 @@ var methods$7 = {
         that.inputPhase.resolve();
 
         that.fetchPhase
-            .done(function () {
+            .done(function() {
                 var index;
 
                 // When suggestion has already been selected and not modified
@@ -4144,7 +4847,7 @@ var methods$7 = {
                     }
                 }
             })
-            .fail(function () {
+            .fail(function() {
                 result.reject();
             });
 
@@ -4154,7 +4857,7 @@ var methods$7 = {
     /**
      * Selects first when user interaction is not supposed
      */
-    selectFoundSuggestion: function () {
+    selectFoundSuggestion: function() {
         var that = this;
 
         if (!that.requestMode.userSelect) {
@@ -4175,7 +4878,7 @@ var methods$7 = {
             // matchers always operate with trimmed strings
             value = that.el.val().trim();
             if (value) {
-                that.type.matchers.some(function (matcher) {
+                that.type.matchers.some(function(matcher) {
                     index = matcher(value, that.suggestions);
                     return index !== -1;
                 });
@@ -4192,16 +4895,16 @@ var methods$7 = {
      * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
      * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
      */
-    select: function (index, selectionOptions) {
+    select: function(index, selectionOptions) {
         var that = this,
             suggestion = that.suggestions[index],
-            continueSelecting = selectionOptions && selectionOptions.continueSelecting,
+            continueSelecting =
+                selectionOptions && selectionOptions.continueSelecting,
             currentValue = that.currentValue,
             hasSameValues;
 
         // Prevent recursive execution
-        if (that.triggering['Select'])
-            return;
+        if (that.triggering["Select"]) return;
 
         // if no suggestion to select
         if (!suggestion) {
@@ -4214,15 +4917,24 @@ var methods$7 = {
 
         hasSameValues = that.hasSameValues(suggestion);
 
-        that.enrichSuggestion(suggestion, selectionOptions)
-            .done(function (enrichedSuggestion, hasBeenEnriched) {
-                var newSelectionOptions = jqapi.extend({
+        that.enrichSuggestion(suggestion, selectionOptions).done(function(
+            enrichedSuggestion,
+            hasBeenEnriched
+        ) {
+            var newSelectionOptions = jqapi.extend(
+                {
                     hasBeenEnriched: hasBeenEnriched,
                     hasSameValues: hasSameValues
-                }, selectionOptions);
-                that.selectSuggestion(enrichedSuggestion, index, currentValue, newSelectionOptions);
-            });
-
+                },
+                selectionOptions
+            );
+            that.selectSuggestion(
+                enrichedSuggestion,
+                index,
+                currentValue,
+                newSelectionOptions
+            );
+        });
     },
 
     /**
@@ -4236,15 +4948,16 @@ var methods$7 = {
      * @param {boolean} selectionOptions.hasBeenEnriched
      * @param {boolean} selectionOptions.hasSameValues
      */
-    selectSuggestion: function (suggestion, index, lastValue, selectionOptions) {
+    selectSuggestion: function(suggestion, index, lastValue, selectionOptions) {
         var that = this,
             continueSelecting = selectionOptions.continueSelecting,
-            assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
+            assumeDataComplete =
+                !that.type.isDataComplete ||
+                that.type.isDataComplete.call(that, suggestion),
             currentSelection = that.selection;
 
         // Prevent recursive execution
-        if (that.triggering['Select'])
-            return;
+        if (that.triggering["Select"]) return;
 
         if (that.type.alwaysContinueSelecting) {
             continueSelecting = true;
@@ -4261,10 +4974,17 @@ var methods$7 = {
 
         if (that.requestMode.updateValue) {
             that.checkValueBounds(suggestion);
-            that.currentValue = that.getSuggestionValue(suggestion, selectionOptions);
+            that.currentValue = that.getSuggestionValue(
+                suggestion,
+                selectionOptions
+            );
 
-            if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
-                that.currentValue += ' ';
+            if (
+                that.currentValue &&
+                !selectionOptions.noSpace &&
+                !assumeDataComplete
+            ) {
+                that.currentValue += " ";
             }
             that.el.val(that.currentValue);
         }
@@ -4272,7 +4992,11 @@ var methods$7 = {
         if (that.currentValue) {
             that.selection = suggestion;
             if (!that.areSuggestionsSame(suggestion, currentSelection)) {
-                that.trigger('Select', suggestion, that.currentValue != lastValue);
+                that.trigger(
+                    "Select",
+                    suggestion,
+                    that.currentValue != lastValue
+                );
             }
             if (that.requestMode.userSelect) {
                 that.onSelectComplete(continueSelecting);
@@ -4285,7 +5009,7 @@ var methods$7 = {
         that.shareWithParent(suggestion);
     },
 
-    onSelectComplete: function (continueSelecting) {
+    onSelectComplete: function(continueSelecting) {
         var that = this;
 
         if (continueSelecting) {
@@ -4296,33 +5020,35 @@ var methods$7 = {
         }
     },
 
-    triggerOnSelectNothing: function () {
+    triggerOnSelectNothing: function() {
         var that = this;
 
-        if (!that.triggering['SelectNothing']) {
-            that.trigger('SelectNothing', that.currentValue);
+        if (!that.triggering["SelectNothing"]) {
+            that.trigger("SelectNothing", that.currentValue);
         }
     },
 
-    trigger: function (event) {
+    trigger: function(event) {
         var that = this,
             args = utils.slice(arguments, 1),
-            callback = that.options['on' + event];
+            callback = that.options["on" + event];
 
         that.triggering[event] = true;
         if (utils.isFunction(callback)) {
             callback.apply(that.element, args);
         }
-        that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
+        that.el.trigger.call(
+            that.el,
+            "suggestions-" + event.toLowerCase(),
+            args
+        );
         that.triggering[event] = false;
     }
-
 };
 
 jqapi.extend(Suggestions.prototype, methods$7);
 
-notificator
-    .on('assignSuggestions', methods$7.selectFoundSuggestion);
+notificator.on("assignSuggestions", methods$7.selectFoundSuggestion);
 
 /**
  * features for connected instances
@@ -4333,18 +5059,17 @@ var optionsUsed$3 = {
 };
 
 var methods$8 = {
-
-    setupBounds: function () {
+    setupBounds: function() {
         this.bounds = {
             from: null,
             to: null
         };
     },
 
-    setBoundsOptions: function () {
+    setBoundsOptions: function() {
         var that = this,
             boundsAvailable = [],
-            newBounds = $.trim(that.options.bounds).split('-'),
+            newBounds = $.trim(that.options.bounds).split("-"),
             boundFrom = newBounds[0],
             boundTo = newBounds[newBounds.length - 1],
             boundsOwn = [],
@@ -4353,7 +5078,7 @@ var methods$8 = {
             indexTo;
 
         if (that.type.dataComponents) {
-            $.each(that.type.dataComponents, function () {
+            $.each(that.type.dataComponents, function() {
                 if (this.forBounds) {
                     boundsAvailable.push(this.id);
                 }
@@ -4371,7 +5096,7 @@ var methods$8 = {
 
         if (boundFrom || boundTo) {
             boundIsOwn = !boundFrom;
-            $.each(boundsAvailable, function (i, bound) {
+            $.each(boundsAvailable, function(i, bound) {
                 if (bound == boundFrom) {
                     boundIsOwn = true;
                 }
@@ -4391,15 +5116,15 @@ var methods$8 = {
         that.bounds.own = boundsOwn;
     },
 
-    constructBoundsParams: function () {
+    constructBoundsParams: function() {
         var that = this,
             params = {};
 
         if (that.bounds.from) {
-            params['from_bound'] = { value: that.bounds.from };
+            params["from_bound"] = { value: that.bounds.from };
         }
         if (that.bounds.to) {
-            params['to_bound'] = { value: that.bounds.to };
+            params["to_bound"] = { value: that.bounds.to };
         }
 
         return params;
@@ -4410,7 +5135,7 @@ var methods$8 = {
      * Ничего не возвращает, меняет в самом suggestion
      * @param suggestion
      */
-    checkValueBounds: function (suggestion) {
+    checkValueBounds: function(suggestion) {
         var that = this,
             valueData;
 
@@ -4420,21 +5145,24 @@ var methods$8 = {
             var bounds = that.bounds.own.slice(0);
             // если роль текущего инстанса плагина показывать только район города
             // то для корректного формировния нужен city_district_fias_id
-            if (bounds.length === 1 && bounds[0] === 'city_district') {
-                bounds.push('city_district_fias_id');
+            if (bounds.length === 1 && bounds[0] === "city_district") {
+                bounds.push("city_district_fias_id");
             }
             valueData = that.copyDataComponents(suggestion.data, bounds);
             suggestion.value = that.type.composeValue(valueData);
         }
     },
 
-    copyDataComponents: function (data, components) {
+    copyDataComponents: function(data, components) {
         var result = {},
             dataComponentsById = this.type.dataComponentsById;
 
         if (dataComponentsById) {
-            $.each(components, function (i, component) {
-                $.each(dataComponentsById[component].fields, function (i, field) {
+            $.each(components, function(i, component) {
+                $.each(dataComponentsById[component].fields, function(
+                    i,
+                    field
+                ) {
                     if (data[field] != null) {
                         result[field] = data[field];
                     }
@@ -4445,20 +5173,22 @@ var methods$8 = {
         return result;
     },
 
-    getBoundedKladrId: function (kladr_id, boundsRange) {
+    getBoundedKladrId: function(kladr_id, boundsRange) {
         var boundTo = boundsRange[boundsRange.length - 1],
             kladrFormat;
 
-        $.each(this.type.dataComponents, function(i, component){
+        $.each(this.type.dataComponents, function(i, component) {
             if (component.id === boundTo) {
                 kladrFormat = component.kladrFormat;
                 return false;
             }
         });
 
-        return kladr_id.substr(0, kladrFormat.digits) + (new Array((kladrFormat.zeros || 0) + 1).join('0'));
+        return (
+            kladr_id.substr(0, kladrFormat.digits) +
+            new Array((kladrFormat.zeros || 0) + 1).join("0")
+        );
     }
-
 };
 
 $.extend(DEFAULT_OPTIONS, optionsUsed$3);
@@ -4466,20 +5196,19 @@ $.extend(DEFAULT_OPTIONS, optionsUsed$3);
 $.extend(Suggestions.prototype, methods$8);
 
 notificator
-    .on('initialize', methods$8.setupBounds)
-    .on('setOptions', methods$8.setBoundsOptions)
-    .on('requestParams', methods$8.constructBoundsParams);
+    .on("initialize", methods$8.setupBounds)
+    .on("setOptions", methods$8.setBoundsOptions)
+    .on("requestParams", methods$8.constructBoundsParams);
 
 /**
  * Утилиты для работы с DOM.
  */
 var dom = {
-    
     /**
      * Выбрать первый элемент с указанным классом.
      */
     selectByClass: function(classname, parent) {
-        var selector = '.' + classname;
+        var selector = "." + classname;
         if (parent) {
             return parent.querySelector(selector);
         } else {
@@ -4491,11 +5220,11 @@ var dom = {
      * Добавить элементу класс.
      */
     addClass: function(element, className) {
-        var list = element.className.split(' ');
+        var list = element.className.split(" ");
         if (list.indexOf(className) === -1) {
             list.push(className);
         }
-        element.className = list.join(' ');
+        element.className = list.join(" ");
     },
 
     /**
@@ -4521,7 +5250,7 @@ var dom = {
             eventsByNamespace[namespace].push({
                 eventName: eventName,
                 element: element,
-                callback: callback,
+                callback: callback
             });
         }
     },
@@ -4533,10 +5262,14 @@ var dom = {
         var events = eventsByNamespace[namespace];
         if (events) {
             events.forEach(function(event) {
-                event.element.removeEventListener(event.eventName, event.callback, false);
+                event.element.removeEventListener(
+                    event.eventName,
+                    event.callback,
+                    false
+                );
             });
         }
-    },
+    }
 };
 
 /**
@@ -4594,24 +5327,24 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = '99.9.9';
+Suggestions.version = "99.9.9";
 
 $.Suggestions = Suggestions;
 
 // Create chainable jQuery plugin:
-$.fn.suggestions = function (options, args) {
+$.fn.suggestions = function(options, args) {
     // If function invoked without argument return
     // instance of the first matched element:
     if (arguments.length === 0) {
         return this.first().data(DATA_ATTR_KEY);
     }
 
-    return this.each(function () {
+    return this.each(function() {
         var inputElement = $(this),
             instance = inputElement.data(DATA_ATTR_KEY);
 
-        if (typeof options === 'string') {
-            if (instance && typeof instance[options] === 'function') {
+        if (typeof options === "string") {
+            if (instance && typeof instance[options] === "function") {
                 instance[options](args);
             }
         } else {

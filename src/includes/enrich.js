@@ -1,17 +1,18 @@
-import $ from 'jquery';
+import $ from "jquery";
 
-import { Suggestions } from './suggestions';
+import { Suggestions } from "./suggestions";
 
 var methods = {
-
-    enrichSuggestion: function (suggestion, selectionOptions) {
+    enrichSuggestion: function(suggestion, selectionOptions) {
         var that = this,
             resolver = $.Deferred();
 
-        if (!that.options.enrichmentEnabled 
-            || !that.type.enrichmentEnabled 
-            || !that.requestMode.enrichmentEnabled 
-            || selectionOptions && selectionOptions.dontEnrich) {
+        if (
+            !that.options.enrichmentEnabled ||
+            !that.type.enrichmentEnabled ||
+            !that.requestMode.enrichmentEnabled ||
+            (selectionOptions && selectionOptions.dontEnrich)
+        ) {
             return resolver.resolve(suggestion);
         }
 
@@ -21,7 +22,7 @@ var methods = {
         }
 
         that.disableDropdown();
- 
+
         var query = that.type.getEnrichmentQuery(suggestion);
         var customParams = that.type.enrichmentParams;
         var requestOptions = {
@@ -29,25 +30,25 @@ var methods = {
             useEnrichmentCache: true,
             method: that.type.enrichmentMethod
         };
-        
+
         // Set `currentValue` to make `processResponse` to consider enrichment response valid
         that.currentValue = query;
 
         // prevent request abortion during onBlur
-        that.enrichPhase = that.getSuggestions(
-            query,
-            customParams,
-            requestOptions
-        )
-            .always(function () {
+        that.enrichPhase = that
+            .getSuggestions(query, customParams, requestOptions)
+            .always(function() {
                 that.enableDropdown();
             })
-            .done(function (suggestions) {
+            .done(function(suggestions) {
                 var enrichedSuggestion = suggestions && suggestions[0];
 
-                resolver.resolve(enrichedSuggestion || suggestion, !!enrichedSuggestion);
+                resolver.resolve(
+                    enrichedSuggestion || suggestion,
+                    !!enrichedSuggestion
+                );
             })
-            .fail(function () {
+            .fail(function() {
                 resolver.resolve(suggestion);
             });
 
@@ -59,12 +60,12 @@ var methods = {
      * @param response
      * @param query
      */
-    enrichResponse: function (response, query) {
+    enrichResponse: function(response, query) {
         var that = this,
             enrichedSuggestion = that.enrichmentCache[query];
 
         if (enrichedSuggestion) {
-            $.each(response.suggestions, function(i, suggestion){
+            $.each(response.suggestions, function(i, suggestion) {
                 if (suggestion.value === query) {
                     response.suggestions[i] = enrichedSuggestion;
                     return false;
@@ -72,7 +73,6 @@ var methods = {
             });
         }
     }
-
 };
 
 $.extend(Suggestions.prototype, methods);

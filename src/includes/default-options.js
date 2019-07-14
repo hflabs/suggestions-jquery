@@ -1,9 +1,9 @@
-import $ from 'jquery';
+import $ from "jquery";
 
 var DEFAULT_OPTIONS = {
     autoSelectFirst: false,
     // основной url, может быть переопределен
-    serviceUrl: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs',
+    serviceUrl: "https://suggestions.dadata.ru/suggestions/api/4_1/rs",
     // url, который заменяет serviceUrl + method + type
     // то есть, если он задан, то для всех запросов будет использоваться именно он
     // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
@@ -20,21 +20,21 @@ var DEFAULT_OPTIONS = {
     deferRequestBy: 100,
     enrichmentEnabled: true,
     params: {},
-    paramName: 'query',
+    paramName: "query",
     timeout: 3000,
     formatResult: null,
     formatSelected: null,
     noCache: false,
-    containerClass: 'suggestions-suggestions',
+    containerClass: "suggestions-suggestions",
     tabDisabled: false,
     triggerSelectOnSpace: false,
     triggerSelectOnEnter: true,
     triggerSelectOnBlur: true,
     preventBadQueries: false,
-    hint: 'Выберите вариант или продолжите ввод',
+    hint: "Выберите вариант или продолжите ввод",
     noSuggestionsHint: null,
     type: null,
-    requestMode: 'suggest',
+    requestMode: "suggest",
     count: 5,
     $helpers: null,
     headers: null,

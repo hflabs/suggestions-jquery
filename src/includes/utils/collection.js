@@ -1,4 +1,4 @@
-import { lang_util } from './lang';
+import { lang_util } from "./lang";
 
 /**
  * Утилиты для работы с коллекциями.
@@ -7,8 +7,8 @@ var collection_util = {
     /**
      * Возвращает массив без пустых элементов
      */
-    compact: function (array) {
-        return array.filter(function (el) {
+    compact: function(array) {
+        return array.filter(function(el) {
             return !!el;
         });
     },
@@ -45,7 +45,7 @@ var collection_util = {
             return array2.indexOf(el) !== -1;
         });
     },
-    
+
     /**
      * Разность массивов: ([1,2,3,4], [2,4,5,6]) => [1,3]
      * Исходные массивы не меняются.
@@ -83,7 +83,7 @@ var collection_util = {
         return array1.filter(function(el) {
             return !array2.some(function(el2) {
                 return el2.indexOf(el) === 0;
-            })
+            });
         });
     },
 
@@ -95,7 +95,6 @@ var collection_util = {
     slice: function(obj, start) {
         return Array.prototype.slice.call(obj, start);
     }
-    
 };
 
 export { collection_util };

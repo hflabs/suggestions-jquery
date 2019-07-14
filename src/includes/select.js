@@ -1,15 +1,14 @@
-import { jqapi } from './jqapi';
-import { utils } from './utils';
-import { Suggestions } from './suggestions';
-import { notificator } from './notificator';
+import { jqapi } from "./jqapi";
+import { utils } from "./utils";
+import { Suggestions } from "./suggestions";
+import { notificator } from "./notificator";
 
 /**
  * Methods for selecting a suggestion
  */
 
 var methods = {
-
-    proceedQuery: function (query) {
+    proceedQuery: function(query) {
         var that = this;
 
         if (query.length >= that.options.minChars) {
@@ -24,7 +23,7 @@ var methods = {
      * @param selectionOptions
      * @returns {$.Deferred} promise, resolved with index of selected suggestion or rejected if nothing matched
      */
-    selectCurrentValue: function (selectionOptions) {
+    selectCurrentValue: function(selectionOptions) {
         var that = this,
             result = jqapi.Deferred();
 
@@ -32,7 +31,7 @@ var methods = {
         that.inputPhase.resolve();
 
         that.fetchPhase
-            .done(function () {
+            .done(function() {
                 var index;
 
                 // When suggestion has already been selected and not modified
@@ -50,7 +49,7 @@ var methods = {
                     }
                 }
             })
-            .fail(function () {
+            .fail(function() {
                 result.reject();
             });
 
@@ -60,7 +59,7 @@ var methods = {
     /**
      * Selects first when user interaction is not supposed
      */
-    selectFoundSuggestion: function () {
+    selectFoundSuggestion: function() {
         var that = this;
 
         if (!that.requestMode.userSelect) {
@@ -81,7 +80,7 @@ var methods = {
             // matchers always operate with trimmed strings
             value = that.el.val().trim();
             if (value) {
-                that.type.matchers.some(function (matcher) {
+                that.type.matchers.some(function(matcher) {
                     index = matcher(value, that.suggestions);
                     return index !== -1;
                 });
@@ -98,16 +97,16 @@ var methods = {
      * @param {boolean} [selectionOptions.continueSelecting]  prevents hiding after selection
      * @param {boolean} [selectionOptions.noSpace]  prevents adding space at the end of current value
      */
-    select: function (index, selectionOptions) {
+    select: function(index, selectionOptions) {
         var that = this,
             suggestion = that.suggestions[index],
-            continueSelecting = selectionOptions && selectionOptions.continueSelecting,
+            continueSelecting =
+                selectionOptions && selectionOptions.continueSelecting,
             currentValue = that.currentValue,
             hasSameValues;
 
         // Prevent recursive execution
-        if (that.triggering['Select'])
-            return;
+        if (that.triggering["Select"]) return;
 
         // if no suggestion to select
         if (!suggestion) {
@@ -120,15 +119,24 @@ var methods = {
 
         hasSameValues = that.hasSameValues(suggestion);
 
-        that.enrichSuggestion(suggestion, selectionOptions)
-            .done(function (enrichedSuggestion, hasBeenEnriched) {
-                var newSelectionOptions = jqapi.extend({
+        that.enrichSuggestion(suggestion, selectionOptions).done(function(
+            enrichedSuggestion,
+            hasBeenEnriched
+        ) {
+            var newSelectionOptions = jqapi.extend(
+                {
                     hasBeenEnriched: hasBeenEnriched,
                     hasSameValues: hasSameValues
-                }, selectionOptions);
-                that.selectSuggestion(enrichedSuggestion, index, currentValue, newSelectionOptions);
-            });
-
+                },
+                selectionOptions
+            );
+            that.selectSuggestion(
+                enrichedSuggestion,
+                index,
+                currentValue,
+                newSelectionOptions
+            );
+        });
     },
 
     /**
@@ -142,15 +150,16 @@ var methods = {
      * @param {boolean} selectionOptions.hasBeenEnriched
      * @param {boolean} selectionOptions.hasSameValues
      */
-    selectSuggestion: function (suggestion, index, lastValue, selectionOptions) {
+    selectSuggestion: function(suggestion, index, lastValue, selectionOptions) {
         var that = this,
             continueSelecting = selectionOptions.continueSelecting,
-            assumeDataComplete = !that.type.isDataComplete || that.type.isDataComplete.call(that, suggestion),
+            assumeDataComplete =
+                !that.type.isDataComplete ||
+                that.type.isDataComplete.call(that, suggestion),
             currentSelection = that.selection;
 
         // Prevent recursive execution
-        if (that.triggering['Select'])
-            return;
+        if (that.triggering["Select"]) return;
 
         if (that.type.alwaysContinueSelecting) {
             continueSelecting = true;
@@ -167,10 +176,17 @@ var methods = {
 
         if (that.requestMode.updateValue) {
             that.checkValueBounds(suggestion);
-            that.currentValue = that.getSuggestionValue(suggestion, selectionOptions);
+            that.currentValue = that.getSuggestionValue(
+                suggestion,
+                selectionOptions
+            );
 
-            if (that.currentValue && !selectionOptions.noSpace && !assumeDataComplete) {
-                that.currentValue += ' ';
+            if (
+                that.currentValue &&
+                !selectionOptions.noSpace &&
+                !assumeDataComplete
+            ) {
+                that.currentValue += " ";
             }
             that.el.val(that.currentValue);
         }
@@ -178,7 +194,11 @@ var methods = {
         if (that.currentValue) {
             that.selection = suggestion;
             if (!that.areSuggestionsSame(suggestion, currentSelection)) {
-                that.trigger('Select', suggestion, that.currentValue != lastValue);
+                that.trigger(
+                    "Select",
+                    suggestion,
+                    that.currentValue != lastValue
+                );
             }
             if (that.requestMode.userSelect) {
                 that.onSelectComplete(continueSelecting);
@@ -191,7 +211,7 @@ var methods = {
         that.shareWithParent(suggestion);
     },
 
-    onSelectComplete: function (continueSelecting) {
+    onSelectComplete: function(continueSelecting) {
         var that = this;
 
         if (continueSelecting) {
@@ -202,30 +222,32 @@ var methods = {
         }
     },
 
-    triggerOnSelectNothing: function () {
+    triggerOnSelectNothing: function() {
         var that = this;
 
-        if (!that.triggering['SelectNothing']) {
-            that.trigger('SelectNothing', that.currentValue);
+        if (!that.triggering["SelectNothing"]) {
+            that.trigger("SelectNothing", that.currentValue);
         }
     },
 
-    trigger: function (event) {
+    trigger: function(event) {
         var that = this,
             args = utils.slice(arguments, 1),
-            callback = that.options['on' + event];
+            callback = that.options["on" + event];
 
         that.triggering[event] = true;
         if (utils.isFunction(callback)) {
             callback.apply(that.element, args);
         }
-        that.el.trigger.call(that.el, 'suggestions-' + event.toLowerCase(), args);
+        that.el.trigger.call(
+            that.el,
+            "suggestions-" + event.toLowerCase(),
+            args
+        );
         that.triggering[event] = false;
     }
-
 };
 
 jqapi.extend(Suggestions.prototype, methods);
 
-notificator
-    .on('assignSuggestions', methods.selectFoundSuggestion);
+notificator.on("assignSuggestions", methods.selectFoundSuggestion);

@@ -1,21 +1,21 @@
-import { collection_util } from './utils/collection';
-import { func_util } from './utils/func';
-import { lang_util } from './utils/lang';
-import { object_util } from './utils/object';
-import { text_util } from './utils/text';
-import { jqapi } from './jqapi';
-import { ajax } from './ajax';
+import { collection_util } from "./utils/collection";
+import { func_util } from "./utils/func";
+import { lang_util } from "./utils/lang";
+import { object_util } from "./utils/object";
+import { text_util } from "./utils/text";
+import { jqapi } from "./jqapi";
+import { ajax } from "./ajax";
 
 /**
  * Возвращает автоинкрементный идентификатор.
  * @param {string} prefix - префикс для идентификатора
  */
-var generateId = (function () {
+var generateId = (function() {
     var counter = 0;
-    return function (prefix) {
-        return (prefix || '') + ++counter;
-    }
-}());
+    return function(prefix) {
+        return (prefix || "") + ++counter;
+    };
+})();
 
 /**
  * Утилиты на все случаи жизни.
@@ -43,7 +43,7 @@ var utils = {
     slice: collection_util.slice,
 
     delay: func_util.delay,
-    
+
     areSame: object_util.areSame,
     compactObject: object_util.compact,
     getDeepValue: object_util.getDeepValue,

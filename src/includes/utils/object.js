@@ -1,5 +1,5 @@
-import { collection_util } from './collection';
-import { lang_util } from './lang';
+import { collection_util } from "./collection";
+import { lang_util } from "./lang";
 
 /**
  * Утилиты для работы с объектами.
@@ -16,9 +16,9 @@ var object_util = {
             return false;
         }
 
-        if (typeof a == 'object' && a != null && b != null) {
-            collection_util.each(a, function (value, i) {
-                return same = self(value, b[i]);
+        if (typeof a == "object" && a != null && b != null) {
+            collection_util.each(a, function(value, i) {
+                return (same = self(value, b[i]));
             });
             return same;
         }
@@ -30,11 +30,12 @@ var object_util = {
      * Копирует свойства и их значения из исходных объектов в целевой
      */
     assign: function(target, varArgs) {
-        if (typeof Object.assign === 'function') {
+        if (typeof Object.assign === "function") {
             return Object.assign.apply(null, arguments);
         }
-        if (target == null) { // TypeError if undefined or null
-            throw new TypeError('Cannot convert undefined or null to object');
+        if (target == null) {
+            // TypeError if undefined or null
+            throw new TypeError("Cannot convert undefined or null to object");
         }
 
         var to = Object(target);
@@ -42,10 +43,16 @@ var object_util = {
         for (var index = 1; index < arguments.length; index++) {
             var nextSource = arguments[index];
 
-            if (nextSource != null) { // Skip over if undefined or null
+            if (nextSource != null) {
+                // Skip over if undefined or null
                 for (var nextKey in nextSource) {
                     // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(
+                            nextSource,
+                            nextKey
+                        )
+                    ) {
                         to[nextKey] = nextSource[nextKey];
                     }
                 }
@@ -69,8 +76,8 @@ var object_util = {
     compact: function(obj) {
         var copy = object_util.clone(obj);
 
-        collection_util.each(copy, function (val, key) {
-            if (val === null || val === undefined || val === '') {
+        collection_util.each(copy, function(val, key) {
+            if (val === null || val === undefined || val === "") {
                 delete copy[key];
             }
         });
@@ -84,13 +91,13 @@ var object_util = {
      * @param {Array} fields - список названий полей, которые надо проверить
      * @returns {boolean}
      */
-    fieldsAreNotEmpty: function(obj, fields){
+    fieldsAreNotEmpty: function(obj, fields) {
         if (!lang_util.isPlainObject(obj)) {
             return false;
         }
         var result = true;
-        collection_util.each(fields, function (field, i) {
-            result = !!(obj[field]);
+        collection_util.each(fields, function(field, i) {
+            result = !!obj[field];
             return result;
         });
         return result;
@@ -101,10 +108,12 @@ var object_util = {
      * например, 'data.address.value'
      */
     getDeepValue: function self(obj, name) {
-        var path = name.split('.'),
+        var path = name.split("."),
             step = path.shift();
 
-        return obj && (path.length ? self(obj[step], path.join('.')) : obj[step]);
+        return (
+            obj && (path.length ? self(obj[step], path.join(".")) : obj[step])
+        );
     },
 
     /**
@@ -118,10 +127,10 @@ var object_util = {
      * @param {string} indexField - название поля с порядковым номером
      * @return {Object} карта объектов по их идентификаторам
      */
-    indexObjectsById: function (objectsArray, idField, indexField) {
+    indexObjectsById: function(objectsArray, idField, indexField) {
         var result = {};
 
-        collection_util.each(objectsArray, function (obj, idx) {
+        collection_util.each(objectsArray, function(obj, idx) {
             var key = obj[idField];
             var val = {};
 

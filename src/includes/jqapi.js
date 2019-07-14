@@ -1,11 +1,9 @@
-import $ from 'jquery';
-
+import $ from "jquery";
 
 /**
  * jQuery API.
  */
 var jqapi = {
-
     Deferred: function() {
         return $.Deferred();
     },
@@ -37,6 +35,6 @@ var jqapi = {
     supportsCors: function() {
         return $.support.cors;
     }
-}
+};
 
 export { jqapi };

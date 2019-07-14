@@ -2,12 +2,11 @@
  * Утилиты для работы с DOM.
  */
 var dom = {
-    
     /**
      * Выбрать первый элемент с указанным классом.
      */
     selectByClass: function(classname, parent) {
-        var selector = '.' + classname;
+        var selector = "." + classname;
         if (parent) {
             return parent.querySelector(selector);
         } else {
@@ -19,11 +18,11 @@ var dom = {
      * Добавить элементу класс.
      */
     addClass: function(element, className) {
-        var list = element.className.split(' ');
+        var list = element.className.split(" ");
         if (list.indexOf(className) === -1) {
             list.push(className);
         }
-        element.className = list.join(' ');
+        element.className = list.join(" ");
     },
 
     /**
@@ -49,7 +48,7 @@ var dom = {
             eventsByNamespace[namespace].push({
                 eventName: eventName,
                 element: element,
-                callback: callback,
+                callback: callback
             });
         }
     },
@@ -61,10 +60,14 @@ var dom = {
         var events = eventsByNamespace[namespace];
         if (events) {
             events.forEach(function(event) {
-                event.element.removeEventListener(event.eventName, event.callback, false);
-            })
+                event.element.removeEventListener(
+                    event.eventName,
+                    event.callback,
+                    false
+                );
+            });
         }
-    },
+    }
 };
 
 export { dom };

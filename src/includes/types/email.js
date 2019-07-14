@@ -1,11 +1,11 @@
-import { matchers } from '../matchers';
+import { matchers } from "../matchers";
 
 var EMAIL_TYPE = {
-    urlSuffix: 'email',
+    urlSuffix: "email",
     noSuggestionsHint: false,
-    matchers: [ matchers.matchByNormalizedQuery() ],
-    isQueryRequestable: function (query) {
-        return this.options.suggest_local || query.indexOf('@') >= 0;
+    matchers: [matchers.matchByNormalizedQuery()],
+    isQueryRequestable: function(query) {
+        return this.options.suggest_local || query.indexOf("@") >= 0;
     }
 };
 

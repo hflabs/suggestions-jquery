@@ -1,13 +1,13 @@
-import { DEFAULT_OPTIONS } from './default-options';
-import { lang_util } from './utils/lang';
-import { collection_util } from './utils/collection';
-import { text_util } from './utils/text';
-import { object_util } from './utils/object';
-import { generateId } from './utils';
-import { ajax } from './ajax';
-import { jqapi } from './jqapi';
-import { Suggestions } from './suggestions';
-import { notificator } from './notificator';
+import { DEFAULT_OPTIONS } from "./default-options";
+import { lang_util } from "./utils/lang";
+import { collection_util } from "./utils/collection";
+import { text_util } from "./utils/text";
+import { object_util } from "./utils/object";
+import { generateId } from "./utils";
+import { ajax } from "./ajax";
+import { jqapi } from "./jqapi";
+import { Suggestions } from "./suggestions";
+import { notificator } from "./notificator";
 
 /**
  * Methods related to CONSTRAINTS component
@@ -18,12 +18,12 @@ var optionsUsed = {
 };
 
 var fiasParamNames = [
-  'region_fias_id',
-  'area_fias_id',
-  'city_fias_id',
-  'city_district_fias_id',
-  'settlement_fias_id',
-  'street_fias_id'
+    "region_fias_id",
+    "area_fias_id",
+    "city_fias_id",
+    "city_district_fias_id",
+    "settlement_fias_id",
+    "street_fias_id"
 ];
 
 /**
@@ -31,13 +31,14 @@ var fiasParamNames = [
  * @param suggestion
  * @param instance other Suggestions instance
  */
-function belongsToArea(suggestion, instance){
+function belongsToArea(suggestion, instance) {
     var parentSuggestion = instance.selection,
         result = parentSuggestion && parentSuggestion.data && instance.bounds;
 
     if (result) {
-        collection_util.each(instance.bounds.all, function (bound, i) {
-            return (result = parentSuggestion.data[bound] === suggestion.data[bound]);
+        collection_util.each(instance.bounds.all, function(bound, i) {
+            return (result =
+                parentSuggestion.data[bound] === suggestion.data[bound]);
         });
     }
     return result;
@@ -50,7 +51,7 @@ function belongsToArea(suggestion, instance){
  * @returns {string}
  */
 function getSignificantKladrId(kladr_id) {
-    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, '$1$2');
+    var significantKladrId = kladr_id.replace(/^(\d{2})(\d*?)(0+)$/g, "$1$2");
     var length = significantKladrId.length;
     var significantLength = -1;
     if (length <= 2) {
@@ -74,7 +75,7 @@ function getSignificantKladrId(kladr_id) {
  * @param {Suggestions} instance
  * @constructor
  */
-var ConstraintLocation = function(data, instance){
+var ConstraintLocation = function(data, instance) {
     var that = this,
         fieldNames,
         fiasFieldNames,
@@ -85,7 +86,10 @@ var ConstraintLocation = function(data, instance){
     that.specificity = -1;
 
     if (lang_util.isPlainObject(data) && instance.type.dataComponents) {
-        collection_util.each(instance.type.dataComponents, function (component, i) {
+        collection_util.each(instance.type.dataComponents, function(
+            component,
+            i
+        ) {
             var fieldName = component.id;
 
             if (component.forLocations && data[fieldName]) {
@@ -111,15 +115,17 @@ var ConstraintLocation = function(data, instance){
 };
 
 jqapi.extend(ConstraintLocation.prototype, {
-    getLabel: function(){
-        return this.instance.type.composeValue(this.fields, { saveCityDistrict: true });
+    getLabel: function() {
+        return this.instance.type.composeValue(this.fields, {
+            saveCityDistrict: true
+        });
     },
 
-    getFields: function () {
+    getFields: function() {
         return this.fields;
     },
 
-    isValid: function(){
+    isValid: function() {
         return !lang_util.isEmptyObject(this.fields);
     },
 
@@ -133,8 +139,14 @@ jqapi.extend(ConstraintLocation.prototype, {
         var specificity = -1;
         var kladrLength = kladr_id.length;
 
-        collection_util.each(this.instance.type.dataComponents, function (component, i) {
-            if (component.kladrFormat && kladrLength === component.kladrFormat.digits) {
+        collection_util.each(this.instance.type.dataComponents, function(
+            component,
+            i
+        ) {
+            if (
+                component.kladrFormat &&
+                kladrLength === component.kladrFormat.digits
+            ) {
                 specificity = i;
             }
         });
@@ -155,11 +167,18 @@ jqapi.extend(ConstraintLocation.prototype, {
      * @param fiasFieldNames
      * @returns {number}
      */
-    getFiasSpecificity: function (fiasFieldNames) {
+    getFiasSpecificity: function(fiasFieldNames) {
         var specificity = -1;
 
-        collection_util.each(this.instance.type.dataComponents, function (component, i) {
-            if (component.fiasType && (fiasFieldNames.indexOf(component.fiasType) > -1) && specificity < i) {
+        collection_util.each(this.instance.type.dataComponents, function(
+            component,
+            i
+        ) {
+            if (
+                component.fiasType &&
+                fiasFieldNames.indexOf(component.fiasType) > -1 &&
+                specificity < i
+            ) {
                 specificity = i;
             }
         });
@@ -167,14 +186,19 @@ jqapi.extend(ConstraintLocation.prototype, {
         return specificity;
     },
 
-    containsData: function (data){
+    containsData: function(data) {
         var result = true;
 
         if (this.fields.kladr_id) {
-            return !!data.kladr_id && data.kladr_id.indexOf(this.significantKladr) === 0;
+            return (
+                !!data.kladr_id &&
+                data.kladr_id.indexOf(this.significantKladr) === 0
+            );
         } else {
-            collection_util.each(this.fields, function(value, fieldName){
-                return result = !!data[fieldName] && data[fieldName].toLowerCase() === value.toLowerCase();
+            collection_util.each(this.fields, function(value, fieldName) {
+                return (result =
+                    !!data[fieldName] &&
+                    data[fieldName].toLowerCase() === value.toLowerCase());
             });
 
             return result;
@@ -193,12 +217,14 @@ Suggestions.ConstraintLocation = ConstraintLocation;
  * @constructor
  */
 var Constraint = function(data, instance) {
-    this.id = generateId('c');
+    this.id = generateId("c");
     this.deletable = !!data.deletable;
     this.instance = instance;
 
-    var locationsArray = collection_util.makeArray(data && (data.locations || data.restrictions));
-    this.locations = locationsArray.map(function (data) {
+    var locationsArray = collection_util.makeArray(
+        data && (data.locations || data.restrictions)
+    );
+    this.locations = locationsArray.map(function(data) {
         return new ConstraintLocation(data, instance);
     });
 
@@ -208,19 +234,25 @@ var Constraint = function(data, instance) {
 
     this.label = data.label;
     if (this.label == null && instance.type.composeValue) {
-        this.label = this.locations.map(function (location) {
-            return location.getLabel();
-        }).join(', ');
+        this.label = this.locations
+            .map(function(location) {
+                return location.getLabel();
+            })
+            .join(", ");
     }
 
     if (this.label && this.isValid()) {
-        this.$el = jqapi.select(document.createElement('li'))
-            .append(jqapi.select(document.createElement('span')).text(this.label))
-            .attr('data-constraint-id', this.id);
+        this.$el = jqapi
+            .select(document.createElement("li"))
+            .append(
+                jqapi.select(document.createElement("span")).text(this.label)
+            )
+            .attr("data-constraint-id", this.id);
 
         if (this.deletable) {
             this.$el.append(
-                jqapi.select(document.createElement('span'))
+                jqapi
+                    .select(document.createElement("span"))
                     .addClass(instance.classes.removeConstraint)
             );
         }
@@ -228,56 +260,68 @@ var Constraint = function(data, instance) {
 };
 
 jqapi.extend(Constraint.prototype, {
-    isValid: function () {
+    isValid: function() {
         return this.locations.length > 0;
     },
-    getFields: function(){
-        return this.locations.map(function(location){
+    getFields: function() {
+        return this.locations.map(function(location) {
             return location.getFields();
         });
     }
 });
 
 var methods = {
-
-    createConstraints: function () {
+    createConstraints: function() {
         var that = this;
 
         that.constraints = {};
 
-        that.$constraints = jqapi.select('<ul class="suggestions-constraints"/>');
+        that.$constraints = jqapi.select(
+            '<ul class="suggestions-constraints"/>'
+        );
         that.$wrapper.append(that.$constraints);
-        that.$constraints.on('click', '.' + that.classes.removeConstraint, 
-            jqapi.proxy(that.onConstraintRemoveClick, that));
+        that.$constraints.on(
+            "click",
+            "." + that.classes.removeConstraint,
+            jqapi.proxy(that.onConstraintRemoveClick, that)
+        );
     },
 
-    setConstraintsPosition: function(origin, elLayout){
+    setConstraintsPosition: function(origin, elLayout) {
         var that = this;
 
         that.$constraints.css({
-            left: origin.left + elLayout.borderLeft + elLayout.paddingLeft + 'px',
-            top: origin.top + elLayout.borderTop + Math.round((elLayout.innerHeight - that.$constraints.height()) / 2) + 'px'
+            left:
+                origin.left + elLayout.borderLeft + elLayout.paddingLeft + "px",
+            top:
+                origin.top +
+                elLayout.borderTop +
+                Math.round(
+                    (elLayout.innerHeight - that.$constraints.height()) / 2
+                ) +
+                "px"
         });
 
-        elLayout.componentsLeft += that.$constraints.outerWidth(true) + elLayout.paddingLeft;
+        elLayout.componentsLeft +=
+            that.$constraints.outerWidth(true) + elLayout.paddingLeft;
     },
 
-    onConstraintRemoveClick: function (e) {
+    onConstraintRemoveClick: function(e) {
         var that = this,
-            $item = jqapi.select(e.target).closest('li'),
-            id = $item.attr('data-constraint-id');
+            $item = jqapi.select(e.target).closest("li"),
+            id = $item.attr("data-constraint-id");
 
         // Delete constraint data before animation to let correct requests to be sent while fading
         delete that.constraints[id];
         // Request for new suggestions
         that.update();
 
-        $item.fadeOut('fast', function () {
+        $item.fadeOut("fast", function() {
             that.removeConstraint(id);
         });
     },
 
-    setupConstraints: function () {
+    setupConstraints: function() {
         var that = this,
             constraints = that.options.constraints,
             $parent;
@@ -287,7 +331,11 @@ var methods = {
             return;
         }
 
-        if (jqapi.isJqObject(constraints) || typeof constraints === 'string' || typeof constraints.nodeType === 'number') {
+        if (
+            jqapi.isJqObject(constraints) ||
+            typeof constraints === "string" ||
+            typeof constraints.nodeType === "number"
+        ) {
             $parent = jqapi.select(constraints);
             if (!$parent.is(that.constraints)) {
                 that.unbindFromParent();
@@ -301,25 +349,28 @@ var methods = {
             collection_util.each(that.constraints, function(_, id) {
                 that.removeConstraint(id);
             });
-            collection_util.each(collection_util.makeArray(constraints), function (constraint, i) {
-                that.addConstraint(constraint);
-            });
+            collection_util.each(
+                collection_util.makeArray(constraints),
+                function(constraint, i) {
+                    that.addConstraint(constraint);
+                }
+            );
             that._constraintsUpdating = false;
             that.fixPosition();
         }
     },
 
-    filteredLocation: function (data) {
+    filteredLocation: function(data) {
         var locationComponents = [],
             location = {};
 
-        collection_util.each(this.type.dataComponents, function () {
+        collection_util.each(this.type.dataComponents, function() {
             if (this.forLocations) locationComponents.push(this.id);
         });
 
         if (lang_util.isPlainObject(data)) {
             // Copy to location only allowed fields
-            collection_util.each(data, function (value, key) {
+            collection_util.each(data, function(value, key) {
                 if (value && locationComponents.indexOf(key) >= 0) {
                     location[key] = value;
                 }
@@ -327,11 +378,13 @@ var methods = {
         }
 
         if (!lang_util.isEmptyObject(location)) {
-            return location.kladr_id ? { kladr_id: location.kladr_id } : location;
+            return location.kladr_id
+                ? { kladr_id: location.kladr_id }
+                : location;
         }
     },
 
-    addConstraint: function (constraint) {
+    addConstraint: function(constraint) {
         var that = this;
 
         constraint = new Constraint(constraint, that);
@@ -348,16 +401,18 @@ var methods = {
         }
     },
 
-    removeConstraint: function (id) {
+    removeConstraint: function(id) {
         var that = this;
         delete that.constraints[id];
-        that.$constraints.children('[data-constraint-id="' + id + '"]').remove();
+        that.$constraints
+            .children('[data-constraint-id="' + id + '"]')
+            .remove();
         if (!that._constraintsUpdating) {
             that.fixPosition();
         }
     },
 
-    constructConstraintsParams: function () {
+    constructConstraintsParams: function() {
         var that = this,
             locations = [],
             constraints = that.constraints,
@@ -365,28 +420,35 @@ var methods = {
             parentData,
             params = {};
 
-        while (jqapi.isJqObject(constraints) && (parentInstance = constraints.suggestions()) &&
-            !(parentData = object_util.getDeepValue(parentInstance, 'selection.data'))
+        while (
+            jqapi.isJqObject(constraints) &&
+            (parentInstance = constraints.suggestions()) &&
+            !(parentData = object_util.getDeepValue(
+                parentInstance,
+                "selection.data"
+            ))
         ) {
             constraints = parentInstance.constraints;
         }
 
         if (jqapi.isJqObject(constraints)) {
-            parentData = (new ConstraintLocation(parentData, parentInstance))
-                .getFields();
+            parentData = new ConstraintLocation(
+                parentData,
+                parentInstance
+            ).getFields();
 
             if (parentData) {
                 // if send city_fias_id for city request
                 // then no cities will responded
-                if (that.bounds.own.indexOf('city') > -1) {
+                if (that.bounds.own.indexOf("city") > -1) {
                     delete parentData.city_fias_id;
                 }
-                params.locations = [ parentData ];
+                params.locations = [parentData];
                 params.restrict_value = true;
             }
         } else {
             if (constraints) {
-                collection_util.each(constraints, function (constraint, id) {
+                collection_util.each(constraints, function(constraint, id) {
                     locations = locations.concat(constraint.getFields());
                 });
 
@@ -406,54 +468,66 @@ var methods = {
      */
     getFirstConstraintLabel: function() {
         var that = this,
-            constraints_id = lang_util.isPlainObject(that.constraints) && Object.keys(that.constraints)[0];
+            constraints_id =
+                lang_util.isPlainObject(that.constraints) &&
+                Object.keys(that.constraints)[0];
 
-        return constraints_id ? that.constraints[constraints_id].label : '';
+        return constraints_id ? that.constraints[constraints_id].label : "";
     },
 
-    bindToParent: function () {
+    bindToParent: function() {
         var that = this;
 
         that.constraints
-            .on([
-                    'suggestions-select.' + that.uniqueId,
-                    'suggestions-invalidateselection.' + that.uniqueId,
-                    'suggestions-clear.' + that.uniqueId
-                ].join(' '),
+            .on(
+                [
+                    "suggestions-select." + that.uniqueId,
+                    "suggestions-invalidateselection." + that.uniqueId,
+                    "suggestions-clear." + that.uniqueId
+                ].join(" "),
                 jqapi.proxy(that.onParentSelectionChanged, that)
             )
-            .on('suggestions-dispose.' + that.uniqueId, jqapi.proxy(that.onParentDispose, that));
+            .on(
+                "suggestions-dispose." + that.uniqueId,
+                jqapi.proxy(that.onParentDispose, that)
+            );
     },
 
-    unbindFromParent: function  () {
+    unbindFromParent: function() {
         var that = this,
             $parent = that.constraints;
 
         if (jqapi.isJqObject($parent)) {
-            $parent.off('.' + that.uniqueId);
+            $parent.off("." + that.uniqueId);
         }
     },
 
-    onParentSelectionChanged: function (e, suggestion, valueChanged) {
+    onParentSelectionChanged: function(e, suggestion, valueChanged) {
         // Don't clear if parent has been just enriched
-        if (e.type !== 'suggestions-select' || valueChanged) {
+        if (e.type !== "suggestions-select" || valueChanged) {
             this.clear();
         }
     },
 
-    onParentDispose: function (e) {
+    onParentDispose: function(e) {
         this.unbindFromParent();
     },
 
-    getParentInstance: function () {
-        return jqapi.isJqObject(this.constraints) && this.constraints.suggestions();
+    getParentInstance: function() {
+        return (
+            jqapi.isJqObject(this.constraints) && this.constraints.suggestions()
+        );
     },
 
-    shareWithParent: function (suggestion) {
+    shareWithParent: function(suggestion) {
         // that is the parent control's instance
         var that = this.getParentInstance();
 
-        if (!that || that.type !== this.type || belongsToArea(suggestion, that)) {
+        if (
+            !that ||
+            that.type !== this.type ||
+            belongsToArea(suggestion, that)
+        ) {
             return;
         }
 
@@ -464,35 +538,46 @@ var methods = {
     /**
      * Pick only fields that absent in restriction
      */
-    getUnrestrictedData: function (data) {
+    getUnrestrictedData: function(data) {
         var that = this,
             restrictedKeys = [],
             unrestrictedData = {},
             maxSpecificity = -1;
 
         // Find most specific location that could restrict current data
-        collection_util.each(that.constraints, function (constraint, id) {
-            collection_util.each(constraint.locations, function (location, i) {
-                if (location.containsData(data) && location.specificity > maxSpecificity) {
+        collection_util.each(that.constraints, function(constraint, id) {
+            collection_util.each(constraint.locations, function(location, i) {
+                if (
+                    location.containsData(data) &&
+                    location.specificity > maxSpecificity
+                ) {
                     maxSpecificity = location.specificity;
                 }
             });
         });
 
         if (maxSpecificity >= 0) {
-
             // Для городов-регионов нужно также отсечь и город
-            if (data.region_kladr_id && data.region_kladr_id === data.city_kladr_id) {
-                restrictedKeys.push.apply(restrictedKeys, that.type.dataComponentsById['city'].fields);
+            if (
+                data.region_kladr_id &&
+                data.region_kladr_id === data.city_kladr_id
+            ) {
+                restrictedKeys.push.apply(
+                    restrictedKeys,
+                    that.type.dataComponentsById["city"].fields
+                );
             }
 
             // Collect all fieldnames from all restricted components
-            collection_util.each(that.type.dataComponents.slice(0, maxSpecificity + 1), function (component, i) {
-                restrictedKeys.push.apply(restrictedKeys, component.fields);
-            });
+            collection_util.each(
+                that.type.dataComponents.slice(0, maxSpecificity + 1),
+                function(component, i) {
+                    restrictedKeys.push.apply(restrictedKeys, component.fields);
+                }
+            );
 
             // Copy skipping restricted fields
-            collection_util.each(data, function (value, key) {
+            collection_util.each(data, function(value, key) {
                 if (restrictedKeys.indexOf(key) === -1) {
                     unrestrictedData[key] = value;
                 }
@@ -503,7 +588,6 @@ var methods = {
 
         return unrestrictedData;
     }
-
 };
 
 jqapi.extend(DEFAULT_OPTIONS, optionsUsed);
@@ -511,11 +595,11 @@ jqapi.extend(DEFAULT_OPTIONS, optionsUsed);
 jqapi.extend(Suggestions.prototype, methods);
 
 // Disable this feature when GET method used. See SUG-202
-if (ajax.getDefaultType() != 'GET') {
+if (ajax.getDefaultType() != "GET") {
     notificator
-        .on('initialize', methods.createConstraints)
-        .on('setOptions', methods.setupConstraints)
-        .on('fixPosition', methods.setConstraintsPosition)
-        .on('requestParams', methods.constructConstraintsParams)
-        .on('dispose', methods.unbindFromParent);
+        .on("initialize", methods.createConstraints)
+        .on("setOptions", methods.setupConstraints)
+        .on("fixPosition", methods.setConstraintsPosition)
+        .on("requestParams", methods.constructConstraintsParams)
+        .on("dispose", methods.unbindFromParent);
 }

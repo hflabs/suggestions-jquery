@@ -1,34 +1,34 @@
 (function($) {
-
     function geolocateCity($city) {
         var citySgt = $city.suggestions();
-        citySgt.getGeoLocation().done(
-            function(locationData) {
-                if (locationData.city) {
-                    var suggestionVal = locationData.city_type + " " + locationData.city,
-                        suggestion = { value: suggestionVal, data: locationData };
-                    citySgt.setSuggestion(suggestion);
-                } else if (locationData.region) {
-                    var suggestionVal = locationData.region_type + " " + locationData.region,
-                        suggestion = { value: suggestionVal, data: locationData };
-                    citySgt.setSuggestion(suggestion);
-                }
-            });
+        citySgt.getGeoLocation().done(function(locationData) {
+            if (locationData.city) {
+                var suggestionVal =
+                        locationData.city_type + " " + locationData.city,
+                    suggestion = { value: suggestionVal, data: locationData };
+                citySgt.setSuggestion(suggestion);
+            } else if (locationData.region) {
+                var suggestionVal =
+                        locationData.region_type + " " + locationData.region,
+                    suggestion = { value: suggestionVal, data: locationData };
+                citySgt.setSuggestion(suggestion);
+            }
+        });
     }
 
     $(function() {
         Token.init();
 
-        var serviceUrl='https://suggestions.dadata.ru/suggestions/api/4_1/rs',
+        var serviceUrl = "https://suggestions.dadata.ru/suggestions/api/4_1/rs",
             token = Token.get(),
-            type  = 'ADDRESS',
-            $region = $('#region'),
-            $area   = $('#area'),
-            $city   = $('#city'),
-            $cityDistrict   = $('#city_district'),
-            $settlement = $('#settlement'),
-            $street = $('#street'),
-            $house  = $('#house');
+            type = "ADDRESS",
+            $region = $("#region"),
+            $area = $("#area"),
+            $city = $("#city"),
+            $cityDistrict = $("#city_district"),
+            $settlement = $("#settlement"),
+            $street = $("#street"),
+            $house = $("#house");
 
         // регион
         $region.suggestions({
@@ -36,7 +36,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'region'
+            bounds: "region"
         });
 
         // район
@@ -45,7 +45,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'area',
+            bounds: "area",
             constraints: $region
         });
 
@@ -55,7 +55,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'city',
+            bounds: "city",
             constraints: $area
         });
 
@@ -65,7 +65,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'city_district',
+            bounds: "city_district",
             constraints: $city
         });
 
@@ -77,7 +77,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'settlement',
+            bounds: "settlement",
             constraints: $cityDistrict
         });
 
@@ -87,7 +87,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'street',
+            bounds: "street",
             constraints: $settlement
         });
 
@@ -97,20 +97,17 @@
             token: token,
             type: type,
             hint: false,
-            bounds: 'house',
+            bounds: "house",
             constraints: $street
         });
 
-        $('#name').suggestions({
+        $("#name").suggestions({
             serviceUrl: serviceUrl,
             token: token,
             type: "NAME",
             params: {
-              parts: ["NAME"]
+                parts: ["NAME"]
             }
         });
-
     });
-
 })(jQuery);
-

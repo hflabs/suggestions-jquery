@@ -1,44 +1,46 @@
-describe('After selecting', function () {
-    'use strict';
+describe("After selecting", function() {
+    "use strict";
 
-    var serviceUrl = '/some/url';
+    var serviceUrl = "/some/url";
 
-    beforeEach(function () {
+    beforeEach(function() {
         $.Suggestions.resetTokens();
 
         this.server = sinon.fakeServer.create();
 
-        this.input = document.createElement('input');
-        this.$input = $(this.input).appendTo($('body'));
-        this.instance = this.$input.suggestions({
-            serviceUrl: serviceUrl,
-            type: 'NAME',
-            enrichmentEnabled: false
-        }).suggestions();
+        this.input = document.createElement("input");
+        this.$input = $(this.input).appendTo($("body"));
+        this.instance = this.$input
+            .suggestions({
+                serviceUrl: serviceUrl,
+                type: "NAME",
+                enrichmentEnabled: false
+            })
+            .suggestions();
 
         helpers.returnPoorStatus(this.server);
     });
 
-    afterEach(function () {
+    afterEach(function() {
         this.server.restore();
         this.instance.dispose();
         this.$input.remove();
     });
 
-    it('Should hide dropdown if received suggestions contains only one suggestion equal to current', function () {
+    it("Should hide dropdown if received suggestions contains only one suggestion equal to current", function() {
         var suggestions = [
             {
-                value: 'Some value',
+                value: "Some value",
                 data: null
             }
         ];
 
         // show list
-        this.input.value = 'S';
+        this.input.value = "S";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
 
-        spyOn(this.instance, 'hide');
+        spyOn(this.instance, "hide");
 
         // select suggestion from list
         this.instance.selectedIndex = 0;
@@ -50,25 +52,25 @@ describe('After selecting', function () {
         expect(this.instance.hide).toHaveBeenCalled();
     });
 
-    it('Should hide dropdown if selected NAME suggestion with all fields filled', function () {
+    it("Should hide dropdown if selected NAME suggestion with all fields filled", function() {
         var suggestions = [
             {
-                value: 'Surname Name Patronymic',
+                value: "Surname Name Patronymic",
                 data: {
-                    surname: 'Surname',
-                    name: 'Name',
-                    patronymic: 'Patronymic',
-                    gender: 'MALE'
+                    surname: "Surname",
+                    name: "Name",
+                    patronymic: "Patronymic",
+                    gender: "MALE"
                 }
             }
         ];
 
-        this.input.value = 'S';
+        this.input.value = "S";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
 
-        spyOn(this.instance, 'getSuggestions');
-        spyOn(this.instance, 'hide');
+        spyOn(this.instance, "getSuggestions");
+        spyOn(this.instance, "hide");
 
         this.instance.selectedIndex = 0;
         helpers.hitEnter(this.input);
@@ -77,25 +79,25 @@ describe('After selecting', function () {
         expect(this.instance.hide).toHaveBeenCalled();
     });
 
-    it('Should hide dropdown if selected NAME suggestion with name and surname filled for IOF', function () {
+    it("Should hide dropdown if selected NAME suggestion with name and surname filled for IOF", function() {
         var suggestions = [
             {
-                value: 'Николай Александрович',
+                value: "Николай Александрович",
                 data: {
-                    surname: 'Александрович',
-                    name: 'Николай',
+                    surname: "Александрович",
+                    name: "Николай",
                     patronymic: null,
-                    gender: 'MALE'
+                    gender: "MALE"
                 }
             }
         ];
 
-        this.input.value = 'Н';
+        this.input.value = "Н";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
 
-        spyOn(this.instance, 'getSuggestions');
-        spyOn(this.instance, 'hide');
+        spyOn(this.instance, "getSuggestions");
+        spyOn(this.instance, "hide");
 
         this.instance.selectedIndex = 0;
         helpers.hitEnter(this.input);
@@ -104,34 +106,34 @@ describe('After selecting', function () {
         expect(this.instance.hide).toHaveBeenCalled();
     });
 
-    it('Should hide dropdown if selected ADDRESS suggestion with `house` field filled', function () {
+    it("Should hide dropdown if selected ADDRESS suggestion with `house` field filled", function() {
         var suggestions = [
             {
-                value: 'Россия, г Москва, ул Арбат, дом 10',
+                value: "Россия, г Москва, ул Арбат, дом 10",
                 data: {
-                    country: 'Россия',
-                    city: 'Москва',
-                    city_type: 'г',
-                    street: 'Арбат',
-                    street_type: 'ул',
-                    house: '10',
-                    house_type: 'дом'
+                    country: "Россия",
+                    city: "Москва",
+                    city_type: "г",
+                    street: "Арбат",
+                    street_type: "ул",
+                    house: "10",
+                    house_type: "дом"
                 }
             }
         ];
 
         this.instance.setOptions({
-            type: 'ADDRESS',
+            type: "ADDRESS",
             geoLocation: false
         });
         helpers.returnPoorStatus(this.server);
 
-        this.input.value = 'Р';
+        this.input.value = "Р";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
 
-        spyOn(this.instance, 'getSuggestions');
-        spyOn(this.instance, 'hide');
+        spyOn(this.instance, "getSuggestions");
+        spyOn(this.instance, "hide");
 
         this.instance.selectedIndex = 0;
         helpers.hitEnter(this.input);
@@ -140,21 +142,21 @@ describe('After selecting', function () {
         expect(this.instance.hide).toHaveBeenCalled();
     });
 
-    it('Should do nothing if select same suggestion twice', function () {
+    it("Should do nothing if select same suggestion twice", function() {
         var suggestion = {
-                value: 'Some value',
+                value: "Some value",
                 data: {}
             },
             options = {
                 onSelect: $.noop
             };
 
-        spyOn(options, 'onSelect');
+        spyOn(options, "onSelect");
 
         this.instance.setOptions(options);
 
         // show list
-        this.input.value = 'S';
+        this.input.value = "S";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor([suggestion]));
 
@@ -167,23 +169,22 @@ describe('After selecting', function () {
         expect(options.onSelect).not.toHaveBeenCalled();
     });
 
-    it('Should show hint if no suggestions received', function () {
+    it("Should show hint if no suggestions received", function() {
         var suggestions = [];
 
         this.instance.setOptions({
-            type: 'ADDRESS',
+            type: "ADDRESS",
             geoLocation: false
         });
         helpers.returnPoorStatus(this.server);
-        spyOn(this.instance, 'hide');
+        spyOn(this.instance, "hide");
 
-        this.input.value = 'Р';
+        this.input.value = "Р";
         this.instance.onValueChange();
         this.server.respond(helpers.responseFor(suggestions));
 
-        var $hint = this.instance.$container.find('.suggestions-hint');
+        var $hint = this.instance.$container.find(".suggestions-hint");
         expect($hint.length).toEqual(1);
         expect(this.instance.hide).not.toHaveBeenCalled();
     });
-
 });

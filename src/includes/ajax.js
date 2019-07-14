@@ -1,5 +1,5 @@
-import { object_util } from './utils/object';
-import { jqapi } from './jqapi';
+import { object_util } from "./utils/object";
+import { jqapi } from "./jqapi";
 
 /**
  * Утилиты для работы через AJAX
@@ -8,29 +8,33 @@ var ajax = {
     /**
      * HTTP-метод, который поддерживает браузер
      */
-    getDefaultType: function () {
-        return (jqapi.supportsCors() ? 'POST' : 'GET');
+    getDefaultType: function() {
+        return jqapi.supportsCors() ? "POST" : "GET";
     },
 
     /**
      * Content-type, который поддерживает браузер
      */
-    getDefaultContentType: function () {
-        return (jqapi.supportsCors() ? 'application/json' : 'application/x-www-form-urlencoded');
+    getDefaultContentType: function() {
+        return jqapi.supportsCors()
+            ? "application/json"
+            : "application/x-www-form-urlencoded";
     },
 
     /**
      * Меняет HTTPS на протокол страницы, если браузер не поддерживает CORS
      */
-    fixURLProtocol: function(url){
-        return jqapi.supportsCors() ? url : url.replace(/^https?:/, location.protocol);
+    fixURLProtocol: function(url) {
+        return jqapi.supportsCors()
+            ? url
+            : url.replace(/^https?:/, location.protocol);
     },
 
     /**
      * Записывает параметры в GET-строку
      */
-    addUrlParams: function (url, params) {
-        return url + (/\?/.test(url) ? '&' : '?') + jqapi.param(params);
+    addUrlParams: function(url, params) {
+        return url + (/\?/.test(url) ? "&" : "?") + jqapi.param(params);
     },
 
     /**
@@ -38,9 +42,9 @@ var ajax = {
      * Либо в JSON-строку (если браузер поддерживает CORS),
      *   либо в GET-строку.
      */
-    serialize: function (data) {
+    serialize: function(data) {
         if (jqapi.supportsCors()) {
-            return JSON.stringify(data, function (key, value) {
+            return JSON.stringify(data, function(key, value) {
                 return value === null ? undefined : value;
             });
         } else {

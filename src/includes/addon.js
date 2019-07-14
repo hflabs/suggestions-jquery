@@ -1,13 +1,13 @@
-import { DEFAULT_OPTIONS } from './default-options';
-import { collection_util } from './utils/collection';
-import { jqapi } from './jqapi';
-import { notificator } from './notificator';
+import { DEFAULT_OPTIONS } from "./default-options";
+import { collection_util } from "./utils/collection";
+import { jqapi } from "./jqapi";
+import { notificator } from "./notificator";
 
 /**
  * Methods related to right-sided component
  */
 
-var QUEUE_NAME = 'addon',
+var QUEUE_NAME = "addon",
     BEFORE_SHOW_ADDON = 50,
     BEFORE_RESTORE_PADDING = 1000;
 
@@ -16,12 +16,12 @@ var optionsUsed = {
 };
 
 var ADDON_TYPES = {
-    'NONE': 'none',
-    'SPINNER': 'spinner',
-    'CLEAR': 'clear'
+    NONE: "none",
+    SPINNER: "spinner",
+    CLEAR: "clear"
 };
 
-var Addon = function (owner) {
+var Addon = function(owner) {
     var $el = jqapi.select('<span class="suggestions-addon"/>');
 
     this.owner = owner;
@@ -30,16 +30,15 @@ var Addon = function (owner) {
     this.visible = false;
     this.initialPadding = null;
 
-    $el.on('click', jqapi.proxy(this, 'onClick'));
+    $el.on("click", jqapi.proxy(this, "onClick"));
 };
 
 Addon.prototype = {
-
     checkType: function() {
         var type = this.owner.options.addon;
         var isTypeCorrect = false;
 
-        collection_util.each(ADDON_TYPES, function (value, key) {
+        collection_util.each(ADDON_TYPES, function(value, key) {
             isTypeCorrect = value == type;
             if (isTypeCorrect) {
                 return false;
@@ -47,12 +46,14 @@ Addon.prototype = {
         });
 
         if (!isTypeCorrect) {
-            type = this.owner.isMobile ? ADDON_TYPES.CLEAR : ADDON_TYPES.SPINNER;
+            type = this.owner.isMobile
+                ? ADDON_TYPES.CLEAR
+                : ADDON_TYPES.SPINNER;
         }
 
         if (type != this.type) {
             this.type = type;
-            this.$el.attr('data-addon-type', type);
+            this.$el.attr("data-addon-type", type);
             this.toggle(true);
         }
     },
@@ -91,53 +92,52 @@ Addon.prototype = {
 
     show: function(immediate) {
         var that = this;
-        var style = {'opacity': 1};
+        var style = { opacity: 1 };
 
         if (immediate) {
-            this.$el
-                .show()
-                .css(style);
-                this.showBackground(true);
+            this.$el.show().css(style);
+            this.showBackground(true);
         } else {
             this.$el
                 .stop(true, true)
                 .delay(BEFORE_SHOW_ADDON)
-                .queue(function () {
+                .queue(function() {
                     that.$el.show();
                     that.showBackground();
                     that.$el.dequeue();
                 })
-                .animate(style, 'fast');
+                .animate(style, "fast");
         }
     },
 
     hide: function(immediate) {
         var that = this;
-        var style = {'opacity': 0};
+        var style = { opacity: 0 };
 
         if (immediate) {
-            this.$el
-                .hide()
-                .css(style);
+            this.$el.hide().css(style);
         }
-        this.$el
-            .stop(true)
-            .animate(style, {
-                duration: 'fast',
-                complete: function () {
-                    that.$el.hide();
-                    that.hideBackground();
-                }
-            });
+        this.$el.stop(true).animate(style, {
+            duration: "fast",
+            complete: function() {
+                that.$el.hide();
+                that.hideBackground();
+            }
+        });
     },
 
-    fixPosition: function(origin, elLayout){
+    fixPosition: function(origin, elLayout) {
         var addonSize = elLayout.innerHeight;
 
         this.checkType();
         this.$el.css({
-            left: origin.left + elLayout.borderLeft + elLayout.innerWidth - addonSize + 'px',
-            top: origin.top + elLayout.borderTop + 'px',
+            left:
+                origin.left +
+                elLayout.borderLeft +
+                elLayout.innerWidth -
+                addonSize +
+                "px",
+            top: origin.top + elLayout.borderTop + "px",
             height: addonSize,
             width: addonSize
         });
@@ -151,32 +151,32 @@ Addon.prototype = {
 
     showBackground: function(immediate) {
         var $el = this.owner.el;
-        var style = {'paddingRight': this.width};
+        var style = { paddingRight: this.width };
 
         if (this.width > this.initialPadding) {
             this.stopBackground();
             if (immediate) {
                 $el.css(style);
             } else {
-                $el
-                    .animate(style, { duration: 'fast', queue: QUEUE_NAME })
-                    .dequeue(QUEUE_NAME);
+                $el.animate(style, {
+                    duration: "fast",
+                    queue: QUEUE_NAME
+                }).dequeue(QUEUE_NAME);
             }
         }
     },
 
     hideBackground: function(immediate) {
         var $el = this.owner.el;
-        var style = {'paddingRight': this.initialPadding};
+        var style = { paddingRight: this.initialPadding };
 
         if (this.width > this.initialPadding) {
             this.stopBackground(true);
             if (immediate) {
                 $el.css(style);
             } else {
-                $el
-                    .delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
-                    .animate(style, { duration: 'fast', queue: QUEUE_NAME })
+                $el.delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                    .animate(style, { duration: "fast", queue: QUEUE_NAME })
                     .dequeue(QUEUE_NAME);
             }
         }
@@ -220,10 +220,10 @@ var methods = {
 jqapi.extend(DEFAULT_OPTIONS, optionsUsed);
 
 notificator
-    .on('initialize', methods.createAddon)
-    .on('setOptions', methods.checkAddonType)
-    .on('fixPosition', methods.fixAddonPosition)
-    .on('clear', methods.checkAddonVisibility)
-    .on('valueChange', methods.checkAddonVisibility)
-    .on('request', methods.checkAddonVisibility)
-    .on('resetPosition', methods.stopBackground);
+    .on("initialize", methods.createAddon)
+    .on("setOptions", methods.checkAddonType)
+    .on("fixPosition", methods.fixAddonPosition)
+    .on("clear", methods.checkAddonVisibility)
+    .on("valueChange", methods.checkAddonVisibility)
+    .on("request", methods.checkAddonVisibility)
+    .on("resetPosition", methods.stopBackground);

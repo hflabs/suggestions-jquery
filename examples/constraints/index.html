@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
         <title>Ограничиваем сектор поиска в подсказках по адресу</title>
-        <link rel="stylesheet" type="text/css" href="styles.css">
-        <link rel="stylesheet" type="text/css" href="../../dist/css/suggestions.css">
+        <link rel="stylesheet" type="text/css" href="styles.css" />
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="../../dist/css/suggestions.css"
+        />
         <script
-                src="https://code.jquery.com/jquery-1.12.4.js"
-                integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
-                crossorigin="anonymous"></script>
+            src="https://code.jquery.com/jquery-1.12.4.js"
+            integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+            crossorigin="anonymous"
+        ></script>
         <script src="../../dist/js/jquery.suggestions.js"></script>
         <script src="../token.js"></script>
         <script src="code.js"></script>
     </head>
     <body>
-
         <section class="container">
-            <p><input id="token" type="text" placeholder="Enter your API token" /></p>
+            <p>
+                <input
+                    id="token"
+                    type="text"
+                    placeholder="Enter your API token"
+                />
+            </p>
         </section>
 
         <section class="container">
@@ -26,14 +36,46 @@
             <p>Выберите вариант:</p>
             <ul id="switcher">
                 <li><a href="#none" data-switch="none">Без ограничений</a></li>
-                <li><a href="#msk" data-switch="msk">Конкретный регион (Москва)</a></li>
-                <li><a href="#nsk" data-switch="nsk">Конкретный город (Новосибирск)</a></li>
-                <li><a href="#sochi-adlersky" data-switch="sochi-adlersky">Внутригородской район (г Сочи, Адлерский р-н)</a></li>
-                <li><a href="#kladr" data-switch="kladr">Ограничение по коду КЛАДР (Тольятти)</a></li>
-                <li><a href="#fias" data-switch="fias">Ограничение по коду ФИАС (Краснодарский край, restrict_value = true)</a></li>
-                <li><a href="#fias-no-restrict" data-switch="fias-no-restrict">Ограничение по коду ФИАС (Краснодарский край, restrict_value = false)</a></li>
-                <li><a href="#regions" data-switch="regions">Несколько регионов (Москва и Московская область)</a></li>
-                <li><a href="#fd" data-switch="fd">Федеральный округ (ЮФО)</a></li>
+                <li>
+                    <a href="#msk" data-switch="msk"
+                        >Конкретный регион (Москва)</a
+                    >
+                </li>
+                <li>
+                    <a href="#nsk" data-switch="nsk"
+                        >Конкретный город (Новосибирск)</a
+                    >
+                </li>
+                <li>
+                    <a href="#sochi-adlersky" data-switch="sochi-adlersky"
+                        >Внутригородской район (г Сочи, Адлерский р-н)</a
+                    >
+                </li>
+                <li>
+                    <a href="#kladr" data-switch="kladr"
+                        >Ограничение по коду КЛАДР (Тольятти)</a
+                    >
+                </li>
+                <li>
+                    <a href="#fias" data-switch="fias"
+                        >Ограничение по коду ФИАС (Краснодарский край,
+                        restrict_value = true)</a
+                    >
+                </li>
+                <li>
+                    <a href="#fias-no-restrict" data-switch="fias-no-restrict"
+                        >Ограничение по коду ФИАС (Краснодарский край,
+                        restrict_value = false)</a
+                    >
+                </li>
+                <li>
+                    <a href="#regions" data-switch="regions"
+                        >Несколько регионов (Москва и Московская область)</a
+                    >
+                </li>
+                <li>
+                    <a href="#fd" data-switch="fd">Федеральный округ (ЮФО)</a>
+                </li>
             </ul>
         </section>
 
@@ -61,6 +103,5 @@
             <h1>bounds = region-city</h1>
             <input id="region-city" name="region-city" type="text" />
         </section>
-
     </body>
 </html>
