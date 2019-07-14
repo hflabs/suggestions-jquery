@@ -37,7 +37,9 @@ var methods = {
                     var locationData =
                         resp && resp.location && resp.location.data;
                     if (locationData && locationData.kladr_id) {
-                        that.geoLocation.resolve(locationData);
+                        that.geoLocation.resolve({
+                            kladr_id: locationData.kladr_id
+                        });
                     } else {
                         that.geoLocation.reject();
                     }

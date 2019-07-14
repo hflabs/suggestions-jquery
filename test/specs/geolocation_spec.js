@@ -103,7 +103,7 @@ describe("Geolocation", function() {
         this.instance.onValueChange();
 
         expect(this.server.requests[1].requestBody).toContain(
-            '"locations_boost":[{"region":"Москва","kladr_id":"7700000000000"}]'
+            '"locations_boost":[{"kladr_id":"7700000000000"}]'
         );
     });
 
