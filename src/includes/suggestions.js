@@ -107,8 +107,6 @@ Suggestions.prototype = {
         that.createWrapper();
         that.notify("initialize");
 
-        that.bindWindowEvents();
-
         that.setOptions();
         that.fixPosition();
     },
@@ -149,7 +147,6 @@ Suggestions.prototype = {
         that.initializer.reject();
         that.notify("dispose");
         that.el.removeData(DATA_ATTR_KEY).removeClass("suggestions-input");
-        that.unbindWindowEvents();
         that.removeWrapper();
         that.el.trigger("suggestions-dispose");
     },
@@ -226,21 +223,6 @@ Suggestions.prototype = {
                 });
             });
         }
-    },
-
-    bindWindowEvents: function() {
-        var that = this,
-            handler = $.proxy(that.fixPosition, that);
-
-        that.$viewport
-            .on("resize" + EVENT_NS + that.uniqueId, handler)
-            .on("scroll" + EVENT_NS + that.uniqueId, handler);
-    },
-
-    unbindWindowEvents: function() {
-        this.$viewport
-            .off("resize" + EVENT_NS + this.uniqueId)
-            .off("scroll" + EVENT_NS + this.uniqueId);
     },
 
     scrollToTop: function() {
