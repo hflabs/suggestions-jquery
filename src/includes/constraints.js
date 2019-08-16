@@ -18,6 +18,7 @@ var optionsUsed = {
 };
 
 var fiasParamNames = [
+    "country_iso_code",
     "region_fias_id",
     "area_fias_id",
     "city_fias_id",

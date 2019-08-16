@@ -20,6 +20,15 @@
             });
         };
 
+        switchers["foreign"] = function(sgt, lbl) {
+            lbl.text("Конкретная страна (Казахстан)");
+            sgt.setOptions({
+                constraints: {
+                    locations: { country_iso_code: "KZ" }
+                }
+            });
+        };
+
         switchers["msk"] = function(sgt, lbl) {
             lbl.text("Конкретный регион (Москва)");
             sgt.setOptions({

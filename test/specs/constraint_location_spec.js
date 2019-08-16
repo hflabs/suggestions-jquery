@@ -76,7 +76,7 @@ describe("Constraint Location", function() {
                 },
                 this.instance
             ),
-            expectedSpecificity = 11;
+            expectedSpecificity = 12;
 
         expect(
             this.instance.type.dataComponents[expectedSpecificity].id
@@ -91,7 +91,7 @@ describe("Constraint Location", function() {
                 },
                 this.instance
             ),
-            expectedSpecificity = 11;
+            expectedSpecificity = 12;
 
         expect(
             this.instance.type.dataComponents[expectedSpecificity].id
@@ -107,7 +107,7 @@ describe("Constraint Location", function() {
                 },
                 this.instance
             ),
-            expectedSpecificity = 11;
+            expectedSpecificity = 12;
 
         expect(
             this.instance.type.dataComponents[expectedSpecificity].id
@@ -123,7 +123,7 @@ describe("Constraint Location", function() {
                 },
                 this.instance
             ),
-            expectedSpecificity = 20;
+            expectedSpecificity = 21;
 
         expect(
             this.instance.type.dataComponents[expectedSpecificity].id

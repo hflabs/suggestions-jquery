@@ -79,7 +79,7 @@ describe("Bounds", function() {
         );
     });
 
-    xit("SUG-1050 Should treat country as valid single bound", function() {
+    it("Should treat country as valid single bound", function() {
         this.instance.setOptions({
             bounds: "country"
         });
@@ -95,7 +95,7 @@ describe("Bounds", function() {
         );
     });
 
-    xit("SUG-1050 Should treat country as valid part of range bound", function() {
+    it("Should treat country as valid part of range bound", function() {
         this.instance.setOptions({
             bounds: "country-city"
         });

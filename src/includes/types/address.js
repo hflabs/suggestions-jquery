@@ -191,10 +191,18 @@ var ADDRESS_COMPONENTS = [
         forLocations: true
     },
     {
-        id: "country",
-        fields: ["country"],
+        id: "country_iso_code",
+        fields: ["country_iso_code"],
         forBounds: false,
         forLocations: true
+    },
+    {
+        id: "country",
+        fields: ["country"],
+        forBounds: true,
+        forLocations: true,
+        kladrFormat: { digits: 0, zeros: 13 },
+        fiasType: "country_iso_code"
     },
     {
         id: "region_fias_id",
@@ -400,7 +408,8 @@ var ADDRESS_TYPE = {
         );
     },
     composeValue: function(data, options) {
-        var region =
+        var country = data.country,
+            region =
                 data.region_with_type ||
                 collection_util
                     .compact([data.region, data.region_type])
@@ -470,6 +479,7 @@ var ADDRESS_TYPE = {
 
         result = collection_util
             .compact([
+                country,
                 region,
                 area,
                 city,

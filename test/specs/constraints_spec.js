@@ -36,6 +36,24 @@ describe("Address constraints", function() {
                     house: "1-бара",
                     kladr_id: "7102200100200310001"
                 }
+            },
+            foreign: {
+                unrestricted_value: "Италия, Lombardy, г Милан",
+                value: "Италия, Lombardy, г Милан",
+                data: {
+                    postal_code: "20121",
+                    country: "Италия",
+                    country_iso_code: "IT",
+                    region: "Lombardy",
+                    region_iso_code: "IT-25",
+                    city_type: "г",
+                    city: "Милан",
+                    city_with_type: "г Милан",
+                    geoname_id: "3173435",
+                    geo_lat: "45.46427",
+                    geo_lon: "9.18951",
+                    timezone: "UTC+1"
+                }
             }
         };
 
@@ -299,6 +317,40 @@ describe("Address constraints", function() {
 
         expect(this.server.requests[0].requestBody).toContain(
             '"locations":' + JSON.stringify(locations[0].concat(locations[1]))
+        );
+    });
+
+    it("Should constrain by country", function() {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country: "Италия"
+                }
+            }
+        });
+
+        this.input.value = "А";
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain(
+            '"locations":[{"country":"Италия"}]'
+        );
+    });
+
+    it("Should constrain by country_iso_code", function() {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country_iso_code: "IT"
+                }
+            }
+        });
+
+        this.input.value = "А";
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain(
+            '"locations":[{"country_iso_code":"IT"}]'
         );
     });
 
@@ -664,12 +716,14 @@ describe("Address constraints", function() {
         });
 
         it("Should not fill non-empty parent control with region same as selected", function() {
+            var selectionData = {
+                country: "Россия",
+                region: "Тульская",
+                area: "Узловский"
+            };
             this.parentInstance.setSuggestion({
                 value: "Тульская, Узловский",
-                data: {
-                    region: "Тульская",
-                    area: "Узловский"
-                }
+                data: selectionData
             });
 
             this.instance.setOptions({
@@ -684,10 +738,7 @@ describe("Address constraints", function() {
             this.instance.select(0);
 
             expect(this.$parent.val()).toEqual("Тульская, Узловский");
-            expect(this.parentInstance.selection.data).toEqual({
-                region: "Тульская",
-                area: "Узловский"
-            });
+            expect(this.parentInstance.selection.data).toEqual(selectionData);
         });
 
         it("Should spread data to all parents", function() {
@@ -748,6 +799,40 @@ describe("Address constraints", function() {
     });
 
     describe("can restrict values", function() {
+        it("one constraint (country_iso_code)", function() {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        country_iso_code: "IT"
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(
+                this.instance.getSuggestionValue(fixtures.foreign, {
+                    hasBeenEnriched: true
+                })
+            ).toEqual("Lombardy, г Милан");
+        });
+
+        it("one constraint (country)", function() {
+            this.instance.setOptions({
+                constraints: {
+                    locations: {
+                        country: "Италия"
+                    }
+                },
+                restrict_value: true
+            });
+
+            expect(
+                this.instance.getSuggestionValue(fixtures.foreign, {
+                    hasBeenEnriched: true
+                })
+            ).toEqual("Lombardy, г Милан");
+        });
+
         it("one constraint (region)", function() {
             this.instance.setOptions({
                 constraints: {

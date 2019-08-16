@@ -22,6 +22,7 @@
         var serviceUrl = "https://suggestions.dadata.ru/suggestions/api/4_1/rs",
             token = Token.get(),
             type = "ADDRESS",
+            $country = $("#country"),
             $region = $("#region"),
             $area = $("#area"),
             $city = $("#city"),
@@ -30,13 +31,26 @@
             $street = $("#street"),
             $house = $("#house");
 
+        // страна
+        $country.suggestions({
+            serviceUrl: serviceUrl,
+            token: token,
+            type: type,
+            hint: false,
+            bounds: "country",
+            constraints: {
+                locations: { country_iso_code: "*" }
+            }
+        });
+
         // регион
         $region.suggestions({
             serviceUrl: serviceUrl,
             token: token,
             type: type,
             hint: false,
-            bounds: "region"
+            bounds: "region",
+            constraints: $country
         });
 
         // район
