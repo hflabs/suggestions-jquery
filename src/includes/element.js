@@ -14,7 +14,8 @@ var methods = {
     setupElement: function() {
         // Remove autocomplete attribute to prevent native suggestions:
         this.el
-            .attr("autocomplete", "off")
+            // "off" is not enough, see https://stackoverflow.com/q/15738259
+            .attr("autocomplete", "never")
             .attr("autocorrect", "off")
             .attr("autocapitalize", "off")
             .attr("spellcheck", "false")
