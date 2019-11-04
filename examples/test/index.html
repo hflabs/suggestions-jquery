@@ -1,100 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Примеры</title>
-        <link rel="stylesheet" type="text/css" href="styles.css" />
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="../../dist/css/suggestions.css"
-        />
-        <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
-        <script src="../../dist/js/jquery.suggestions.js"></script>
-        <script src="../token.js"></script>
-        <script src="code.js"></script>
-    </head>
 
-    <body>
-        <section class="container">
-            <p>
-                <input
-                    id="token"
-                    type="text"
-                    placeholder="Enter your API token"
-                />
-            </p>
-        </section>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Примеры</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css" href="../../dist/css/suggestions.css" />
+    <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
+    <script src="../../dist/js/jquery.suggestions.js"></script>
+    <script src="../token.js"></script>
+    <script src="code.js"></script>
+</head>
 
-        <section class="container">
-            <h1>Просто подсказки</h1>
-            <input
-                id="suggestions"
-                name="suggestions"
-                type="text"
-                value="Санкт-Петербург, ул. Софийская, д.35, корп.4, кв.81"
-            />
-            <p>
-                <input id="fixData" type="button" value="FixData" />
-            </p>
-        </section>
+<body>
+    <section class="container">
+        <p>
+            <input id="token" type="text" placeholder="Enter your API token" />
+        </p>
+    </section>
 
-        <section class="container">
-            <h1>ФИО</h1>
-            <input id="name" name="name" type="text" value="" />
-        </section>
+    <section class="container">
+        <h1>Просто подсказки</h1>
+        <input id="suggestions" name="suggestions" type="input"
+            value="Санкт-Петербург, ул. Софийская, д.35, корп.4, кв.81" />
+        <p>
+            <input id="fixData" type="button" value="FixData" />
+        </p>
+    </section>
 
-        <section class="container">
-            <h1>Email</h1>
-            <input id="email" name="email" type="text" value="" />
-        </section>
+    <section class="container">
+        <h1>ФИО</h1>
+        <input id="name" name="name" type="text" value="" />
+    </section>
 
-        <section class="container">
-            <h1>Организация</h1>
-            <input id="party" name="party" type="text" />
-        </section>
+    <section class="container">
+        <h1>Email</h1>
+        <input id="email" name="email" type="text" value="" />
+    </section>
 
-        <section class="container">
-            <h1>Подключаемый справочник</h1>
-            <input id="outward" type="text" />
-        </section>
+    <section class="container">
+        <h1>Организация</h1>
+        <input id="party" name="party" type="text" />
+    </section>
 
-        <section class="container">
-            <h1>SUG-706 (Гранулярные подсказки по адресу (город и улица))</h1>
-            <label for="region">Регион:</label>
-            <input id="region" name="region" type="text" />
-            <br />
-            <br />
-            <label for="city">Город:</label>
-            <input id="city" name="city" type="text" />
-            <br />
-            <br />
-            <label for="street">Улица:</label>
-            <input id="street" name="street" type="text" />
-            <br />
-            <br />
-            <label for="house">Дом:</label>
-            <input id="house" name="house" type="text" />
-        </section>
+    <section class="container">
+        <h1>Подключаемый справочник</h1>
+        <input id="outward" type="text" />
+    </section>
 
-        <section class="container">
-            <h1>Новый параметр url</h1>
-            <label for="url">Город:</label>
-            <input id="url" name="city" type="text" />
-        </section>
+    <section class="container">
+        <h1>SUG-706 (Гранулярные подсказки по адресу (город и улица))</h1>
+        <label for="region">Регион:</label>
+        <input id="region" name="region" type="text" />
+        <br />
+        <br />
+        <label for="city">Город:</label>
+        <input id="city" name="city" type="text" />
+        <br />
+        <br />
+        <label for="street">Улица:</label>
+        <input id="street" name="street" type="text" />
+        <br />
+        <br />
+        <label for="house">Дом:</label>
+        <input id="house" name="house" type="text" />
+    </section>
 
-        <section class="sug-798" style="display: none">
-            <h1>SUG-798 ошибка при вызове setSuggestions</h1>
-            <label for="sug-798">Введите:</label>
-            <input id="sug-798" name="address" type="text" />
-        </section>
+    <section class="container">
+        <h1>Новый параметр url</h1>
+        <label for="url">Город:</label>
+        <input id="url" name="city" type="text" />
+    </section>
 
-        <section class="container">
-            <div class="spacing"></div>
-            <h1>SUG-729 Совместимость с jQuery 3.0.0-3.1.1</h1>
-            <label for="city-729">Город:</label>
-            <input id="city-729" name="city" type="text" />
-        </section>
-    </body>
+    <section class="sug-798" style="display: none">
+        <h1>SUG-798 ошибка при вызове setSuggestions</h1>
+        <label for="sug-798">Введите:</label>
+        <input id="sug-798" name="address" type="text" />
+    </section>
+
+    <section class="container">
+        <div class="spacing"></div>
+        <h1>SUG-729 Совместимость с jQuery 3.0.0-3.1.1</h1>
+        <label for="city-729">Город:</label>
+        <input id="city-729" name="city" type="text" />
+    </section>
+</body>
+
 </html>

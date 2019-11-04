@@ -217,7 +217,6 @@ var methods = {
         }
 
         if (that.isElementFocused()) {
-            that.fixPosition();
             that.update();
             if (that.isMobile) {
                 that.setCursorAtEnd();

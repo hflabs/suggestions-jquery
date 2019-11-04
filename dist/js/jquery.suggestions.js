@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 19.8.0
+ * DaData.ru Suggestions jQuery plugin, version 19.11.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -3014,7 +3014,6 @@ var methods = {
         }
 
         if (that.isElementFocused()) {
-            that.fixPosition();
             that.update();
             if (that.isMobile) {
                 that.setCursorAtEnd();
@@ -3591,7 +3590,6 @@ var methods$4 = {
 
         that.$container.show();
         that.visible = true;
-        that.fixPosition();
         that.setItemsPositions();
     },
 
@@ -3984,7 +3982,6 @@ notificator
 
 var QUEUE_NAME = "addon";
 var BEFORE_SHOW_ADDON = 50;
-var BEFORE_RESTORE_PADDING = 1000;
 
 var optionsUsed$1 = {
     addon: null
@@ -4150,7 +4147,7 @@ Addon.prototype = {
             if (immediate) {
                 $el.css(style);
             } else {
-                $el.delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                $el.delay(BEFORE_SHOW_ADDON, QUEUE_NAME)
                     .animate(style, { duration: "fast", queue: QUEUE_NAME })
                     .dequeue(QUEUE_NAME);
             }
@@ -5325,7 +5322,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "19.8.0";
+Suggestions.version = "19.11.0";
 
 $.Suggestions = Suggestions;
 

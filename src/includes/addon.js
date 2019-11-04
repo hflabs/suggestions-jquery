@@ -8,8 +8,7 @@ import { notificator } from "./notificator";
  */
 
 var QUEUE_NAME = "addon",
-    BEFORE_SHOW_ADDON = 50,
-    BEFORE_RESTORE_PADDING = 1000;
+    BEFORE_SHOW_ADDON = 50;
 
 var optionsUsed = {
     addon: null
@@ -175,7 +174,7 @@ Addon.prototype = {
             if (immediate) {
                 $el.css(style);
             } else {
-                $el.delay(BEFORE_RESTORE_PADDING, QUEUE_NAME)
+                $el.delay(BEFORE_SHOW_ADDON, QUEUE_NAME)
                     .animate(style, { duration: "fast", queue: QUEUE_NAME })
                     .dequeue(QUEUE_NAME);
             }

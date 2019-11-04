@@ -293,7 +293,6 @@ var methods = {
 
         that.$container.show();
         that.visible = true;
-        that.fixPosition();
         that.setItemsPositions();
     },
 
