@@ -205,6 +205,12 @@ var ADDRESS_COMPONENTS = [
         fiasType: "country_iso_code"
     },
     {
+        id: "region_iso_code",
+        fields: ["region_iso_code"],
+        forBounds: false,
+        forLocations: true
+    },
+    {
         id: "region_fias_id",
         fields: ["region_fias_id"],
         forBounds: false,

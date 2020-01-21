@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 19.11.0
+ * DaData.ru Suggestions jQuery plugin, version 20.1.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -1077,6 +1077,12 @@ var ADDRESS_COMPONENTS = [
         forLocations: true,
         kladrFormat: { digits: 0, zeros: 13 },
         fiasType: "country_iso_code"
+    },
+    {
+        id: "region_iso_code",
+        fields: ["region_iso_code"],
+        forBounds: false,
+        forLocations: true
     },
     {
         id: "region_fias_id",
@@ -4210,6 +4216,7 @@ var optionsUsed$2 = {
 
 var fiasParamNames = [
     "country_iso_code",
+    "region_iso_code",
     "region_fias_id",
     "area_fias_id",
     "city_fias_id",
@@ -5322,7 +5329,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "19.11.0";
+Suggestions.version = "20.1.0";
 
 $.Suggestions = Suggestions;
 

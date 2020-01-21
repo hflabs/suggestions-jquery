@@ -354,6 +354,24 @@ describe("Address constraints", function() {
         );
     });
 
+    it("Should constrain by region_iso_code", function() {
+        this.instance.setOptions({
+            constraints: {
+                locations: {
+                    country_iso_code: "IT",
+                    region_iso_code: "IT-25"
+                }
+            }
+        });
+
+        this.input.value = "А";
+        this.instance.onValueChange();
+
+        expect(this.server.requests[0].requestBody).toContain(
+            '"locations":[{"country_iso_code":"IT","region_iso_code":"IT-25"}]'
+        );
+    });
+
     it("Should have `locations` parameter for parties", function() {
         var locations = [
             [
