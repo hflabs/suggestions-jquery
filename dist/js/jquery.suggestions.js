@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 20.1.0
+ * DaData.ru Suggestions jQuery plugin, version 20.1.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -2817,8 +2817,9 @@ var methods = {
     setupElement: function() {
         // Remove autocomplete attribute to prevent native suggestions:
         this.el
-            // "off" is not enough, see https://stackoverflow.com/q/15738259
-            .attr("autocomplete", "never")
+            // if it stops working, see https://stackoverflow.com/q/15738259
+            // chrome is constantly changing this logic
+            .attr("autocomplete", "off")
             .attr("autocorrect", "off")
             .attr("autocapitalize", "off")
             .attr("spellcheck", "false")
@@ -5329,7 +5330,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "20.1.0";
+Suggestions.version = "20.1.1";
 
 $.Suggestions = Suggestions;
 
