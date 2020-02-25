@@ -1,0 +1,14 @@
+.info p {
+    background: #31b0d5;
+    margin: 0;
+    padding: 5px;
+}
+
+.container {
+    width: 30em;
+}
+
+input {
+    font-size: 16px;
+    padding: 4px;
+}

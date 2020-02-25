@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Подсказки по ФИАС</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css" href="../../dist/css/suggestions.css" />
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="../../dist/js/jquery.suggestions.js"></script>
+    <script src="../token.js"></script>
+    <script src="code.js"></script>
+</head>
+
+<body>
+    <section class="container">
+        <p>
+            <input id="token" type="text" placeholder="Enter your API token" />
+        </p>
+    </section>
+
+    <section class="container">
+        <h1>Подсказки по ФИАС одной строкой</h1>
+        <input id="address" name="address" type="text" />
+    </section>
+
+    <section class="container">
+        <h1>Гранулярные подсказки по ФИАС (все поля)</h1>
+
+        <label for="region">Регион:</label>
+        <input id="region" name="region" type="text" />
+        <br /><br />
+
+        <label for="area">Район:</label>
+        <input id="area" name="area" type="text" />
+        <br /><br />
+
+        <label for="city">Город:</label>
+        <input id="city" name="city" type="text" />
+        <br /><br />
+
+        <label for="city_district">Внутригородской район:</label>
+        <input id="city_district" name="city_district" type="text" />
+        <br /><br />
+
+        <label for="settlement">Населенный пункт:</label>
+        <input id="settlement" name="settlement" type="text" />
+        <br /><br />
+
+        <label for="planning_structure">Планировочная структура:</label>
+        <input id="planning_structure" name="planning_structure" type="text" />
+        <br /><br />
+
+        <label for="street">Улица:</label>
+        <input id="street" name="street" type="text" />
+        <br /><br />
+
+        <label for="house">Дом:</label>
+        <input id="house" name="house" type="text" />
+        <br /><br />
+    </section>
+</body>
+
+</html>

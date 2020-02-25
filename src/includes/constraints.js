@@ -25,6 +25,7 @@ var fiasParamNames = [
     "city_fias_id",
     "city_district_fias_id",
     "settlement_fias_id",
+    "planning_structure_fias_id",
     "street_fias_id"
 ];
 
