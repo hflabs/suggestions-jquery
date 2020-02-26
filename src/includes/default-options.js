@@ -38,8 +38,8 @@ var DEFAULT_OPTIONS = {
     count: 5,
     $helpers: null,
     headers: null,
-    scrollOnFocus: true,
-    mobileWidth: 980,
+    scrollOnFocus: false,
+    mobileWidth: 600,
     initializeInterval: 100
 };
 

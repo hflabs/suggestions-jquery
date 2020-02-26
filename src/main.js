@@ -7,7 +7,6 @@ import {} from "./includes/status";
 import {} from "./includes/geolocation";
 import {} from "./includes/enrich";
 import {} from "./includes/container";
-import {} from "./includes/addon";
 import {} from "./includes/constraints";
 import {} from "./includes/select";
 import {} from "./includes/bounds";

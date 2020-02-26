@@ -15,7 +15,6 @@ var IMAGE =
 
 function Promo(plugin) {
     this.plan = plugin.status.plan;
-    this.isMobile = plugin.isMobile;
     var container = plugin.getContainer();
     this.element = dom.selectByClass(CLASSES.promo, container);
 }
@@ -33,14 +32,11 @@ Promo.prototype.show = function() {
 
 Promo.prototype.setStyles = function() {
     this.element.style.display = "block";
-    if (!this.isMobile) {
-        this.element.classList.add(CLASSES.promo_desktop);
-    }
 };
 
 Promo.prototype.setHtml = function() {
     this.element.innerHTML =
-        '<a target="_blank" href="' +
+        '<a target="_blank" tabindex="-1" href="' +
         LINK +
         '">' +
         PREFIX +

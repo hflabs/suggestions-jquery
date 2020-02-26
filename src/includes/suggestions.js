@@ -101,14 +101,13 @@ Suggestions.prototype = {
 
     initialize: function() {
         var that = this;
-
         that.uniqueId = utils.uniqueId("i");
-
         that.createWrapper();
         that.notify("initialize");
-
+        that.bindWindowEvents();
         that.setOptions();
-        that.fixPosition();
+        that.inferIsMobile();
+        that.notify("ready");
     },
 
     /**
@@ -143,10 +142,10 @@ Suggestions.prototype = {
 
     dispose: function() {
         var that = this;
-
         that.initializer.reject();
         that.notify("dispose");
         that.el.removeData(DATA_ATTR_KEY).removeClass("suggestions-input");
+        that.unbindWindowEvents();
         that.removeWrapper();
         that.el.trigger("suggestions-dispose");
     },
@@ -225,6 +224,15 @@ Suggestions.prototype = {
         }
     },
 
+    bindWindowEvents: function() {
+        var handler = $.proxy(this.inferIsMobile, this);
+        this.$viewport.on("resize" + EVENT_NS + this.uniqueId, handler);
+    },
+
+    unbindWindowEvents: function() {
+        this.$viewport.off("resize" + EVENT_NS + this.uniqueId);
+    },
+
     scrollToTop: function() {
         var that = this,
             scrollTarget = that.options.scrollOnFocus;
@@ -281,61 +289,8 @@ Suggestions.prototype = {
 
     // Common public methods
 
-    fixPosition: function(e) {
-        var that = this,
-            elLayout = {},
-            wrapperOffset,
-            origin;
-
-        that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
-
-        if (
-            !that.isInitialized() ||
-            (e &&
-                e.type == "scroll" &&
-                !(that.options.floating || that.isMobile))
-        )
-            return;
-        that.$container.appendTo(
-            that.options.floating ? that.$body : that.$wrapper
-        );
-
-        that.notify("resetPosition");
-        // reset input's padding to default, determined by css
-        that.el.css("paddingLeft", "");
-        that.el.css("paddingRight", "");
-        elLayout.paddingLeft = parseFloat(that.el.css("paddingLeft"));
-        elLayout.paddingRight = parseFloat(that.el.css("paddingRight"));
-
-        $.extend(elLayout, that.el.offset());
-        elLayout.borderTop =
-            that.el.css("border-top-style") == "none"
-                ? 0
-                : parseFloat(that.el.css("border-top-width"));
-        elLayout.borderLeft =
-            that.el.css("border-left-style") == "none"
-                ? 0
-                : parseFloat(that.el.css("border-left-width"));
-        elLayout.innerHeight = that.el.innerHeight();
-        elLayout.innerWidth = that.el.innerWidth();
-        elLayout.outerHeight = that.el.outerHeight();
-        elLayout.componentsLeft = 0;
-        elLayout.componentsRight = 0;
-        wrapperOffset = that.$wrapper.offset();
-
-        origin = {
-            top: elLayout.top - wrapperOffset.top,
-            left: elLayout.left - wrapperOffset.left
-        };
-
-        that.notify("fixPosition", origin, elLayout);
-
-        if (elLayout.componentsLeft > elLayout.paddingLeft) {
-            that.el.css("paddingLeft", elLayout.componentsLeft + "px");
-        }
-        if (elLayout.componentsRight > elLayout.paddingRight) {
-            that.el.css("paddingRight", elLayout.componentsRight + "px");
-        }
+    inferIsMobile: function() {
+        this.isMobile = this.$viewport.width() <= this.options.mobileWidth;
     },
 
     clearCache: function() {

@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 20.2.0
+ * DaData.ru Suggestions jQuery plugin, version 20.2.1
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -334,7 +334,6 @@ var CLASSES = {
     mobile: "suggestions-mobile",
     nowrap: "suggestions-nowrap",
     promo: "suggestions-promo",
-    promo_desktop: "suggestions-promo-desktop",
     selected: "suggestions-selected",
     suggestion: "suggestions-suggestion",
     subtext: "suggestions-subtext",
@@ -705,8 +704,8 @@ var DEFAULT_OPTIONS = {
     count: 5,
     $helpers: null,
     headers: null,
-    scrollOnFocus: true,
-    mobileWidth: 980,
+    scrollOnFocus: false,
+    mobileWidth: 600,
     initializeInterval: 100
 };
 
@@ -2371,14 +2370,13 @@ Suggestions.prototype = {
 
     initialize: function() {
         var that = this;
-
         that.uniqueId = utils.uniqueId("i");
-
         that.createWrapper();
         that.notify("initialize");
-
+        that.bindWindowEvents();
         that.setOptions();
-        that.fixPosition();
+        that.inferIsMobile();
+        that.notify("ready");
     },
 
     /**
@@ -2413,10 +2411,10 @@ Suggestions.prototype = {
 
     dispose: function() {
         var that = this;
-
         that.initializer.reject();
         that.notify("dispose");
         that.el.removeData(DATA_ATTR_KEY).removeClass("suggestions-input");
+        that.unbindWindowEvents();
         that.removeWrapper();
         that.el.trigger("suggestions-dispose");
     },
@@ -2495,6 +2493,15 @@ Suggestions.prototype = {
         }
     },
 
+    bindWindowEvents: function() {
+        var handler = $.proxy(this.inferIsMobile, this);
+        this.$viewport.on("resize" + EVENT_NS + this.uniqueId, handler);
+    },
+
+    unbindWindowEvents: function() {
+        this.$viewport.off("resize" + EVENT_NS + this.uniqueId);
+    },
+
     scrollToTop: function() {
         var that = this,
             scrollTarget = that.options.scrollOnFocus;
@@ -2551,61 +2558,8 @@ Suggestions.prototype = {
 
     // Common public methods
 
-    fixPosition: function(e) {
-        var that = this,
-            elLayout = {},
-            wrapperOffset,
-            origin;
-
-        that.isMobile = that.$viewport.width() <= that.options.mobileWidth;
-
-        if (
-            !that.isInitialized() ||
-            (e &&
-                e.type == "scroll" &&
-                !(that.options.floating || that.isMobile))
-        )
-            return;
-        that.$container.appendTo(
-            that.options.floating ? that.$body : that.$wrapper
-        );
-
-        that.notify("resetPosition");
-        // reset input's padding to default, determined by css
-        that.el.css("paddingLeft", "");
-        that.el.css("paddingRight", "");
-        elLayout.paddingLeft = parseFloat(that.el.css("paddingLeft"));
-        elLayout.paddingRight = parseFloat(that.el.css("paddingRight"));
-
-        $.extend(elLayout, that.el.offset());
-        elLayout.borderTop =
-            that.el.css("border-top-style") == "none"
-                ? 0
-                : parseFloat(that.el.css("border-top-width"));
-        elLayout.borderLeft =
-            that.el.css("border-left-style") == "none"
-                ? 0
-                : parseFloat(that.el.css("border-left-width"));
-        elLayout.innerHeight = that.el.innerHeight();
-        elLayout.innerWidth = that.el.innerWidth();
-        elLayout.outerHeight = that.el.outerHeight();
-        elLayout.componentsLeft = 0;
-        elLayout.componentsRight = 0;
-        wrapperOffset = that.$wrapper.offset();
-
-        origin = {
-            top: elLayout.top - wrapperOffset.top,
-            left: elLayout.left - wrapperOffset.left
-        };
-
-        that.notify("fixPosition", origin, elLayout);
-
-        if (elLayout.componentsLeft > elLayout.paddingLeft) {
-            that.el.css("paddingLeft", elLayout.componentsLeft + "px");
-        }
-        if (elLayout.componentsRight > elLayout.paddingRight) {
-            that.el.css("paddingRight", elLayout.componentsRight + "px");
-        }
+    inferIsMobile: function() {
+        this.isMobile = this.$viewport.width() <= this.options.mobileWidth;
     },
 
     clearCache: function() {
@@ -3712,7 +3666,6 @@ var methods$4 = {
             $container = $("<div/>")
                 .addClass(options.containerClass)
                 .css({
-                    position: "absolute",
                     display: "none"
                 });
 
@@ -3722,6 +3675,12 @@ var methods$4 = {
             "click" + EVENT_NS,
             suggestionSelector,
             $.proxy(that.onSuggestionClick, that)
+        );
+    },
+
+    showContainer: function() {
+        this.$container.appendTo(
+            this.options.floating ? this.$body : this.$wrapper
         );
     },
 
@@ -3770,73 +3729,6 @@ var methods$4 = {
     },
 
     // Dropdown UI methods
-
-    setDropdownPosition: function(origin, elLayout) {
-        var that = this,
-            scrollLeft = that.$viewport.scrollLeft(),
-            style;
-
-        if (that.isMobile) {
-            style = that.options.floating
-                ? {
-                      left: scrollLeft + "px",
-                      top: elLayout.top + elLayout.outerHeight + "px"
-                  }
-                : {
-                      left: origin.left - elLayout.left + scrollLeft + "px",
-                      top: origin.top + elLayout.outerHeight + "px"
-                  };
-            style.width = that.$viewport.width() + "px";
-        } else {
-            style = that.options.floating
-                ? {
-                      left: elLayout.left + "px",
-                      top:
-                          elLayout.top +
-                          elLayout.borderTop +
-                          elLayout.innerHeight +
-                          "px"
-                  }
-                : {
-                      left: origin.left + "px",
-                      top:
-                          origin.top +
-                          elLayout.borderTop +
-                          elLayout.innerHeight +
-                          "px"
-                  };
-
-            // Defer to let body show scrollbars
-            utils.delay(function() {
-                var width = that.options.width;
-
-                if (width === "auto") {
-                    width = that.el.outerWidth();
-                }
-                that.$container.outerWidth(width);
-            });
-        }
-
-        that.$container
-            .toggleClass(that.classes.mobile, that.isMobile)
-            .css(style);
-
-        that.containerItemsPadding =
-            elLayout.left +
-            elLayout.borderLeft +
-            elLayout.paddingLeft -
-            scrollLeft;
-    },
-
-    setItemsPositions: function() {
-        var that = this,
-            $items = that.getSuggestionsItems();
-
-        $items.css(
-            "paddingLeft",
-            that.isMobile ? that.containerItemsPadding + "px" : ""
-        );
-    },
 
     getSuggestionsItems: function() {
         return this.$container.children("." + this.classes.suggestion);
@@ -3903,7 +3795,7 @@ var methods$4 = {
             }
         } else {
             // Build hint html
-            if (!that.isMobile && options.hint && that.suggestions.length) {
+            if (options.hint && that.suggestions.length) {
                 html.push(
                     '<div class="' +
                         that.classes.hint +
@@ -3943,7 +3835,6 @@ var methods$4 = {
 
         that.$container.show();
         that.visible = true;
-        that.setItemsPositions();
     },
 
     buildSuggestionHtml: function(suggestion, ordinal, html) {
@@ -4325,238 +4216,13 @@ notificator
     .on("initialize", methods$4.createContainer)
     .on("dispose", methods$4.removeContainer)
     .on("setOptions", methods$4.setContainerOptions)
-    .on("fixPosition", methods$4.setDropdownPosition)
-    .on("fixPosition", methods$4.setItemsPositions)
+    .on("ready", methods$4.showContainer)
     .on("assignSuggestions", methods$4.suggest);
-
-/**
- * Methods related to right-sided component
- */
-
-var QUEUE_NAME = "addon";
-var BEFORE_SHOW_ADDON = 50;
-
-var optionsUsed$1 = {
-    addon: null
-};
-
-var ADDON_TYPES = {
-    NONE: "none",
-    SPINNER: "spinner",
-    CLEAR: "clear"
-};
-
-var Addon = function(owner) {
-    var $el = jqapi.select('<span class="suggestions-addon"/>');
-
-    this.owner = owner;
-    this.$el = $el;
-    this.type = ADDON_TYPES.NONE;
-    this.visible = false;
-    this.initialPadding = null;
-
-    $el.on("click", jqapi.proxy(this, "onClick"));
-};
-
-Addon.prototype = {
-    checkType: function() {
-        var type = this.owner.options.addon;
-        var isTypeCorrect = false;
-
-        collection_util.each(ADDON_TYPES, function(value, key) {
-            isTypeCorrect = value == type;
-            if (isTypeCorrect) {
-                return false;
-            }
-        });
-
-        if (!isTypeCorrect) {
-            type = this.owner.isMobile
-                ? ADDON_TYPES.CLEAR
-                : ADDON_TYPES.SPINNER;
-        }
-
-        if (type != this.type) {
-            this.type = type;
-            this.$el.attr("data-addon-type", type);
-            this.toggle(true);
-        }
-    },
-
-    isEnabled: function() {
-        return !this.owner.isElementDisabled();
-    },
-
-    toggle: function(immediate) {
-        var visible;
-
-        switch (this.type) {
-            case ADDON_TYPES.CLEAR:
-                visible = !!this.owner.currentValue;
-                break;
-            case ADDON_TYPES.SPINNER:
-                visible = !!this.owner.currentRequest;
-                break;
-            default:
-                visible = false;
-        }
-
-        if (!this.isEnabled()) {
-            visible = false;
-        }
-
-        if (visible != this.visible) {
-            this.visible = visible;
-            if (visible) {
-                this.show(immediate);
-            } else {
-                this.hide(immediate);
-            }
-        }
-    },
-
-    show: function(immediate) {
-        var that = this;
-        var style = { opacity: 1 };
-
-        if (immediate) {
-            this.$el.show().css(style);
-            this.showBackground(true);
-        } else {
-            this.$el
-                .stop(true, true)
-                .delay(BEFORE_SHOW_ADDON)
-                .queue(function() {
-                    that.$el.show();
-                    that.showBackground();
-                    that.$el.dequeue();
-                })
-                .animate(style, "fast");
-        }
-    },
-
-    hide: function(immediate) {
-        var that = this;
-        var style = { opacity: 0 };
-
-        if (immediate) {
-            this.$el.hide().css(style);
-        }
-        this.$el.stop(true).animate(style, {
-            duration: "fast",
-            complete: function() {
-                that.$el.hide();
-                that.hideBackground();
-            }
-        });
-    },
-
-    fixPosition: function(origin, elLayout) {
-        var addonSize = elLayout.innerHeight;
-
-        this.checkType();
-        this.$el.css({
-            left:
-                origin.left +
-                elLayout.borderLeft +
-                elLayout.innerWidth -
-                addonSize +
-                "px",
-            top: origin.top + elLayout.borderTop + "px",
-            height: addonSize,
-            width: addonSize
-        });
-
-        this.initialPadding = elLayout.paddingRight;
-        this.width = addonSize;
-        if (this.visible) {
-            elLayout.componentsRight += addonSize;
-        }
-    },
-
-    showBackground: function(immediate) {
-        var $el = this.owner.el;
-        var style = { paddingRight: this.width };
-
-        if (this.width > this.initialPadding) {
-            this.stopBackground();
-            if (immediate) {
-                $el.css(style);
-            } else {
-                $el.animate(style, {
-                    duration: "fast",
-                    queue: QUEUE_NAME
-                }).dequeue(QUEUE_NAME);
-            }
-        }
-    },
-
-    hideBackground: function(immediate) {
-        var $el = this.owner.el;
-        var style = { paddingRight: this.initialPadding };
-
-        if (this.width > this.initialPadding) {
-            this.stopBackground(true);
-            if (immediate) {
-                $el.css(style);
-            } else {
-                $el.delay(BEFORE_SHOW_ADDON, QUEUE_NAME)
-                    .animate(style, { duration: "fast", queue: QUEUE_NAME })
-                    .dequeue(QUEUE_NAME);
-            }
-        }
-    },
-
-    stopBackground: function(gotoEnd) {
-        this.owner.el.stop(QUEUE_NAME, true, gotoEnd);
-    },
-
-    onClick: function(e) {
-        if (this.isEnabled() && this.type == ADDON_TYPES.CLEAR) {
-            this.owner.clear();
-        }
-    }
-};
-
-var methods$5 = {
-    createAddon: function() {
-        var addon = new Addon(this);
-        this.$wrapper.append(addon.$el);
-        this.addon = addon;
-    },
-
-    fixAddonPosition: function(origin, elLayout) {
-        this.addon.fixPosition(origin, elLayout);
-    },
-
-    checkAddonType: function() {
-        this.addon.checkType();
-    },
-
-    checkAddonVisibility: function() {
-        this.addon.toggle();
-    },
-
-    stopBackground: function() {
-        this.addon.stopBackground();
-    }
-};
-
-jqapi.extend(DEFAULT_OPTIONS, optionsUsed$1);
-
-notificator
-    .on("initialize", methods$5.createAddon)
-    .on("setOptions", methods$5.checkAddonType)
-    .on("fixPosition", methods$5.fixAddonPosition)
-    .on("clear", methods$5.checkAddonVisibility)
-    .on("valueChange", methods$5.checkAddonVisibility)
-    .on("request", methods$5.checkAddonVisibility)
-    .on("resetPosition", methods$5.stopBackground);
 
 /**
  * Methods related to CONSTRAINTS component
  */
-var optionsUsed$2 = {
+var optionsUsed$1 = {
     constraints: null,
     restrict_value: false
 };
@@ -4787,23 +4453,6 @@ var Constraint = function(data, instance) {
             })
             .join(", ");
     }
-
-    if (this.label && this.isValid()) {
-        this.$el = jqapi
-            .select(document.createElement("li"))
-            .append(
-                jqapi.select(document.createElement("span")).text(this.label)
-            )
-            .attr("data-constraint-id", this.id);
-
-        if (this.deletable) {
-            this.$el.append(
-                jqapi
-                    .select(document.createElement("span"))
-                    .addClass(instance.classes.removeConstraint)
-            );
-        }
-    }
 };
 
 jqapi.extend(Constraint.prototype, {
@@ -4817,57 +4466,11 @@ jqapi.extend(Constraint.prototype, {
     }
 });
 
-var methods$6 = {
+var methods$5 = {
     createConstraints: function() {
         var that = this;
-
         that.constraints = {};
-
-        that.$constraints = jqapi.select(
-            '<ul class="suggestions-constraints"/>'
-        );
-        that.$wrapper.append(that.$constraints);
-        that.$constraints.on(
-            "click",
-            "." + that.classes.removeConstraint,
-            jqapi.proxy(that.onConstraintRemoveClick, that)
-        );
     },
-
-    setConstraintsPosition: function(origin, elLayout) {
-        var that = this;
-
-        that.$constraints.css({
-            left:
-                origin.left + elLayout.borderLeft + elLayout.paddingLeft + "px",
-            top:
-                origin.top +
-                elLayout.borderTop +
-                Math.round(
-                    (elLayout.innerHeight - that.$constraints.height()) / 2
-                ) +
-                "px"
-        });
-
-        elLayout.componentsLeft +=
-            that.$constraints.outerWidth(true) + elLayout.paddingLeft;
-    },
-
-    onConstraintRemoveClick: function(e) {
-        var that = this,
-            $item = jqapi.select(e.target).closest("li"),
-            id = $item.attr("data-constraint-id");
-
-        // Delete constraint data before animation to let correct requests to be sent while fading
-        delete that.constraints[id];
-        // Request for new suggestions
-        that.update();
-
-        $item.fadeOut("fast", function() {
-            that.removeConstraint(id);
-        });
-    },
-
     setupConstraints: function() {
         var that = this,
             constraints = that.options.constraints,
@@ -4892,7 +4495,6 @@ var methods$6 = {
                 }
             }
         } else {
-            that._constraintsUpdating = true;
             collection_util.each(that.constraints, function(_, id) {
                 that.removeConstraint(id);
             });
@@ -4902,8 +4504,6 @@ var methods$6 = {
                     that.addConstraint(constraint);
                 }
             );
-            that._constraintsUpdating = false;
-            that.fixPosition();
         }
     },
 
@@ -4938,25 +4538,12 @@ var methods$6 = {
 
         if (constraint.isValid()) {
             that.constraints[constraint.id] = constraint;
-
-            if (constraint.$el) {
-                that.$constraints.append(constraint.$el);
-                if (!that._constraintsUpdating) {
-                    that.fixPosition();
-                }
-            }
         }
     },
 
     removeConstraint: function(id) {
         var that = this;
         delete that.constraints[id];
-        that.$constraints
-            .children('[data-constraint-id="' + id + '"]')
-            .remove();
-        if (!that._constraintsUpdating) {
-            that.fixPosition();
-        }
     },
 
     constructConstraintsParams: function() {
@@ -5137,25 +4724,24 @@ var methods$6 = {
     }
 };
 
-jqapi.extend(DEFAULT_OPTIONS, optionsUsed$2);
+jqapi.extend(DEFAULT_OPTIONS, optionsUsed$1);
 
-jqapi.extend(Suggestions.prototype, methods$6);
+jqapi.extend(Suggestions.prototype, methods$5);
 
 // Disable this feature when GET method used. See SUG-202
 if (ajax.getDefaultType() != "GET") {
     notificator
-        .on("initialize", methods$6.createConstraints)
-        .on("setOptions", methods$6.setupConstraints)
-        .on("fixPosition", methods$6.setConstraintsPosition)
-        .on("requestParams", methods$6.constructConstraintsParams)
-        .on("dispose", methods$6.unbindFromParent);
+        .on("initialize", methods$5.createConstraints)
+        .on("setOptions", methods$5.setupConstraints)
+        .on("requestParams", methods$5.constructConstraintsParams)
+        .on("dispose", methods$5.unbindFromParent);
 }
 
 /**
  * Methods for selecting a suggestion
  */
 
-var methods$7 = {
+var methods$6 = {
     proceedQuery: function(query) {
         var that = this;
 
@@ -5396,19 +4982,19 @@ var methods$7 = {
     }
 };
 
-jqapi.extend(Suggestions.prototype, methods$7);
+jqapi.extend(Suggestions.prototype, methods$6);
 
-notificator.on("assignSuggestions", methods$7.selectFoundSuggestion);
+notificator.on("assignSuggestions", methods$6.selectFoundSuggestion);
 
 /**
  * features for connected instances
  */
 
-var optionsUsed$3 = {
+var optionsUsed$2 = {
     bounds: null
 };
 
-var methods$8 = {
+var methods$7 = {
     setupBounds: function() {
         this.bounds = {
             from: null,
@@ -5541,14 +5127,14 @@ var methods$8 = {
     }
 };
 
-$.extend(DEFAULT_OPTIONS, optionsUsed$3);
+$.extend(DEFAULT_OPTIONS, optionsUsed$2);
 
-$.extend(Suggestions.prototype, methods$8);
+$.extend(Suggestions.prototype, methods$7);
 
 notificator
-    .on("initialize", methods$8.setupBounds)
-    .on("setOptions", methods$8.setBoundsOptions)
-    .on("requestParams", methods$8.constructBoundsParams);
+    .on("initialize", methods$7.setupBounds)
+    .on("setOptions", methods$7.setBoundsOptions)
+    .on("requestParams", methods$7.constructBoundsParams);
 
 /**
  * Утилиты для работы с DOM.
@@ -5635,7 +5221,6 @@ var IMAGE =
 
 function Promo(plugin) {
     this.plan = plugin.status.plan;
-    this.isMobile = plugin.isMobile;
     var container = plugin.getContainer();
     this.element = dom.selectByClass(CLASSES.promo, container);
 }
@@ -5653,14 +5238,11 @@ Promo.prototype.show = function() {
 
 Promo.prototype.setStyles = function() {
     this.element.style.display = "block";
-    if (!this.isMobile) {
-        this.element.classList.add(CLASSES.promo_desktop);
-    }
 };
 
 Promo.prototype.setHtml = function() {
     this.element.innerHTML =
-        '<a target="_blank" href="' +
+        '<a target="_blank" tabindex="-1" href="' +
         LINK +
         '">' +
         PREFIX +
@@ -5677,7 +5259,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "20.2.0";
+Suggestions.version = "20.2.1";
 
 $.Suggestions = Suggestions;
 

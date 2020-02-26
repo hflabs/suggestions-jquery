@@ -62,7 +62,6 @@ var methods = {
             $container = $("<div/>")
                 .addClass(options.containerClass)
                 .css({
-                    position: "absolute",
                     display: "none"
                 });
 
@@ -72,6 +71,12 @@ var methods = {
             "click" + EVENT_NS,
             suggestionSelector,
             $.proxy(that.onSuggestionClick, that)
+        );
+    },
+
+    showContainer: function() {
+        this.$container.appendTo(
+            this.options.floating ? this.$body : this.$wrapper
         );
     },
 
@@ -120,73 +125,6 @@ var methods = {
     },
 
     // Dropdown UI methods
-
-    setDropdownPosition: function(origin, elLayout) {
-        var that = this,
-            scrollLeft = that.$viewport.scrollLeft(),
-            style;
-
-        if (that.isMobile) {
-            style = that.options.floating
-                ? {
-                      left: scrollLeft + "px",
-                      top: elLayout.top + elLayout.outerHeight + "px"
-                  }
-                : {
-                      left: origin.left - elLayout.left + scrollLeft + "px",
-                      top: origin.top + elLayout.outerHeight + "px"
-                  };
-            style.width = that.$viewport.width() + "px";
-        } else {
-            style = that.options.floating
-                ? {
-                      left: elLayout.left + "px",
-                      top:
-                          elLayout.top +
-                          elLayout.borderTop +
-                          elLayout.innerHeight +
-                          "px"
-                  }
-                : {
-                      left: origin.left + "px",
-                      top:
-                          origin.top +
-                          elLayout.borderTop +
-                          elLayout.innerHeight +
-                          "px"
-                  };
-
-            // Defer to let body show scrollbars
-            utils.delay(function() {
-                var width = that.options.width;
-
-                if (width === "auto") {
-                    width = that.el.outerWidth();
-                }
-                that.$container.outerWidth(width);
-            });
-        }
-
-        that.$container
-            .toggleClass(that.classes.mobile, that.isMobile)
-            .css(style);
-
-        that.containerItemsPadding =
-            elLayout.left +
-            elLayout.borderLeft +
-            elLayout.paddingLeft -
-            scrollLeft;
-    },
-
-    setItemsPositions: function() {
-        var that = this,
-            $items = that.getSuggestionsItems();
-
-        $items.css(
-            "paddingLeft",
-            that.isMobile ? that.containerItemsPadding + "px" : ""
-        );
-    },
 
     getSuggestionsItems: function() {
         return this.$container.children("." + this.classes.suggestion);
@@ -253,7 +191,7 @@ var methods = {
             }
         } else {
             // Build hint html
-            if (!that.isMobile && options.hint && that.suggestions.length) {
+            if (options.hint && that.suggestions.length) {
                 html.push(
                     '<div class="' +
                         that.classes.hint +
@@ -293,7 +231,6 @@ var methods = {
 
         that.$container.show();
         that.visible = true;
-        that.setItemsPositions();
     },
 
     buildSuggestionHtml: function(suggestion, ordinal, html) {
@@ -675,6 +612,5 @@ notificator
     .on("initialize", methods.createContainer)
     .on("dispose", methods.removeContainer)
     .on("setOptions", methods.setContainerOptions)
-    .on("fixPosition", methods.setDropdownPosition)
-    .on("fixPosition", methods.setItemsPositions)
+    .on("ready", methods.showContainer)
     .on("assignSuggestions", methods.suggest);

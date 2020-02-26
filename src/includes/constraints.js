@@ -243,23 +243,6 @@ var Constraint = function(data, instance) {
             })
             .join(", ");
     }
-
-    if (this.label && this.isValid()) {
-        this.$el = jqapi
-            .select(document.createElement("li"))
-            .append(
-                jqapi.select(document.createElement("span")).text(this.label)
-            )
-            .attr("data-constraint-id", this.id);
-
-        if (this.deletable) {
-            this.$el.append(
-                jqapi
-                    .select(document.createElement("span"))
-                    .addClass(instance.classes.removeConstraint)
-            );
-        }
-    }
 };
 
 jqapi.extend(Constraint.prototype, {
@@ -276,54 +259,8 @@ jqapi.extend(Constraint.prototype, {
 var methods = {
     createConstraints: function() {
         var that = this;
-
         that.constraints = {};
-
-        that.$constraints = jqapi.select(
-            '<ul class="suggestions-constraints"/>'
-        );
-        that.$wrapper.append(that.$constraints);
-        that.$constraints.on(
-            "click",
-            "." + that.classes.removeConstraint,
-            jqapi.proxy(that.onConstraintRemoveClick, that)
-        );
     },
-
-    setConstraintsPosition: function(origin, elLayout) {
-        var that = this;
-
-        that.$constraints.css({
-            left:
-                origin.left + elLayout.borderLeft + elLayout.paddingLeft + "px",
-            top:
-                origin.top +
-                elLayout.borderTop +
-                Math.round(
-                    (elLayout.innerHeight - that.$constraints.height()) / 2
-                ) +
-                "px"
-        });
-
-        elLayout.componentsLeft +=
-            that.$constraints.outerWidth(true) + elLayout.paddingLeft;
-    },
-
-    onConstraintRemoveClick: function(e) {
-        var that = this,
-            $item = jqapi.select(e.target).closest("li"),
-            id = $item.attr("data-constraint-id");
-
-        // Delete constraint data before animation to let correct requests to be sent while fading
-        delete that.constraints[id];
-        // Request for new suggestions
-        that.update();
-
-        $item.fadeOut("fast", function() {
-            that.removeConstraint(id);
-        });
-    },
-
     setupConstraints: function() {
         var that = this,
             constraints = that.options.constraints,
@@ -348,7 +285,6 @@ var methods = {
                 }
             }
         } else {
-            that._constraintsUpdating = true;
             collection_util.each(that.constraints, function(_, id) {
                 that.removeConstraint(id);
             });
@@ -358,8 +294,6 @@ var methods = {
                     that.addConstraint(constraint);
                 }
             );
-            that._constraintsUpdating = false;
-            that.fixPosition();
         }
     },
 
@@ -394,25 +328,12 @@ var methods = {
 
         if (constraint.isValid()) {
             that.constraints[constraint.id] = constraint;
-
-            if (constraint.$el) {
-                that.$constraints.append(constraint.$el);
-                if (!that._constraintsUpdating) {
-                    that.fixPosition();
-                }
-            }
         }
     },
 
     removeConstraint: function(id) {
         var that = this;
         delete that.constraints[id];
-        that.$constraints
-            .children('[data-constraint-id="' + id + '"]')
-            .remove();
-        if (!that._constraintsUpdating) {
-            that.fixPosition();
-        }
     },
 
     constructConstraintsParams: function() {
@@ -602,7 +523,6 @@ if (ajax.getDefaultType() != "GET") {
     notificator
         .on("initialize", methods.createConstraints)
         .on("setOptions", methods.setupConstraints)
-        .on("fixPosition", methods.setConstraintsPosition)
         .on("requestParams", methods.constructConstraintsParams)
         .on("dispose", methods.unbindFromParent);
 }

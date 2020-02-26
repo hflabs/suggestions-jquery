@@ -89,26 +89,6 @@ describe("Promo block", function() {
         expect(helpers.isHidden(promo)).toBeTruthy();
     });
 
-    it("Should use desktop styles on desktop", function() {
-        this.server.respond([200, { "X-Plan": "FREE" }, '{ "search": true }']);
-        this.instance.options.mobileWidth = NaN;
-        this.instance.isMobile = false;
-        var promo = query(this);
-        expect(
-            promo.classList.contains("suggestions-promo-desktop")
-        ).toBeTruthy();
-    });
-
-    it("Should NOT use desktop styles on mobile", function() {
-        this.server.respond([200, { "X-Plan": "FREE" }, '{ "search": true }']);
-        this.instance.options.mobileWidth = 20000;
-        this.instance.isMobile = true;
-        var promo = query(this);
-        expect(
-            promo.classList.contains("suggestions-promo-desktop")
-        ).toBeFalsy();
-    });
-
     it("Should not show when response is empty", function() {
         this.server.respond([200, { "X-Plan": "FREE" }, '{ "search": true }']);
         var promo = queryNothing(this);

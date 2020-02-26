@@ -12,7 +12,6 @@ var CLASSES = {
     mobile: "suggestions-mobile",
     nowrap: "suggestions-nowrap",
     promo: "suggestions-promo",
-    promo_desktop: "suggestions-promo-desktop",
     selected: "suggestions-selected",
     suggestion: "suggestions-suggestion",
     subtext: "suggestions-subtext",

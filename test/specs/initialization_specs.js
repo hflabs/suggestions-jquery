@@ -16,13 +16,9 @@ describe("Initialization", function() {
 
         it("Should create all additional components", function() {
             var instance = this.instance;
-            $.each(["$wrapper", "$container", "$constraints"], function(
-                i,
-                component
-            ) {
+            $.each(["$wrapper", "$container"], function(i, component) {
                 expect(instance[component].length).toEqual(1);
             });
-            expect(instance.addon.$el.length).toEqual(1);
         });
     }
 
@@ -35,7 +31,6 @@ describe("Initialization", function() {
         });
 
         it("Should not create any additional elements", function() {
-            expect(this.instance.addon).toBeUndefined();
             expect(this.instance.$wrapper).toBeNull();
         });
     }
