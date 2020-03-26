@@ -99,7 +99,7 @@ var PARTY_TYPE = {
         value = that.wrapFormattedValue(value, suggestion);
 
         if (address) {
-            address = address.replace(/^(\d{6}?\s+|Россия,\s+)/i, "");
+            address = address.replace(/^(\d{6}|Россия),\s+/i, "");
             if (that.isMobile) {
                 // keep only two first words
                 address = address.replace(

@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 20.2.2
+ * DaData.ru Suggestions jQuery plugin, version 20.2.3
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -2042,7 +2042,7 @@ var PARTY_TYPE = {
         value = that.wrapFormattedValue(value, suggestion);
 
         if (address) {
-            address = address.replace(/^(\d{6}?\s+|Россия,\s+)/i, "");
+            address = address.replace(/^(\d{6}|Россия),\s+/i, "");
             if (that.isMobile) {
                 // keep only two first words
                 address = address.replace(
@@ -5259,7 +5259,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "20.2.2";
+Suggestions.version = "20.2.3";
 
 $.Suggestions = Suggestions;
 

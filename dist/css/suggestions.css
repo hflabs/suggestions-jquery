@@ -83,9 +83,6 @@
  */
 .suggestions-subtext {
   color: #777;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 /**
  * Размещает дополнительный текст в одну строку с основным текстом подсказки
