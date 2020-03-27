@@ -550,6 +550,9 @@ Suggestions.prototype = {
         if ($.isNumeric(options.count) && options.count > 0) {
             params.count = options.count;
         }
+        if (options.language) {
+            params.language = options.language;
+        }
 
         return $.extend(params, customParams);
     },

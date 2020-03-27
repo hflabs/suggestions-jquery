@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 20.2.3
+ * DaData.ru Suggestions jQuery plugin, version 20.3.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -667,46 +667,47 @@ var utils = {
 };
 
 var DEFAULT_OPTIONS = {
+    $helpers: null,
     autoSelectFirst: false,
+    containerClass: "suggestions-suggestions",
+    count: 5,
+    deferRequestBy: 100,
+    enrichmentEnabled: true,
+    formatResult: null,
+    formatSelected: null,
+    headers: null,
+    hint: "Выберите вариант или продолжите ввод",
+    initializeInterval: 100,
+    language: null,
+    minChars: 1,
+    mobileWidth: 600,
+    noCache: false,
+    noSuggestionsHint: null,
+    onInvalidateSelection: null,
+    onSearchComplete: $.noop,
+    onSearchError: $.noop,
+    onSearchStart: $.noop,
+    onSelect: null,
+    onSelectNothing: null,
+    onSuggestionsFetch: null,
+    paramName: "query",
+    params: {},
+    preventBadQueries: false,
+    requestMode: "suggest",
+    scrollOnFocus: false,
     // основной url, может быть переопределен
     serviceUrl: "https://suggestions.dadata.ru/suggestions/api/4_1/rs",
+    tabDisabled: false,
+    timeout: 3000,
+    triggerSelectOnBlur: true,
+    triggerSelectOnEnter: true,
+    triggerSelectOnSpace: false,
+    type: null,
     // url, который заменяет serviceUrl + method + type
     // то есть, если он задан, то для всех запросов будет использоваться именно он
     // если не поддерживается cors то к url будут добавлены параметры ?token=...&version=...
     // и заменен протокол на протокол текущей страницы
-    url: null,
-    onSearchStart: $.noop,
-    onSearchComplete: $.noop,
-    onSearchError: $.noop,
-    onSuggestionsFetch: null,
-    onSelect: null,
-    onSelectNothing: null,
-    onInvalidateSelection: null,
-    minChars: 1,
-    deferRequestBy: 100,
-    enrichmentEnabled: true,
-    params: {},
-    paramName: "query",
-    timeout: 3000,
-    formatResult: null,
-    formatSelected: null,
-    noCache: false,
-    containerClass: "suggestions-suggestions",
-    tabDisabled: false,
-    triggerSelectOnSpace: false,
-    triggerSelectOnEnter: true,
-    triggerSelectOnBlur: true,
-    preventBadQueries: false,
-    hint: "Выберите вариант или продолжите ввод",
-    noSuggestionsHint: null,
-    type: null,
-    requestMode: "suggest",
-    count: 5,
-    $helpers: null,
-    headers: null,
-    scrollOnFocus: false,
-    mobileWidth: 600,
-    initializeInterval: 100
+    url: null
 };
 
 /**
@@ -2818,6 +2819,9 @@ Suggestions.prototype = {
         params[options.paramName] = query;
         if ($.isNumeric(options.count) && options.count > 0) {
             params.count = options.count;
+        }
+        if (options.language) {
+            params.language = options.language;
         }
 
         return $.extend(params, customParams);
@@ -5259,7 +5263,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "20.2.3";
+Suggestions.version = "20.3.0";
 
 $.Suggestions = Suggestions;
 

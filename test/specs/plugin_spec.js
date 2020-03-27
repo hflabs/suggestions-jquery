@@ -1,4 +1,4 @@
-describe("Common features", function() {
+describe("Base features", function() {
     "use strict";
 
     var serviceUrl = "/some/url",
@@ -30,314 +30,178 @@ describe("Common features", function() {
         this.server.restore();
     });
 
-    it("Should get current value", function() {
-        this.input.value = "Jam";
-        this.instance.onValueChange();
+    describe("Misc", function() {
+        it("Should get current value", function() {
+            this.input.value = "Jam";
+            this.instance.onValueChange();
 
-        this.server.respond(
-            helpers.responseFor([{ value: "Jamaica", data: "B" }])
-        );
+            this.server.respond(
+                helpers.responseFor([{ value: "Jamaica", data: "B" }])
+            );
 
-        expect(this.instance.visible).toBe(true);
-        expect(this.instance.currentValue).toEqual("Jam");
-    });
+            expect(this.instance.visible).toBe(true);
+            expect(this.instance.currentValue).toEqual("Jam");
+        });
 
-    it("Verify onSelect callback (fully changed)", function() {
-        var suggestions = [{ value: "Abcdef", data: "B" }],
-            options = {
-                onSelect: function() {}
-            };
-        spyOn(options, "onSelect");
+        it("Should convert suggestions format", function() {
+            this.input.value = "A";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(["Alex", "Ammy", "Anny"]));
+            expect(this.instance.suggestions[0]).toEqual(
+                helpers.appendUnrestrictedValue({ value: "Alex", data: null })
+            );
+            expect(this.instance.suggestions[1]).toEqual(
+                helpers.appendUnrestrictedValue({ value: "Ammy", data: null })
+            );
+            expect(this.instance.suggestions[2]).toEqual(
+                helpers.appendUnrestrictedValue({ value: "Anny", data: null })
+            );
+        });
 
-        this.instance.setOptions(options);
-        this.input.value = "A";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(suggestions));
-        this.instance.select(0);
+        it("Should destroy suggestions instance", function() {
+            var $div = $(document.createElement("div"));
 
-        expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[0]),
-            true
-        );
-    });
+            $div.append(this.input);
 
-    it("Verify onSelect callback (just enriched)", function() {
-        var suggestions = [
-                {
-                    value: "Abc",
-                    data: {
-                        name: "Name",
-                        surname: "Surname",
-                        patronymic: "Patronymic"
-                    }
+            expect(this.$input.data("suggestions")).toBeDefined();
+
+            this.$input.suggestions("dispose");
+
+            expect(this.$input.data("suggestions")).toBeUndefined();
+            $.each(
+                [
+                    ".suggestions-suggestions",
+                    ".suggestions-addon",
+                    ".suggestions-constraints"
+                ],
+                function(i, selector) {
+                    expect($div.find(selector).length).toEqual(0);
                 }
-            ],
-            options = {
-                onSelect: function() {}
+            );
+        });
+
+        it("Should set width to be greater than zero", function() {
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+            this.server.respond(
+                helpers.responseFor([{ value: "Jamaica", data: "B" }])
+            );
+            expect(this.instance.$container.width()).toBeGreaterThan(0);
+        });
+
+        it("Should call beforeRender and pass container jQuery object", function() {
+            var options = {
+                beforeRender: function() {}
             };
-        spyOn(options, "onSelect");
+            spyOn(options, "beforeRender");
+            this.instance.setOptions(options);
 
-        this.instance.setOptions(options);
-        this.input.value = "Abc";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(suggestions));
-        this.instance.select(0);
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+            this.server.respond(
+                helpers.responseFor([{ value: "Jamaica", data: "B" }])
+            );
 
-        expect(options.onSelect.calls.count()).toEqual(1);
-        expect(options.onSelect).toHaveBeenCalledWith(
-            helpers.appendUnrestrictedValue(suggestions[0]),
-            false
-        );
-    });
-
-    it("Should convert suggestions format", function() {
-        this.input.value = "A";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(["Alex", "Ammy", "Anny"]));
-        expect(this.instance.suggestions[0]).toEqual(
-            helpers.appendUnrestrictedValue({ value: "Alex", data: null })
-        );
-        expect(this.instance.suggestions[1]).toEqual(
-            helpers.appendUnrestrictedValue({ value: "Ammy", data: null })
-        );
-        expect(this.instance.suggestions[2]).toEqual(
-            helpers.appendUnrestrictedValue({ value: "Anny", data: null })
-        );
-    });
-
-    it("Should use custom query parameter name", function() {
-        this.instance.setOptions({
-            paramName: "custom"
+            expect(options.beforeRender.calls.count()).toEqual(1);
+            expect(options.beforeRender).toHaveBeenCalledWith(
+                this.instance.$container
+            );
         });
 
-        this.input.value = "Jam";
-        this.instance.onValueChange();
+        it("Should prevent Ajax requests if previous query with matching root failed.", function() {
+            this.instance.setOptions({ preventBadQueries: true });
+            this.input.value = "Jam";
+            this.instance.onValueChange();
 
-        expect(this.server.requests[0].requestBody).toContain('"custom":"Jam"');
-    });
+            expect(this.server.requests.length).toEqual(1);
+            this.server.respond(helpers.responseFor([]));
 
-    it("Should include params option into request", function() {
-        this.instance.setOptions({
-            params: {
-                a: 1
-            }
+            this.input.value = "Jama";
+            this.instance.onValueChange();
+
+            expect(this.server.requests.length).toEqual(1);
+
+            this.input.value = "Jamai";
+            this.instance.onValueChange();
+
+            expect(this.server.requests.length).toEqual(1);
         });
 
-        this.input.value = "Jam";
-        this.instance.onValueChange();
+        it("Should initialize forced on call setSuggestion", function() {
+            var hiddenInput = document.createElement("input"),
+                $hiddenInput = $(hiddenInput).appendTo($body),
+                instance;
 
-        expect(this.server.requests[0].requestBody).toContain('{"a":1,');
+            $hiddenInput.css({ display: "none" });
+
+            $hiddenInput.suggestions({ type: "ADDRESS" });
+            instance = $hiddenInput.suggestions();
+
+            // initialization is deferred until element is hidden
+            expect(instance.isUnavailable()).toEqual(true);
+            expect(instance.initializer.state()).toEqual("pending");
+
+            instance.setSuggestion({
+                data: {}
+            });
+
+            expect(instance.isUnavailable()).toEqual(false);
+            expect(instance.initializer.state()).toEqual("resolved");
+
+            instance.dispose();
+            $hiddenInput.remove();
+        });
     });
 
-    it("Should include params option into request when it is a function", function() {
-        this.instance.setOptions({
-            params: function() {
-                return { a: 2 };
-            }
+    describe("onSelect callback", function() {
+        it("Verify onSelect callback (fully changed)", function() {
+            var suggestions = [{ value: "Abcdef", data: "B" }],
+                options = {
+                    onSelect: function() {}
+                };
+            spyOn(options, "onSelect");
+
+            this.instance.setOptions(options);
+            this.input.value = "A";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(suggestions));
+            this.instance.select(0);
+
+            expect(options.onSelect.calls.count()).toEqual(1);
+            expect(options.onSelect).toHaveBeenCalledWith(
+                helpers.appendUnrestrictedValue(suggestions[0]),
+                true
+            );
         });
 
-        this.input.value = "Jam";
-        this.instance.onValueChange();
+        it("Verify onSelect callback (just enriched)", function() {
+            var suggestions = [
+                    {
+                        value: "Abc",
+                        data: {
+                            name: "Name",
+                            surname: "Surname",
+                            patronymic: "Patronymic"
+                        }
+                    }
+                ],
+                options = {
+                    onSelect: function() {}
+                };
+            spyOn(options, "onSelect");
 
-        expect(this.server.requests[0].requestBody).toContain('{"a":2,');
-    });
+            this.instance.setOptions(options);
+            this.input.value = "Abc";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(suggestions));
+            this.instance.select(0);
 
-    it("Should destroy suggestions instance", function() {
-        var $div = $(document.createElement("div"));
-
-        $div.append(this.input);
-
-        expect(this.$input.data("suggestions")).toBeDefined();
-
-        this.$input.suggestions("dispose");
-
-        expect(this.$input.data("suggestions")).toBeUndefined();
-        $.each(
-            [
-                ".suggestions-suggestions",
-                ".suggestions-addon",
-                ".suggestions-constraints"
-            ],
-            function(i, selector) {
-                expect($div.find(selector).length).toEqual(0);
-            }
-        );
-    });
-
-    it("Should set width to be greater than zero", function() {
-        this.input.value = "Jam";
-        this.instance.onValueChange();
-        this.server.respond(
-            helpers.responseFor([{ value: "Jamaica", data: "B" }])
-        );
-        expect(this.instance.$container.width()).toBeGreaterThan(0);
-    });
-
-    it("Should call beforeRender and pass container jQuery object", function() {
-        var options = {
-            beforeRender: function() {}
-        };
-        spyOn(options, "beforeRender");
-        this.instance.setOptions(options);
-
-        this.input.value = "Jam";
-        this.instance.onValueChange();
-        this.server.respond(
-            helpers.responseFor([{ value: "Jamaica", data: "B" }])
-        );
-
-        expect(options.beforeRender.calls.count()).toEqual(1);
-        expect(options.beforeRender).toHaveBeenCalledWith(
-            this.instance.$container
-        );
-    });
-
-    it("Should prevent Ajax requests if previous query with matching root failed.", function() {
-        this.instance.setOptions({ preventBadQueries: true });
-        this.input.value = "Jam";
-        this.instance.onValueChange();
-
-        expect(this.server.requests.length).toEqual(1);
-        this.server.respond(helpers.responseFor([]));
-
-        this.input.value = "Jama";
-        this.instance.onValueChange();
-
-        expect(this.server.requests.length).toEqual(1);
-
-        this.input.value = "Jamai";
-        this.instance.onValueChange();
-
-        expect(this.server.requests.length).toEqual(1);
-    });
-
-    it("Should display default hint message above suggestions", function() {
-        this.input.value = "jam";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(["Jamaica"]));
-
-        var $hint = this.instance.$container.find(".suggestions-hint");
-
-        expect($hint.length).toEqual(1);
-        expect($hint.text()).toEqual($.Suggestions.defaultOptions.hint);
-    });
-
-    it("Should display custom hint message above suggestions", function() {
-        var customHint = "This is custon hint";
-        this.instance.setOptions({
-            hint: customHint
+            expect(options.onSelect.calls.count()).toEqual(1);
+            expect(options.onSelect).toHaveBeenCalledWith(
+                helpers.appendUnrestrictedValue(suggestions[0]),
+                false
+            );
         });
-
-        this.input.value = "jam";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(["Jamaica"]));
-
-        var $hint = this.instance.$container.find(".suggestions-hint");
-
-        expect($hint.length).toEqual(1);
-        expect($hint.text()).toEqual(customHint);
-    });
-
-    it("Should not display any hint message above suggestions", function() {
-        this.instance.setOptions({
-            hint: false
-        });
-
-        this.input.value = "jam";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(["Jamaica"]));
-
-        var $hint = this.instance.$container.find(".suggestions-hint");
-
-        expect($hint.length).toEqual(0);
-    });
-
-    it("Should not display any hint message for narrow-screen (mobile) view", function() {
-        this.instance.setOptions({
-            hint: false,
-            mobileWidth: 20000
-        });
-
-        this.input.value = "jam";
-        this.instance.onValueChange();
-        this.server.respond(helpers.responseFor(["Jamaica"]));
-
-        var $hint = this.instance.$container.find(".suggestions-hint");
-
-        expect($hint.length).toEqual(0);
-    });
-
-    it("Should include version info in requests", function() {
-        this.input.value = "jam";
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestHeaders["X-Version"]).toMatch(
-            /\d+\.\d+\.\d+|9999/
-        );
-    });
-
-    it("Should send custom HTTP headers", function() {
-        this.instance.setOptions({
-            headers: { "X-my-header": "blabla" }
-        });
-        this.input.value = "jam";
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestHeaders["X-my-header"]).toEqual(
-            "blabla"
-        );
-    });
-
-    it("Should overwrite custom HTTP headers with ones used by plugin", function() {
-        this.instance.setOptions({
-            headers: { "X-Version": "blabla" }
-        });
-        this.input.value = "jam";
-        this.instance.onValueChange();
-
-        expect(this.server.requests[0].requestHeaders["X-Version"]).toEqual(
-            $.Suggestions.version
-        );
-    });
-
-    it("Should not request until @ typed for emails", function() {
-        this.instance.setOptions({
-            type: "EMAIL",
-            suggest_local: false
-        });
-        helpers.returnGoodStatus(this.server);
-        this.server.requests.length = 0;
-
-        this.input.value = "jam";
-        this.instance.onValueChange();
-
-        expect(this.server.requests.length).toEqual(0);
-    });
-
-    it("should initialize forced on call setSuggestion", function() {
-        var hiddenInput = document.createElement("input"),
-            $hiddenInput = $(hiddenInput).appendTo($body),
-            instance;
-
-        $hiddenInput.css({ display: "none" });
-
-        $hiddenInput.suggestions({ type: "ADDRESS" });
-        instance = $hiddenInput.suggestions();
-
-        // initialization is deferred until element is hidden
-        expect(instance.isUnavailable()).toEqual(true);
-        expect(instance.initializer.state()).toEqual("pending");
-
-        instance.setSuggestion({
-            data: {}
-        });
-
-        expect(instance.isUnavailable()).toEqual(false);
-        expect(instance.initializer.state()).toEqual("resolved");
-
-        instance.dispose();
-        $hiddenInput.remove();
     });
 
     describe("onSuggestionsFetch callback", function() {
@@ -418,6 +282,163 @@ describe("Common features", function() {
             expect($items.eq(1)).toContainText(this.suggestions[2].value);
             // First option become last
             expect($items.eq(2)).toContainText(this.suggestions[0].value);
+        });
+    });
+
+    describe("Hint message", function() {
+        it("Should display default hint message above suggestions", function() {
+            this.input.value = "jam";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(["Jamaica"]));
+
+            var $hint = this.instance.$container.find(".suggestions-hint");
+
+            expect($hint.length).toEqual(1);
+            expect($hint.text()).toEqual($.Suggestions.defaultOptions.hint);
+        });
+
+        it("Should display custom hint message above suggestions", function() {
+            var customHint = "This is custon hint";
+            this.instance.setOptions({
+                hint: customHint
+            });
+
+            this.input.value = "jam";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(["Jamaica"]));
+
+            var $hint = this.instance.$container.find(".suggestions-hint");
+
+            expect($hint.length).toEqual(1);
+            expect($hint.text()).toEqual(customHint);
+        });
+
+        it("Should not display any hint message above suggestions", function() {
+            this.instance.setOptions({
+                hint: false
+            });
+
+            this.input.value = "jam";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(["Jamaica"]));
+
+            var $hint = this.instance.$container.find(".suggestions-hint");
+
+            expect($hint.length).toEqual(0);
+        });
+
+        it("Should not display any hint message for narrow-screen (mobile) view", function() {
+            this.instance.setOptions({
+                hint: false,
+                mobileWidth: 20000
+            });
+
+            this.input.value = "jam";
+            this.instance.onValueChange();
+            this.server.respond(helpers.responseFor(["Jamaica"]));
+
+            var $hint = this.instance.$container.find(".suggestions-hint");
+
+            expect($hint.length).toEqual(0);
+        });
+    });
+
+    describe("Language", function() {
+        it("Should not include default language into request", function() {
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).not.toContain(
+                "language"
+            );
+        });
+
+        it("Should include custom language into request", function() {
+            this.instance.setOptions({
+                language: "en"
+            });
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).toContain(
+                '"language":"en"'
+            );
+        });
+    });
+
+    describe("Custom params", function() {
+        it("Should use custom query parameter name", function() {
+            this.instance.setOptions({
+                paramName: "custom"
+            });
+
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).toContain(
+                '"custom":"Jam"'
+            );
+        });
+
+        it("Should include params option into request", function() {
+            this.instance.setOptions({
+                params: {
+                    a: 1
+                }
+            });
+
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).toContain('{"a":1,');
+        });
+
+        it("Should include params option into request when it is a function", function() {
+            this.instance.setOptions({
+                params: function() {
+                    return { a: 2 };
+                }
+            });
+
+            this.input.value = "Jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestBody).toContain('{"a":2,');
+        });
+    });
+
+    describe("Headers", function() {
+        it("Should include version info in requests", function() {
+            this.input.value = "jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestHeaders["X-Version"]).toMatch(
+                /\d+\.\d+\.\d+|9999/
+            );
+        });
+
+        it("Should send custom HTTP headers", function() {
+            this.instance.setOptions({
+                headers: { "X-my-header": "blabla" }
+            });
+            this.input.value = "jam";
+            this.instance.onValueChange();
+
+            expect(
+                this.server.requests[0].requestHeaders["X-my-header"]
+            ).toEqual("blabla");
+        });
+
+        it("Should overwrite custom HTTP headers with ones used by plugin", function() {
+            this.instance.setOptions({
+                headers: { "X-Version": "blabla" }
+            });
+            this.input.value = "jam";
+            this.instance.onValueChange();
+
+            expect(this.server.requests[0].requestHeaders["X-Version"]).toEqual(
+                $.Suggestions.version
+            );
         });
     });
 });
