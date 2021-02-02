@@ -13,7 +13,7 @@ describe("Text to insert after selection", function() {
                 serviceUrl: serviceUrl,
                 type: "NAME",
                 // disable mobile view features
-                mobileWidth: NaN
+                mobileWidth: NaN,
             })
             .suggestions();
 
@@ -31,7 +31,7 @@ describe("Text to insert after selection", function() {
         this.instance.setOptions({
             formatSelected: function(suggestion) {
                 return suggestion.data.customValue;
-            }
+            },
         });
         this.input.value = "A";
         this.instance.onValueChange();
@@ -40,9 +40,9 @@ describe("Text to insert after selection", function() {
                 {
                     value: "A",
                     data: {
-                        customValue: "custom value"
-                    }
-                }
+                        customValue: "custom value",
+                    },
+                },
             ])
         );
         this.instance.select(0);
@@ -56,8 +56,8 @@ describe("Text to insert after selection", function() {
                 return null;
             },
             params: {
-                parts: ["NAME"]
-            }
+                parts: ["NAME"],
+            },
         });
         this.input.value = "Al";
         this.instance.onValueChange();
@@ -66,9 +66,9 @@ describe("Text to insert after selection", function() {
                 {
                     value: "Alex",
                     data: {
-                        name: "Alex"
-                    }
-                }
+                        name: "Alex",
+                    },
+                },
             ])
         );
         this.instance.select(0);
@@ -82,8 +82,8 @@ describe("Text to insert after selection", function() {
                 return "";
             },
             params: {
-                parts: ["NAME"]
-            }
+                parts: ["NAME"],
+            },
         });
         this.input.value = "Al";
         this.instance.onValueChange();
@@ -92,9 +92,9 @@ describe("Text to insert after selection", function() {
                 {
                     value: "Alex",
                     data: {
-                        name: "Alex"
-                    }
-                }
+                        name: "Alex",
+                    },
+                },
             ])
         );
         this.instance.select(0);
@@ -104,7 +104,7 @@ describe("Text to insert after selection", function() {
 
     it("Should invoke type-specified formatSelected method", function() {
         this.instance.setOptions({
-            type: "BANK"
+            type: "BANK",
         });
         this.input.value = "Альфа";
         this.instance.onValueChange();
@@ -116,13 +116,27 @@ describe("Text to insert after selection", function() {
                         name: {
                             full: 'АКЦИОНЕРНОЕ ОБЩЕСТВО "АЛЬФА-БАНК"',
                             payment: 'АО "АЛЬФА-БАНК"',
-                            short: "АЛЬФА-БАНК"
-                        }
-                    }
-                }
+                            short: "АЛЬФА-БАНК",
+                        },
+                    },
+                },
             ])
         );
         this.instance.select(0);
+        this.server.respond(
+            helpers.responseFor([
+                {
+                    value: "АЛЬФА-БАНК",
+                    data: {
+                        name: {
+                            full: 'АКЦИОНЕРНОЕ ОБЩЕСТВО "АЛЬФА-БАНК"',
+                            payment: 'АО "АЛЬФА-БАНК"',
+                            short: "АЛЬФА-БАНК",
+                        },
+                    },
+                },
+            ])
+        );
 
         expect(this.input.value).toEqual('АО "АЛЬФА-БАНК"');
     });
@@ -132,9 +146,9 @@ describe("Text to insert after selection", function() {
             type: "ADDRESS",
             geoLocation: false,
             constraints: {
-                locations: { city: "Москва" }
+                locations: { city: "Москва" },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // Setting type will request for status
@@ -170,9 +184,9 @@ describe("Text to insert after selection", function() {
                         street_kladr_id: "77000000000294700",
                         street_type: "ул",
                         street_type_full: "улица",
-                        street_with_type: "ул Туристская"
-                    }
-                }
+                        street_with_type: "ул Туристская",
+                    },
+                },
             ])
         );
 
@@ -205,9 +219,9 @@ describe("Text to insert after selection", function() {
                         street_kladr_id: "77000000000294700",
                         street_type: "ул",
                         street_type_full: "улица",
-                        street_with_type: "ул Туристская"
-                    }
-                }
+                        street_with_type: "ул Туристская",
+                    },
+                },
             ])
         );
 
@@ -232,16 +246,16 @@ describe("Text to insert after selection", function() {
                     city_with_type: "г Москва",
                     city_type: "г",
                     city_type_full: "город",
-                    city: "Москва"
-                }
-            }
+                    city: "Москва",
+                },
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
             restrict_value: true,
-            bounds: "region-city"
+            bounds: "region-city",
         });
 
         // Setting type will request for status
@@ -286,18 +300,18 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Суздальская",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Суздальская"
-                }
-            }
+                    street: "Суздальская",
+                },
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
             constraints: {
-                locations: { city: "Москва" }
+                locations: { city: "Москва" },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // Setting type will request for status
@@ -350,9 +364,9 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Лазурная",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Лазурная"
-                }
-            }
+                    street: "Лазурная",
+                },
+            },
         ];
 
         this.instance.setOptions({
@@ -361,10 +375,10 @@ describe("Text to insert after selection", function() {
             constraints: {
                 locations: {
                     region: "Краснодарский",
-                    city: "Сочи"
-                }
+                    city: "Сочи",
+                },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // Setting type will request for status
@@ -409,15 +423,15 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Суздальская",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Суздальская"
-                }
-            }
+                    street: "Суздальская",
+                },
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
-            bounds: "city-street"
+            bounds: "city-street",
         });
 
         // Setting type will request for status
@@ -470,15 +484,15 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Лазурная",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Лазурная"
-                }
-            }
+                    street: "Лазурная",
+                },
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
-            bounds: "city-street"
+            bounds: "city-street",
         });
 
         // Setting type will request for status
@@ -539,9 +553,9 @@ describe("Text to insert after selection", function() {
                     tax_office: "5402",
                     geo_lat: "55.0556543",
                     geo_lon: "82.895762",
-                    qc_geo: "2"
-                }
-            }
+                    qc_geo: "2",
+                },
+            },
         ];
 
         var $parent = $("<input>").appendTo($(document.body));
@@ -551,14 +565,14 @@ describe("Text to insert after selection", function() {
             type: "ADDRESS",
             geoLocation: false,
             bounds: "city-settlement",
-            mobileWidth: NaN
+            mobileWidth: NaN,
         });
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
             bounds: "street",
-            constraints: $parent
+            constraints: $parent,
         });
 
         // Setting type will request for status
@@ -623,9 +637,9 @@ describe("Text to insert after selection", function() {
                     tax_office: "2367",
                     geo_lat: "43.4306102",
                     geo_lon: "39.9347608",
-                    qc_geo: "2"
-                }
-            }
+                    qc_geo: "2",
+                },
+            },
         ];
 
         var $parent = $("<input>").appendTo($(document.body));
@@ -635,14 +649,14 @@ describe("Text to insert after selection", function() {
             type: "ADDRESS",
             geoLocation: false,
             bounds: "city-settlement",
-            mobileWidth: NaN
+            mobileWidth: NaN,
         });
 
         this.instance.setOptions({
             type: "ADDRESS",
             geoLocation: false,
             bounds: "street",
-            constraints: $parent
+            constraints: $parent,
         });
 
         // Setting type will request for status
@@ -704,21 +718,21 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Вторая",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Вторая"
-                }
+                    street: "Вторая",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
@@ -726,10 +740,10 @@ describe("Text to insert after selection", function() {
             constraints: {
                 locations: {
                     region: "Башкортостан",
-                    city: "Белебей"
-                }
+                    city: "Белебей",
+                },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // Setting type will request for status
@@ -788,26 +802,26 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Вторая",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Вторая"
-                }
+                    street: "Вторая",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
-            bounds: "city-street"
+            bounds: "city-street",
         });
 
         // Setting type will request for status
@@ -841,25 +855,25 @@ describe("Text to insert after selection", function() {
                     city_district_fias_id:
                         "916cb442-6505-4341-8f86-0ba8d3d966c8",
                     city_district_with_type: "р-н Девон",
-                    street_with_type: "ул Вторая"
-                }
+                    street_with_type: "ул Вторая",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
-            type: "ADDRESS"
+            type: "ADDRESS",
         });
 
         // Setting type will request for status
@@ -920,21 +934,21 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Вторая",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Вторая"
-                }
+                    street: "Вторая",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Двадцать вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Двадцать вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Двадцать вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Двадцать вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
@@ -942,10 +956,10 @@ describe("Text to insert after selection", function() {
             constraints: {
                 locations: {
                     region: "Башкортостан",
-                    city: "Белебей"
-                }
+                    city: "Белебей",
+                },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // Setting type will request for status
@@ -1004,26 +1018,26 @@ describe("Text to insert after selection", function() {
                     street_with_type: "ул Вторая",
                     street_type: "ул",
                     street_type_full: "улица",
-                    street: "Вторая"
-                }
+                    street: "Вторая",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Двадцать вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Двадцать вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Двадцать вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Двадцать вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
-            bounds: "city-street"
+            bounds: "city-street",
         });
 
         // Setting type will request for status
@@ -1058,25 +1072,25 @@ describe("Text to insert after selection", function() {
                     city_district_fias_id:
                         "916cb442-6505-4341-8f86-0ba8d3d966c8",
                     city_district_with_type: "р-н Девон",
-                    street_with_type: "пер Тукаевский 2-й"
-                }
+                    street_with_type: "пер Тукаевский 2-й",
+                },
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, р-н Ласточка, ул Вторая",
-                data: {}
+                data: {},
             },
             {
                 value: "респ Башкортостан, г Белебей, ул Вторая",
                 unrestricted_value:
                     "респ Башкортостан, Белебеевский р-н, г Белебей, Лесной р-н, ул Вторая",
-                data: {}
-            }
+                data: {},
+            },
         ];
 
         this.instance.setOptions({
-            type: "ADDRESS"
+            type: "ADDRESS",
         });
 
         // Setting type will request for status
@@ -1112,14 +1126,14 @@ describe("Text to insert after selection", function() {
                     city_district_fias_id:
                         "f1acccf5-36e2-44d5-9143-437cc7459ed1",
                     city_district_type: "р-н",
-                    city_district_with_type: "Адлерский р-н"
-                }
-            }
+                    city_district_with_type: "Адлерский р-н",
+                },
+            },
         ];
 
         this.instance.setOptions({
             type: "ADDRESS",
-            bounds: "city_district"
+            bounds: "city_district",
         });
 
         // Setting type will request for status

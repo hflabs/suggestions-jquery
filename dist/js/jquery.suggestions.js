@@ -2140,11 +2140,19 @@ var BANK_TYPE = {
             {
                 value: null,
                 "data.bic": null,
-                "data.swift": null
+                "data.swift": null,
             }
-        )
+        ),
     ],
     dataComponents: ADDRESS_COMPONENTS,
+    enrichmentEnabled: true,
+    enrichmentMethod: "findById",
+    enrichmentParams: {
+        count: 1,
+    },
+    getEnrichmentQuery: function(suggestion) {
+        return suggestion.data.bic;
+    },
     geoEnabled: true,
     formatResult: function(value, currentValue, suggestion, options) {
         var that = this,
@@ -2182,7 +2190,7 @@ var BANK_TYPE = {
                     currentValue,
                     suggestion,
                     {
-                        unformattableTokens: ADDRESS_STOPWORDS
+                        unformattableTokens: ADDRESS_STOPWORDS,
                     }
                 );
             }
@@ -2207,7 +2215,7 @@ var BANK_TYPE = {
         return (
             object_util.getDeepValue(suggestion, "data.name.payment") || null
         );
-    }
+    },
 };
 
 function Outward(name) {

@@ -12,18 +12,18 @@ describe("Enrich", function() {
                         patronymic: "Петрович",
                         surname: "Романов",
                         gender: "MALE",
-                        qc: null
-                    }
-                }
+                        qc: null,
+                    },
+                },
             ],
             poorAddress: [
                 {
                     value: "Москва",
                     data: {
                         city: "Москва",
-                        qc: null
-                    }
-                }
+                        qc: null,
+                    },
+                },
             ],
             poorAddressRestricted: [
                 {
@@ -40,27 +40,35 @@ describe("Enrich", function() {
                         street_type: "ул",
                         street_with_type: "ул Солянка",
                         house: "6",
-                        qc: null
-                    }
-                }
+                        qc: null,
+                    },
+                },
             ],
             poorParty: [
                 {
                     value: "Фирма",
                     data: {
-                        hid: "123"
-                    }
-                }
+                        hid: "123",
+                    },
+                },
+            ],
+            poorBank: [
+                {
+                    value: "альфа-банк",
+                    data: {
+                        bic: "044525593",
+                    },
+                },
             ],
             enriched: [
                 {
                     value: "Москва",
                     data: {
                         city: "Москва",
-                        qc: 0
-                    }
-                }
-            ]
+                        qc: 0,
+                    },
+                },
+            ],
         };
 
     beforeEach(function() {
@@ -75,7 +83,7 @@ describe("Enrich", function() {
                 serviceUrl: serviceUrl,
                 type: "ADDRESS",
                 token: "123",
-                geoLocation: false
+                geoLocation: false,
             })
             .suggestions();
 
@@ -91,7 +99,7 @@ describe("Enrich", function() {
 
     it("Should NOT enrich a suggestion for names", function() {
         this.instance.setOptions({
-            type: "NAME"
+            type: "NAME",
         });
 
         // select address
@@ -109,7 +117,7 @@ describe("Enrich", function() {
 
     it("Should enrich a suggestion for parties", function() {
         this.instance.setOptions({
-            type: "PARTY"
+            type: "PARTY",
         });
 
         // select address
@@ -126,6 +134,28 @@ describe("Enrich", function() {
         expect(this.server.requests[0].requestBody).toContain('"count":1');
         expect(this.server.requests[0].requestBody).toContain(
             '"query":"' + fixtures.poorParty[0].data.hid + '"'
+        );
+    });
+
+    it("Should enrich a suggestion for banks", function() {
+        this.instance.setOptions({
+            type: "BANK",
+        });
+
+        // select bank
+        this.input.value = "а";
+        this.instance.onValueChange();
+        this.server.respond(helpers.responseFor(fixtures.poorBank));
+
+        this.server.requests.length = 0;
+        this.instance.selectedIndex = 0;
+        helpers.hitEnter(this.input);
+
+        // request for enriched suggestion not sent
+        expect(this.server.requests.length).toEqual(1);
+        expect(this.server.requests[0].requestBody).toContain('"count":1');
+        expect(this.server.requests[0].requestBody).toContain(
+            '"query":"' + fixtures.poorBank[0].data.bic + '"'
         );
     });
 
@@ -153,10 +183,10 @@ describe("Enrich", function() {
                 locations: {
                     region_type: "г",
                     region: "Москва",
-                    region_with_type: "г Москва"
-                }
+                    region_with_type: "г Москва",
+                },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // select address
@@ -186,10 +216,10 @@ describe("Enrich", function() {
                 locations: {
                     region_type: "г",
                     region: "Москва",
-                    region_with_type: "г Москва"
-                }
+                    region_with_type: "г Москва",
+                },
             },
-            restrict_value: true
+            restrict_value: true,
         });
 
         // select address
@@ -230,11 +260,11 @@ describe("Enrich", function() {
     it("Should ignore server `enrich:false` status", function() {
         $.Suggestions.resetTokens();
         this.instance.setOptions({
-            token: "456"
+            token: "456",
         });
         helpers.returnStatus(this.server, {
             search: true,
-            enrich: false
+            enrich: false,
         });
         this.server.requests.length = 0;
 
