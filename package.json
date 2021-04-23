@@ -12,7 +12,7 @@
         "url": "https://github.com/hflabs/suggestions-jquery.git"
     },
     "license": "MIT",
-    "dependencies": {
+    "peerDependencies": {
         "jquery": ">= 1.9"
     },
     "devDependencies": {
