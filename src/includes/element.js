@@ -16,7 +16,7 @@ var methods = {
         this.el
             // if it stops working, see https://stackoverflow.com/q/15738259
             // chrome is constantly changing this logic
-            .attr("autocomplete", "off")
+            .attr("autocomplete", "new-password")
             .attr("autocorrect", "off")
             .attr("autocapitalize", "off")
             .attr("spellcheck", "false")
