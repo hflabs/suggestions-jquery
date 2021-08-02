@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 21.7.0
+ * DaData.ru Suggestions jQuery plugin, version 21.8.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -5003,14 +5003,14 @@ notificator.on("assignSuggestions", methods$6.selectFoundSuggestion);
  */
 
 var optionsUsed$2 = {
-    bounds: null
+    bounds: null,
 };
 
 var methods$7 = {
     setupBounds: function() {
         this.bounds = {
             from: null,
-            to: null
+            to: null,
         };
     },
 
@@ -5022,8 +5022,7 @@ var methods$7 = {
             boundTo = newBounds[newBounds.length - 1],
             boundsOwn = [],
             boundIsOwn,
-            boundsAll = [],
-            indexTo;
+            boundsAll = [];
 
         if (that.type.dataComponents) {
             $.each(that.type.dataComponents, function() {
@@ -5033,12 +5032,11 @@ var methods$7 = {
             });
         }
 
-        if ($.inArray(boundFrom, boundsAvailable) === -1) {
+        if (boundsAvailable.indexOf(boundFrom) === -1) {
             boundFrom = null;
         }
 
-        indexTo = $.inArray(boundTo, boundsAvailable);
-        if (indexTo === -1 || indexTo === boundsAvailable.length - 1) {
+        if (boundsAvailable.indexOf(boundTo) === -1) {
             boundTo = null;
         }
 
@@ -5136,7 +5134,7 @@ var methods$7 = {
             kladr_id.substr(0, kladrFormat.digits) +
             new Array((kladrFormat.zeros || 0) + 1).join("0")
         );
-    }
+    },
 };
 
 $.extend(DEFAULT_OPTIONS, optionsUsed$2);
@@ -5271,7 +5269,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "21.7.0";
+Suggestions.version = "21.8.0";
 
 $.Suggestions = Suggestions;
 

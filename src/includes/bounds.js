@@ -9,14 +9,14 @@ import { notificator } from "./notificator";
  */
 
 var optionsUsed = {
-    bounds: null
+    bounds: null,
 };
 
 var methods = {
     setupBounds: function() {
         this.bounds = {
             from: null,
-            to: null
+            to: null,
         };
     },
 
@@ -28,8 +28,7 @@ var methods = {
             boundTo = newBounds[newBounds.length - 1],
             boundsOwn = [],
             boundIsOwn,
-            boundsAll = [],
-            indexTo;
+            boundsAll = [];
 
         if (that.type.dataComponents) {
             $.each(that.type.dataComponents, function() {
@@ -39,12 +38,11 @@ var methods = {
             });
         }
 
-        if ($.inArray(boundFrom, boundsAvailable) === -1) {
+        if (boundsAvailable.indexOf(boundFrom) === -1) {
             boundFrom = null;
         }
 
-        indexTo = $.inArray(boundTo, boundsAvailable);
-        if (indexTo === -1 || indexTo === boundsAvailable.length - 1) {
+        if (boundsAvailable.indexOf(boundTo) === -1) {
             boundTo = null;
         }
 
@@ -142,7 +140,7 @@ var methods = {
             kladr_id.substr(0, kladrFormat.digits) +
             new Array((kladrFormat.zeros || 0) + 1).join("0")
         );
-    }
+    },
 };
 
 $.extend(DEFAULT_OPTIONS, optionsUsed);
