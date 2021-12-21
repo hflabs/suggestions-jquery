@@ -372,8 +372,17 @@ var ADDRESS_COMPONENTS = [
             "block_type"
         ],
         forBounds: true,
+        forLocations: true,
+        kladrFormat: { digits: 19 },
+        fiasType: "house_fias_id"
+    },
+    {
+        id: "flat",
+        fields: ["flat", "flat_type", "flat_type_full"],
+        forBounds: true,
         forLocations: false,
-        kladrFormat: { digits: 19 }
+        kladrFormat: { digits: 19 },
+        fiasType: "flat_fias_id"
     }
 ];
 

@@ -111,7 +111,7 @@
             token: token,
             type: type,
             hint: false,
-            bounds: "house",
+            bounds: "house-flat",
             constraints: $street
         });
     });
