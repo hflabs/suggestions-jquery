@@ -84,7 +84,7 @@
 
         $("#url").suggestions({
             token: token,
-            url:
+            serviceUrl:
                 "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address1",
             type: type,
             hint: false,
@@ -115,5 +115,19 @@
                 console.log(suggestion);
             }
         });
+
+        // параметр division
+        var sug1712 = $("#sug-1712").suggestions({
+            token: token,
+            type: "ADDRESS",
+            division: $('[name="division"]:checked').val(),
+            count: 1
+        });
+
+        $('[name="division"]').on('change', function(){
+            if (sug1712) {
+                sug1712.suggestions().setOptions({division: $('[name="division"]:checked').val()})
+            }
+        });
     });
-})();
+})()
