@@ -2840,10 +2840,6 @@ Suggestions.prototype = {
         if (options.language) {
             params.language = options.language;
         }
-        
-        if (options.division) {
-            params.division = options.division;
-        }
 
         return $.extend(params, customParams);
     },
@@ -3586,13 +3582,6 @@ var methods$3 = {
 
         var query = that.type.getEnrichmentQuery(suggestion);
         var customParams = that.type.enrichmentParams;
-
-        if (that.options.division) {
-            customParams.division = that.options.division;
-        } else if ('division' in customParams) {
-            delete customParams.division;
-        } 
- 
         var requestOptions = {
             noCallbacks: true,
             useEnrichmentCache: true,

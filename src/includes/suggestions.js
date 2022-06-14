@@ -553,10 +553,6 @@ Suggestions.prototype = {
         if (options.language) {
             params.language = options.language;
         }
-        
-        if (options.division) {
-            params.division = options.division;
-        }
 
         return $.extend(params, customParams);
     },
