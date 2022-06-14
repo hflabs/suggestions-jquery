@@ -462,6 +462,8 @@ var ADDRESS_TYPE = {
                 data.street_type_full,
             house = collection_util
                 .compact([
+                    data.stead_type,
+                    data.stead,
                     data.house_type,
                     data.house,
                     data.block_type,

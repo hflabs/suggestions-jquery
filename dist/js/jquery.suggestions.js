@@ -1,5 +1,5 @@
 /**
- * DaData.ru Suggestions jQuery plugin, version 21.12.0
+ * DaData.ru Suggestions jQuery plugin, version 22.06.0
  *
  * DaData.ru Suggestions jQuery plugin is freely distributable under the terms of MIT-style license
  * Built on DevBridge Autocomplete for jQuery (https://github.com/devbridge/jQuery-Autocomplete)
@@ -1336,6 +1336,8 @@ var ADDRESS_TYPE = {
                 data.street_type_full,
             house = collection_util
                 .compact([
+                    data.stead_type,
+                    data.stead,
                     data.house_type,
                     data.house,
                     data.block_type,
@@ -5278,7 +5280,7 @@ notificator.on("assignSuggestions", show);
 
 Suggestions.defaultOptions = DEFAULT_OPTIONS;
 
-Suggestions.version = "21.12.0";
+Suggestions.version = "22.06.0";
 
 $.Suggestions = Suggestions;
 
