@@ -407,6 +407,9 @@ Suggestions.prototype = {
                 that.selectSuggestion(suggestion, 0, currentValue, {
                     hasBeenEnriched: true
                 });
+                if (!that.currentValue) {
+                    that.el.val(currentValue);
+                }
                 that.el.trigger("suggestions-fixdata", suggestion);
             })
             .fail(function() {
